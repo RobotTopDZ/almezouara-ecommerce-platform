@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+
+/* Product gallery styles */
+.product-gallery {
+  --swiper-theme-color: #E91E63;
+  --swiper-navigation-size: 24px;
+}
+
+.product-gallery .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-gallery .swiper-zoom-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* RTL support for Arabic */
+[dir="rtl"] .swiper-button-next {
+  left: 10px;
+  right: auto;
+}
+
+[dir="rtl"] .swiper-button-prev {
+  right: 10px;
+  left: auto;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E91E63;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d81b60;
+}
+
+/* Hide scrollbar utility class */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
