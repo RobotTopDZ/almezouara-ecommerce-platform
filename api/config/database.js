@@ -1,22 +1,38 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Database configuration for PlanetScale
+// Database configuration with flexible options for different providers (PlanetScale, Railway, etc.)
+// Supports either discrete env vars or a single DATABASE_URL.
+const useConnectionUrl = !!process.env.DATABASE_URL;
+
+// SSL configuration:
+// - If DATABASE_SSL === 'true', enable SSL
+// - If DATABASE_SSL_REJECT_UNAUTHORIZED === 'false', do not enforce CA verification (useful for some providers)
+const sslEnabled = (process.env.DATABASE_SSL || '').toLowerCase() === 'true' || (process.env.NODE_ENV === 'production' && !!process.env.VERCEL);
+const rejectUnauthorized = (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() === 'true';
+
+const baseConfig = useConnectionUrl
+  ? {
+      uri: process.env.DATABASE_URL,
+      ssl: sslEnabled ? { rejectUnauthorized } : false,
+    }
+  : {
+      host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
+      user: process.env.DATABASE_USERNAME || process.env.DB_USER || 'root',
+      password: process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '',
+      database: process.env.DATABASE_NAME || process.env.DB_NAME || 'almezouara_db',
+      port: Number(process.env.DATABASE_PORT || process.env.DB_PORT || 3306),
+      ssl: sslEnabled ? { rejectUnauthorized } : false,
+    };
+
 const dbConfig = {
-  host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
-  user: process.env.DATABASE_USERNAME || process.env.DB_USER || 'root',
-  password: process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.DATABASE_NAME || process.env.DB_NAME || 'almezouara_db',
-  port: process.env.DATABASE_PORT || process.env.DB_PORT || 3306,
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: true
-  } : false,
+  ...baseConfig,
   waitForConnections: true,
   connectionLimit: process.env.NODE_ENV === 'production' ? 20 : 10,
   queueLimit: 0,
   acquireTimeout: 60000,
   timeout: 60000,
-  reconnect: true
+  reconnect: true,
 };
 
 // Create connection pool
