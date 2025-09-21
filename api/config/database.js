@@ -6,9 +6,9 @@ require('dotenv').config();
 const useConnectionUrl = !!process.env.DATABASE_URL;
 
 // SSL configuration:
-// - If DATABASE_SSL === 'true', enable SSL
+// - If DATABASE_SSL === 'true', enable SSL (default is disabled)
 // - If DATABASE_SSL_REJECT_UNAUTHORIZED === 'false', do not enforce CA verification (useful for some providers)
-const sslEnabled = (process.env.DATABASE_SSL || '').toLowerCase() === 'true' || (process.env.NODE_ENV === 'production' && !!process.env.VERCEL);
+const sslEnabled = (process.env.DATABASE_SSL || '').toLowerCase() === 'true';
 const rejectUnauthorized = (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() === 'true';
 
 const baseConfig = useConnectionUrl

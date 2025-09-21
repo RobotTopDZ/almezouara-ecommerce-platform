@@ -121,15 +121,29 @@ git push origin main
 4. Vercel will auto-detect it's a Vite + Node.js project
 
 ### 2.3 Configure Environment Variables
-In Vercel dashboard, go to Settings → Environment Variables:
+In Vercel dashboard, go to Settings → Environment Variables. You can use either discrete fields (HOST/USER/etc.) or a single connection URL.
 
+Option A — Discrete env vars (PlanetScale or any MySQL)
 ```
-DATABASE_HOST=your-planetscale-host
-DATABASE_USERNAME=your-planetscale-username
-DATABASE_PASSWORD=your-planetscale-password
+DATABASE_HOST=your-db-host
+DATABASE_USERNAME=your-db-username
+DATABASE_PASSWORD=your-db-password
 DATABASE_NAME=almezouara-ecommerce
 DATABASE_PORT=3306
 NODE_ENV=production
+# Allow your frontend domain(s) in production (comma-separated if multiple)
+CORS_ORIGIN=https://your-app.vercel.app
+# Enable only if your provider requires SSL (most free Railway envs do not)
+DATABASE_SSL=false
+```
+
+Option B — Single connection URL (e.g., Railway):
+```
+DATABASE_URL=mysql://USER:PASSWORD@HOST:PORT/DBNAME
+NODE_ENV=production
+CORS_ORIGIN=https://your-app.vercel.app
+# Set to true only if your provider requires SSL
+DATABASE_SSL=false
 ```
 
 ### 2.4 Deploy
@@ -195,4 +209,52 @@ After initial setup:
 ---
 
 🎉 **Congratulations!** Your e-commerce app is now live on Vercel with PlanetScale!
+
+
+---
+
+# 🚂 Railway Deployment Guide (Frontend + Backend + MySQL)
+
+If you prefer a single platform to host your backend and frontend together and use a free MySQL alternative, Railway is a great choice. The repo is already compatible with Railway via `server.js` and updated scripts in `package.json`.
+
+## ✅ What Railway will host
+- Node process that serves:
+  - Your API from `api/` (mounted as `/api/*`)
+  - Your built React frontend from `/dist` (served by `server.js`)
+- A separate MySQL service (you must provision it and connect via env vars)
+
+## 🧭 Steps
+
+1. Create project and deploy from GitHub
+   - Go to https://railway.app → New Project → Deploy from GitHub → select your repo
+   - Railway will run `npm install` then `npm start`
+   - `npm start` runs `prestart` (build) and then `node server.js`
+
+2. Provision MySQL
+   - In your Railway project → New → Database → MySQL
+   - Open the MySQL service → Connect → copy the `mysql://USER:PASS@HOST:PORT/DB` URL
+
+3. Configure environment variables on the Web service
+   - On the service running your repo, set:
+     - `DATABASE_URL` = mysql://USER:PASS@HOST:PORT/DB
+     - `DATABASE_SSL` = false (start with false; set to true only if provider requires it)
+     - `CORS_ORIGIN` = https://<your-railway-subdomain>.up.railway.app
+     - Optional: `NODE_ENV` = production
+   - If you prefer discrete variables, you can set `DATABASE_HOST`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_NAME`, `DATABASE_PORT` instead of `DATABASE_URL`.
+
+4. Redeploy
+   - Trigger a deploy (push a commit or click Deploy)
+   - Check Railway logs. You should see:
+     - "Database connected successfully"
+     - "Database tables initialized successfully"
+     - "Shipping data migration completed successfully"
+
+5. Test
+   - Open your service URL → should load the React app
+   - Open `/api` → should respond with "Backend server is running"
+
+## 🔐 Notes
+- SSL: By default SSL is disabled. If your DB requires SSL, set `DATABASE_SSL=true` and, if certificate errors occur, set `DATABASE_SSL_REJECT_UNAUTHORIZED=false`.
+- CORS: `CORS_ORIGIN` accepts multiple comma-separated domains if needed.
+- Monorepo not required: This project runs as a single Node service via `server.js`.
 

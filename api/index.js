@@ -6,9 +6,14 @@ const { migrateShippingData } = require('./scripts/migrateShippingData');
 const app = express();
 
 // Optimized CORS configuration
+// In production, allow origins provided via CORS_ORIGIN (comma-separated). In dev, allow all.
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+  : ['https://your-domain.vercel.app'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? ['https://your-domain.vercel.app'] : true,
-  credentials: true
+  origin: process.env.NODE_ENV === 'production' ? corsOrigins : true,
+  credentials: true,
 }));
 
 // Optimized JSON parsing
