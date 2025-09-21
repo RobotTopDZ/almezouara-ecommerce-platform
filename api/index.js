@@ -32,9 +32,13 @@ async function startServer() {
     await initializeDatabase();
     console.log('✅ Database tables initialized successfully');
 
-    // Migrate shipping data
-    await migrateShippingData();
-    console.log('✅ Shipping data migration completed successfully');
+    // Migrate shipping data (optional): enable only when needed to seed DB
+    if (process.env.MIGRATE_SHIPPING_DATA === 'true') {
+      await migrateShippingData();
+      console.log('✅ Shipping data migration completed successfully');
+    } else {
+      console.log('ℹ️ Shipping data migration skipped (set MIGRATE_SHIPPING_DATA="true" to enable)');
+    }
 
     console.log('🚀 Application initialized successfully');
   } catch (error) {
