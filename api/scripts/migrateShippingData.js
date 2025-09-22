@@ -1,10 +1,15 @@
 const { pool } = require('../config/database');
-const { stopdeskFees, domicileFees } = require('../../src/data/shippingData');
+const path = require('path');
+const { pathToFileURL } = require('url');
 
 const migrateShippingData = async () => {
   try {
     const connection = await pool.getConnection();
     
+    // Dynamically import ESM shipping data from the frontend only when migration is enabled
+    const shippingDataPath = path.resolve(__dirname, '../../src/data/shippingData.js');
+    const { stopdeskFees, domicileFees } = await import(pathToFileURL(shippingDataPath).href);
+
     console.log('🔄 Migrating stopdesk fees...');
     for (const fee of stopdeskFees) {
       await connection.execute(

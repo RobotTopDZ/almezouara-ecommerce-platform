@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 3000;
 // Trust proxy when running behind Railway's proxy
 app.set('trust proxy', 1);
 
-// Mount the API app at root; it already registers routes under '/api/*'
-app.use(appApi);
+// Mount the API app under '/api' to avoid intercepting the frontend root
+app.use('/api', appApi);
 
 // Serve static files from Vite build
 const distPath = path.join(__dirname, 'dist');

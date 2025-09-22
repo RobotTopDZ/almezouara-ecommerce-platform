@@ -11,28 +11,40 @@ const useConnectionUrl = !!process.env.DATABASE_URL;
 const sslEnabled = (process.env.DATABASE_SSL || '').toLowerCase() === 'true';
 const rejectUnauthorized = (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() === 'true';
 
-const baseConfig = useConnectionUrl
-  ? {
-      uri: process.env.DATABASE_URL,
-      ssl: sslEnabled ? { rejectUnauthorized } : false,
-    }
-  : {
-      host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
-      user: process.env.DATABASE_USERNAME || process.env.DB_USER || 'root',
-      password: process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '',
-      database: process.env.DATABASE_NAME || process.env.DB_NAME || 'almezouara_db',
-      port: Number(process.env.DATABASE_PORT || process.env.DB_PORT || 3306),
+let baseConfig;
+if (useConnectionUrl) {
+  try {
+    const url = new URL(process.env.DATABASE_URL);
+    // Example: mysql://USER:PASSWORD@HOST:PORT/DBNAME?ssl=true
+    baseConfig = {
+      host: url.hostname,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.replace(/^\//, ''),
+      port: Number(url.port || 3306),
       ssl: sslEnabled ? { rejectUnauthorized } : false,
     };
+  } catch (e) {
+    console.warn('Invalid DATABASE_URL, falling back to discrete variables:', e.message);
+  }
+}
+
+if (!baseConfig) {
+  baseConfig = {
+    host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
+    user: process.env.DATABASE_USERNAME || process.env.DB_USER || 'root',
+    password: process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '',
+    database: process.env.DATABASE_NAME || process.env.DB_NAME || 'almezouara_db',
+    port: Number(process.env.DATABASE_PORT || process.env.DB_PORT || 3306),
+    ssl: sslEnabled ? { rejectUnauthorized } : false,
+  };
+}
 
 const dbConfig = {
   ...baseConfig,
   waitForConnections: true,
   connectionLimit: process.env.NODE_ENV === 'production' ? 20 : 10,
   queueLimit: 0,
-  acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true,
 };
 
 // Create connection pool
@@ -68,13 +80,16 @@ const initializeDatabase = async () => {
       )
     `);
 
-    // Create promotions table
+    // Create promotions table (aligned with app usage)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS promotions (
         id INT AUTO_INCREMENT PRIMARY KEY,
         phone VARCHAR(20) NOT NULL,
         percentage DECIMAL(5,2) NOT NULL,
         description TEXT,
+        usage_limit INT DEFAULT 1,
+        usage_count INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (phone) REFERENCES accounts(phone) ON DELETE CASCADE
       )

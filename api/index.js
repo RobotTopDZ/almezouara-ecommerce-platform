@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const { pool, testConnection, initializeDatabase } = require('./config/database');
-const { migrateShippingData } = require('./scripts/migrateShippingData');
+
+// Migration script is required lazily to avoid loading ESM frontend data at startup
 
 const app = express();
 
@@ -34,6 +35,7 @@ async function startServer() {
 
     // Migrate shipping data (optional): enable only when needed to seed DB
     if (process.env.MIGRATE_SHIPPING_DATA === 'true') {
+      const { migrateShippingData } = require('./scripts/migrateShippingData');
       await migrateShippingData();
       console.log('✅ Shipping data migration completed successfully');
     } else {
@@ -55,12 +57,13 @@ const promotionsRouter = require('./promotions');
 const adminRouter = require('./admin');
 
 // Use route modules
-app.use('/api/orders', ordersRouter);
-app.use('/api/promotions', promotionsRouter);
-app.use('/api/admin', adminRouter);
+// Mount routers without '/api' prefix because this app is mounted at '/api' in server.js
+app.use('/orders', ordersRouter);
+app.use('/promotions', promotionsRouter);
+app.use('/admin', adminRouter);
 
 // Health check
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
   res.send('Backend server is running');
 });
 
