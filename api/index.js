@@ -387,7 +387,7 @@ app.get('/debug', (req, res) => {
 });
 
 // Database diagnostic endpoint
-app.get('/debug/database', async (req, res) => {
+app.get('/debug-database', async (req, res) => {
   const { testConnection } = require('./config/database');
   
   try {
@@ -437,6 +437,57 @@ app.use((err, req, res, next) => {
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
+});
+
+// Populate shipping data endpoint (admin only)
+app.post('/populate-shipping', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('Starting shipping data population...');
+    
+    // Import real data
+    const { completeDomicileFees } = require('../src/data/completeDomicileData.js');
+    const { stopdeskFees } = require('../src/data/shippingData.js');
+    
+    // Clear existing data
+    await pool.execute('DELETE FROM domicile_fees');
+    await pool.execute('DELETE FROM stopdesk_fees');
+    
+    // Insert domicile fees
+    let domicileCount = 0;
+    for (const fee of completeDomicileFees) {
+      await pool.execute(
+        'INSERT INTO domicile_fees (commune, wilaya, prix) VALUES (?, ?, ?)',
+        [fee.commune, fee.wilaya, fee.prix]
+      );
+      domicileCount++;
+    }
+    
+    // Insert stopdesk fees
+    let stopdeskCount = 0;
+    for (const fee of stopdeskFees) {
+      await pool.execute(
+        'INSERT INTO stopdesk_fees (nom_desk, commune, wilaya, prix) VALUES (?, ?, ?, ?)',
+        [fee.nomDesk, fee.commune, fee.wilaya, fee.prix]
+      );
+      stopdeskCount++;
+    }
+    
+    res.json({
+      success: true,
+      message: 'Shipping data populated successfully',
+      domicileCount,
+      stopdeskCount,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Populate shipping data error:', error);
+    res.status(500).json({ error: 'Failed to populate shipping data', details: error.message });
+  }
 });
 
 // 404 handler for API routes
