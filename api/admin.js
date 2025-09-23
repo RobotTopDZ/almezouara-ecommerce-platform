@@ -3,6 +3,40 @@ const { pool } = require('./config/database');
 
 const router = express.Router();
 
+// Simple admin authentication middleware
+const authenticateAdmin = (req, res, next) => {
+  // For now, we'll use a simple approach
+  // In production, you should use proper JWT tokens
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No authorization header' });
+  }
+  
+  // Simple check - in production use proper JWT verification
+  if (authHeader === 'Bearer admin-token') {
+    next();
+  } else {
+    res.status(401).json({ error: 'Invalid admin token' });
+  }
+};
+
+// Admin login endpoint
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  // Simple hardcoded admin credentials - replace with database lookup
+  if (username === 'admin' && password === 'admin123') {
+    res.json({ 
+      success: true, 
+      token: 'admin-token',
+      user: { username: 'admin', role: 'admin' }
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+});
+
 // Get all orders (admin)
 router.get('/orders', async (req, res) => {
   try {

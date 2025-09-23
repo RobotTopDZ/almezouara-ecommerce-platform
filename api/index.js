@@ -106,6 +106,84 @@ app.use('/orders', ordersRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/admin', adminRouter);
 
+// Basic product endpoints
+app.get('/products', async (req, res) => {
+  try {
+    // Mock products data for now - replace with database query
+    const products = [
+      {
+        id: 1,
+        name: 'Robe Élégante',
+        price: 2500,
+        image: '/images/IMG_0630-scaled.jpeg',
+        category: 'robes',
+        description: 'Belle robe élégante pour toutes occasions'
+      },
+      {
+        id: 2,
+        name: 'Ensemble Moderne',
+        price: 3200,
+        image: '/images/IMG_6710-scaled.jpeg',
+        category: 'ensembles',
+        description: 'Ensemble moderne et confortable'
+      },
+      {
+        id: 3,
+        name: 'Tenue Traditionnelle',
+        price: 4500,
+        image: '/images/IMG_6789-scaled.jpeg',
+        category: 'traditionnel',
+        description: 'Tenue traditionnelle avec broderies'
+      }
+    ];
+    
+    res.json({ products });
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({ error: 'Failed to get products' });
+  }
+});
+
+// Get single product
+app.get('/products/:id', async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    // Mock single product - replace with database query
+    const product = {
+      id: productId,
+      name: 'Produit ' + productId,
+      price: 2500 + (productId * 100),
+      image: '/images/IMG_0630-scaled.jpeg',
+      category: 'robes',
+      description: 'Description du produit ' + productId,
+      sizes: ['S', 'M', 'L', 'XL'],
+      colors: ['Noir', 'Blanc', 'Rouge']
+    };
+    
+    res.json({ product });
+  } catch (error) {
+    console.error('Get product error:', error);
+    res.status(500).json({ error: 'Failed to get product' });
+  }
+});
+
+// Get categories
+app.get('/categories', async (req, res) => {
+  try {
+    const categories = [
+      { id: 1, name: 'Robes', slug: 'robes', image: '/images/IMG_0630-scaled.jpeg' },
+      { id: 2, name: 'Ensembles', slug: 'ensembles', image: '/images/IMG_6710-scaled.jpeg' },
+      { id: 3, name: 'Traditionnel', slug: 'traditionnel', image: '/images/IMG_6789-scaled.jpeg' },
+      { id: 4, name: 'Moderne', slug: 'moderne', image: '/images/IMG_9260-scaled.jpeg' }
+    ];
+    
+    res.json({ categories });
+  } catch (error) {
+    console.error('Get categories error:', error);
+    res.status(500).json({ error: 'Failed to get categories' });
+  }
+});
+
 // Root route for API
 app.get('/', (req, res) => {
   res.json({ 

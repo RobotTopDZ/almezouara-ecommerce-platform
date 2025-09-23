@@ -78,6 +78,28 @@ if (!distExists) {
   console.log('✅ Static file serving configured - Frontend will be served at root');
 }
 
+// Serve images from the images directory
+const imagesPath = path.join(__dirname, 'images');
+if (fs.existsSync(imagesPath)) {
+  app.use('/images', express.static(imagesPath, {
+    maxAge: '7d',
+    etag: true
+  }));
+  console.log('✅ Images directory served at /images');
+} else {
+  console.warn('⚠️  Images directory not found');
+}
+
+// Serve any additional static assets
+const publicPath = path.join(__dirname, 'public');
+if (fs.existsSync(publicPath)) {
+  app.use('/public', express.static(publicPath, {
+    maxAge: '7d',
+    etag: true
+  }));
+  console.log('✅ Public directory served at /public');
+}
+
 // Mount API (non-blocking)
 let apiLoaded = false;
 try {

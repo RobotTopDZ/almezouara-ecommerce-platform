@@ -1,11 +1,13 @@
 import { create } from 'zustand';
+import axios from 'axios';
 
-const HARD_CODED_USERNAME = 'robottopdz';
-const HARD_CODED_PASSWORD = 'Osamu13579*+-/';
+// API base URL - will work in both development and production
+const API_BASE = '/api';
 
 export const useAdminStore = create((set, get) => ({
   isAuthenticated: false,
   adminUser: null,
+  token: null,
 
   // Basic datasets managed via admin UI
   shippingFees: [], // { id, wilaya, city, domicilePrice, stopdeskPrice }
@@ -15,14 +17,49 @@ export const useAdminStore = create((set, get) => ({
   promotions: [], // { id, accountId | null, percentage, description }
 
   login: async (username, password) => {
-    if (username === HARD_CODED_USERNAME && password === HARD_CODED_PASSWORD) {
-      set({ isAuthenticated: true, adminUser: { username } });
-      return { ok: true };
+    try {
+      const response = await axios.post(`${API_BASE}/admin/login`, {
+        username,
+        password
+      });
+      
+      if (response.data.success) {
+        const { token, user } = response.data;
+        set({ 
+          isAuthenticated: true, 
+          adminUser: user, 
+          token 
+        });
+        
+        // Store token in localStorage for persistence
+        localStorage.setItem('adminToken', token);
+        
+        return { ok: true };
+      }
+      
+      return { ok: false, error: 'Invalid credentials' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { ok: false, error: error.response?.data?.error || 'Login failed' };
     }
-    return { ok: false, error: 'Invalid credentials' };
   },
 
-  logout: () => set({ isAuthenticated: false, adminUser: null }),
+  logout: () => {
+    localStorage.removeItem('adminToken');
+    set({ isAuthenticated: false, adminUser: null, token: null });
+  },
+  
+  // Initialize auth from localStorage
+  initAuth: () => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      set({ 
+        isAuthenticated: true, 
+        token,
+        adminUser: { username: 'admin' } // You might want to decode this from token
+      });
+    }
+  },
 
   // Shipping fees CRUD
   addShippingFee: (fee) => set({ shippingFees: [...get().shippingFees, { id: crypto.randomUUID(), ...fee }] }),
