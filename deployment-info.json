@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-09-23T10:32:12.540Z",
+  "nodeVersion": "v22.18.0",
+  "platform": "linux",
+  "projectName": "almezouara-ecommerce",
+  "projectVersion": "1.0.0",
+  "frontendBuilt": true,
+  "distContents": [
+    "assets",
+    "index.html",
+    "manifest.webmanifest",
+    "registerSW.js",
+    "sw.js",
+    "workbox-5ffe50d4.js"
+  ],
+  "environment": {
+    "NODE_ENV": "not set",
+    "PORT": "not set"
+  }
+}
