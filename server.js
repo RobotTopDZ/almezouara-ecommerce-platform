@@ -38,13 +38,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint for basic connectivity test
-app.get('/', (req, res) => {
-  console.log('🏠 Root endpoint requested');
+// API status endpoint (moved from root)
+app.get('/api/status', (req, res) => {
+  console.log('📊 API status requested');
   res.status(200).json({
-    message: 'Almezouara E-Commerce Server is running',
+    message: 'Almezouara E-Commerce API is running',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    api_loaded: apiLoaded
   });
 });
 
@@ -55,14 +56,26 @@ console.log(`📁 Dist folder exists: ${distExists}`);
 
 if (!distExists) {
   console.warn('⚠️  Dist folder not found - frontend will not be served');
+  
+  // Fallback root route when no frontend build exists
+  app.get('/', (req, res) => {
+    res.status(503).json({
+      error: 'Frontend not built',
+      message: 'Please run npm run build to generate the frontend',
+      timestamp: new Date().toISOString()
+    });
+  });
 } else {
   console.log(`📁 Dist path: ${distPath}`);
-  // Serve static files from Vite build
+  
+  // Serve static files from Vite build with proper configuration
   app.use(express.static(distPath, {
     maxAge: '1d',
-    etag: false
+    etag: false,
+    index: 'index.html'
   }));
-  console.log('✅ Static file serving configured');
+  
+  console.log('✅ Static file serving configured - Frontend will be served at root');
 }
 
 // Mount API (non-blocking)
