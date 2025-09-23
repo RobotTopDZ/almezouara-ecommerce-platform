@@ -231,27 +231,48 @@ app.post('/products', async (req, res) => {
 // Get shipping fees by wilaya and city
 app.get('/shipping-fees', async (req, res) => {
   try {
-    const { wilaya, city } = req.query;
+    const { wilaya, city, type = 'domicile' } = req.query;
     
-    console.log('Shipping fees request:', { wilaya, city });
+    console.log('Shipping fees request:', { wilaya, city, type });
     
-    // Mock shipping data for testing
-    const mockShippingFees = [
-      { wilaya: 'Alger', commune: 'Alger Centre', prix: 400 },
-      { wilaya: 'Alger', commune: 'Bab Ezzouar', prix: 450 },
-      { wilaya: 'Alger', commune: 'Birtouta', prix: 500 },
-      { wilaya: 'Oran', commune: 'Oran', prix: 600 },
-      { wilaya: 'Oran', commune: 'Es Senia', prix: 650 },
-      { wilaya: 'Constantine', commune: 'Constantine', prix: 700 },
-      { wilaya: 'Blida', commune: 'Blida', prix: 450 },
-      { wilaya: 'Annaba', commune: 'Annaba', prix: 800 },
-      { wilaya: 'Sétif', commune: 'Sétif', prix: 750 },
-      { wilaya: 'Tizi Ouzou', commune: 'Tizi Ouzou', prix: 550 }
-    ];
+    // Try to get from database first
+    let shippingFees = [];
+    
+    try {
+      if (pool) {
+        const tableName = type === 'stopdesk' ? 'stopdesk_fees' : 'domicile_fees';
+        const [dbFees] = await pool.execute(
+          `SELECT * FROM ${tableName} ORDER BY wilaya, commune`
+        );
+        shippingFees = dbFees.map(fee => ({
+          wilaya: fee.wilaya,
+          commune: fee.commune,
+          prix: parseFloat(fee.prix)
+        }));
+      }
+    } catch (dbError) {
+      console.log('Database fees not available, using fallback data');
+    }
+    
+    // Fallback to mock data if database is empty
+    if (shippingFees.length === 0) {
+      shippingFees = [
+        { wilaya: 'Alger', commune: 'Alger Centre', prix: 400 },
+        { wilaya: 'Alger', commune: 'Bab Ezzouar', prix: 450 },
+        { wilaya: 'Alger', commune: 'Birtouta', prix: 500 },
+        { wilaya: 'Oran', commune: 'Oran', prix: 600 },
+        { wilaya: 'Oran', commune: 'Es Senia', prix: 650 },
+        { wilaya: 'Constantine', commune: 'Constantine', prix: 700 },
+        { wilaya: 'Blida', commune: 'Blida', prix: 450 },
+        { wilaya: 'Annaba', commune: 'Annaba', prix: 800 },
+        { wilaya: 'Sétif', commune: 'Sétif', prix: 750 },
+        { wilaya: 'Tizi Ouzou', commune: 'Tizi Ouzou', prix: 550 }
+      ];
+    }
     
     if (wilaya && city) {
       // Find specific city in wilaya
-      const shippingFee = mockShippingFees.find(
+      const shippingFee = shippingFees.find(
         fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase() && 
                fee.commune.toLowerCase() === city.toLowerCase()
       );
@@ -282,7 +303,7 @@ app.get('/shipping-fees', async (req, res) => {
     
     if (wilaya) {
       // Get all cities in wilaya
-      const wilayaFees = mockShippingFees.filter(
+      const wilayaFees = shippingFees.filter(
         fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase()
       );
       
@@ -309,7 +330,7 @@ app.get('/shipping-fees', async (req, res) => {
     }
     
     // Get all wilayas
-    const wilayas = [...new Set(mockShippingFees.map(fee => fee.wilaya))];
+    const wilayas = [...new Set(shippingFees.map(fee => fee.wilaya))];
     res.json({
       success: true,
       wilayas: wilayas.sort()

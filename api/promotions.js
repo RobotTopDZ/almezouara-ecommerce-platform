@@ -39,8 +39,9 @@ router.post('/', async (req, res) => {
         // Create account first
         await pool.execute(
           'INSERT INTO accounts (phone, name, password) VALUES (?, ?, ?)',
-          [phoneNumber, 'Customer', '']
+          [phoneNumber, 'Customer', 'default123']
         );
+        console.log('Created new account for phone:', phoneNumber);
       }
       
       // Check if promotion already exists for this phone
