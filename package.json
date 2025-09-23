@@ -23,7 +23,9 @@
     "db:test-railway": "node scripts/test-railway-connection.js",
     "db:populate": "node scripts/populate-shipping-data.js",
     "test:all": "node scripts/test-all-functions.js",
-    "test:production": "TEST_URL=https://almezouara-ecommerce-platform-production.up.railway.app node scripts/test-all-functions.js"
+    "test:production": "TEST_URL=https://almezouara-ecommerce-platform-production.up.railway.app node scripts/test-all-functions.js",
+    "test:simple": "node scripts/test-api-simple.js",
+    "migrate:shipping": "node scripts/migrate-real-shipping-data.js"
   },
   "keywords": [
     "ecommerce",

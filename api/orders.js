@@ -26,6 +26,7 @@ router.post('/', async (req, res) => {
     // Try database operation, fallback to mock if fails
     try {
       if (!pool) {
+        console.log('No database pool available, using mock mode');
         throw new Error('No database connection');
       }
       
