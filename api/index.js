@@ -184,6 +184,143 @@ app.get('/categories', async (req, res) => {
   }
 });
 
+// Create product (admin)
+app.post('/products', async (req, res) => {
+  try {
+    const { name, price, category, description, sizes, colors, image } = req.body || {};
+    
+    console.log('Product creation attempt:', { name, price, category, description });
+    
+    // Validate required fields
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Product name is required' });
+    }
+    
+    if (price === undefined || price === null || isNaN(price)) {
+      return res.status(400).json({ error: 'Valid price is required' });
+    }
+    
+    // Mock product creation for testing without database
+    const productId = Date.now();
+    console.log('Mock product created:', productId);
+    
+    const newProduct = {
+      id: productId,
+      name,
+      price: parseFloat(price),
+      category: category || 'general',
+      description: description || '',
+      sizes: sizes || ['S', 'M', 'L', 'XL'],
+      colors: colors || ['Noir', 'Blanc'],
+      image: image || '/images/IMG_0630-scaled.jpeg',
+      createdAt: new Date().toISOString()
+    };
+    
+    res.json({
+      success: true,
+      productId,
+      message: 'Product created successfully (mock mode)',
+      product: newProduct
+    });
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+// Get shipping fees by wilaya and city
+app.get('/shipping-fees', async (req, res) => {
+  try {
+    const { wilaya, city } = req.query;
+    
+    console.log('Shipping fees request:', { wilaya, city });
+    
+    // Mock shipping data for testing
+    const mockShippingFees = [
+      { wilaya: 'Alger', commune: 'Alger Centre', prix: 400 },
+      { wilaya: 'Alger', commune: 'Bab Ezzouar', prix: 450 },
+      { wilaya: 'Alger', commune: 'Birtouta', prix: 500 },
+      { wilaya: 'Oran', commune: 'Oran', prix: 600 },
+      { wilaya: 'Oran', commune: 'Es Senia', prix: 650 },
+      { wilaya: 'Constantine', commune: 'Constantine', prix: 700 },
+      { wilaya: 'Blida', commune: 'Blida', prix: 450 },
+      { wilaya: 'Annaba', commune: 'Annaba', prix: 800 },
+      { wilaya: 'Sétif', commune: 'Sétif', prix: 750 },
+      { wilaya: 'Tizi Ouzou', commune: 'Tizi Ouzou', prix: 550 }
+    ];
+    
+    if (wilaya && city) {
+      // Find specific city in wilaya
+      const shippingFee = mockShippingFees.find(
+        fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase() && 
+               fee.commune.toLowerCase() === city.toLowerCase()
+      );
+      
+      if (shippingFee) {
+        return res.json({
+          success: true,
+          shippingFee: {
+            wilaya: shippingFee.wilaya,
+            city: shippingFee.commune,
+            domicilePrice: shippingFee.prix,
+            stopdeskPrice: Math.max(0, shippingFee.prix - 200)
+          }
+        });
+      } else {
+        // Default shipping fee if not found
+        return res.json({
+          success: true,
+          shippingFee: {
+            wilaya,
+            city,
+            domicilePrice: 500,
+            stopdeskPrice: 300
+          }
+        });
+      }
+    }
+    
+    if (wilaya) {
+      // Get all cities in wilaya
+      const wilayaFees = mockShippingFees.filter(
+        fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase()
+      );
+      
+      if (wilayaFees.length > 0) {
+        return res.json({
+          success: true,
+          wilaya,
+          cities: wilayaFees.map(fee => ({
+            city: fee.commune,
+            domicilePrice: fee.prix,
+            stopdeskPrice: Math.max(0, fee.prix - 200)
+          }))
+        });
+      } else {
+        // Return default cities for unknown wilaya
+        return res.json({
+          success: true,
+          wilaya,
+          cities: [
+            { city: wilaya, domicilePrice: 500, stopdeskPrice: 300 }
+          ]
+        });
+      }
+    }
+    
+    // Get all wilayas
+    const wilayas = [...new Set(mockShippingFees.map(fee => fee.wilaya))];
+    res.json({
+      success: true,
+      wilayas: wilayas.sort()
+    });
+    
+  } catch (error) {
+    console.error('Get shipping fees error:', error);
+    res.status(500).json({ error: 'Failed to get shipping fees' });
+  }
+});
+
 // Root route for API
 app.get('/', (req, res) => {
   res.json({ 

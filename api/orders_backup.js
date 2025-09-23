@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
         // Update order totals
         await pool.execute(
           'UPDATE orders SET total = total + ?, product_price = product_price + ? WHERE id = ?',
-          [total, productPrice || 0, existingOrder.id]
+          [total, productPrice, existingOrder.id]
         );
         
         return res.json({ 
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
         await pool.execute(`
           INSERT INTO orders (id, phone, date, total, status, delivery_method, address, full_name, wilaya, city, shipping_cost, product_price, discount_percentage)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, today, total, 'processing', deliveryMethod, address, fullName, wilaya, city, shippingCost || 0, productPrice || 0, discountPercentage || 0]);
+        `, [orderId, phoneNumber || null, today, total, 'processing', deliveryMethod, address, fullName, wilaya, city, shippingCost, productPrice, discountPercentage || 0]);
         
         // Add order items
         for (const item of items) {
@@ -128,39 +128,84 @@ router.post('/', async (req, res) => {
         }
       });
     }
+    
+    if (existingOrder) {
+      // Add items to existing order (same-day grouping)
+      for (const item of items) {
+        await pool.execute(`
+          INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [existingOrder.id, item.id || null, item.name || '', item.price || 0, item.quantity || 1, item.image || null, item.color || null, item.size || null]);
+      }
+      
+      // Update order totals
+      await pool.execute(
+        'UPDATE orders SET total = total + ?, product_price = product_price + ? WHERE id = ?',
+        [total, productPrice, existingOrder.id]
+      );
+      
+      return res.json({ 
+        ok: true, 
+        order: { ...existingOrder, total: existingOrder.total + total, productPrice: existingOrder.productPrice + productPrice }, 
+        message: 'Items added to existing order for today',
+        orderType: 'merged'
+      });
+    } else {
+      // Create new order
+      await pool.execute(`
+        INSERT INTO orders (id, phone, date, total, status, delivery_method, address, full_name, wilaya, city, shipping_cost, product_price, discount_percentage)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [orderId, phoneNumber || null, today, total, 'processing', deliveryMethod, address, fullName, wilaya, city, shippingCost, productPrice, discountPercentage || 0]);
+      
+      // Add order items
+      for (const item of items) {
+        await pool.execute(`
+          INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, item.id || null, item.name || '', item.price || 0, item.quantity || 1, item.image || null, item.color || null, item.size || null]);
+      }
+      
+      // Create customer account if phone provided and doesn't exist
+      if (phoneNumber) {
+        const [existingAccount] = await pool.execute(
+          'SELECT phone FROM accounts WHERE phone = ?',
+          [phoneNumber]
+        );
+        
+        if (existingAccount.length === 0) {
+          await pool.execute(
+            'INSERT INTO accounts (phone, name, password) VALUES (?, ?, ?)',
+            [phoneNumber, fullName, '']
+          );
+        }
+      }
+      
+      const order = { 
+        id: orderId, 
+        date: today, 
+        total, 
+        status: 'processing', 
+        items, 
+        deliveryMethod, 
+        address, 
+        fullName, 
+        wilaya,
+        city,
+        phoneNumber,
+        shippingCost,
+        productPrice,
+        discountPercentage: discountPercentage || 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      res.json({ ok: true, order, orderType: 'new' });
+    }
   } catch (error) {
     console.error('Order creation error:', error);
     res.status(500).json({ 
-      error: 'Failed to create order',
-      details: error.message 
+      error: 'Failed to create order: ' + error.message,
+      details: error.message
     });
-  }
-});
-
-// Get orders (for admin)
-router.get('/', async (req, res) => {
-  try {
-    if (!pool) {
-      return res.json({ orders: [] });
-    }
-    
-    const [orders] = await pool.execute(`
-      SELECT o.*, 
-             GROUP_CONCAT(
-               CONCAT(oi.product_name, ' (', oi.quantity, 'x)')
-               SEPARATOR ', '
-             ) as items_summary
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      GROUP BY o.id
-      ORDER BY o.created_at DESC
-      LIMIT 100
-    `);
-
-    res.json({ orders });
-  } catch (error) {
-    console.error('Get orders error:', error);
-    res.json({ orders: [] });
   }
 });
 
