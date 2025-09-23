@@ -50,21 +50,28 @@ const dbConfig = {
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Test database connection
+// Test database connection (non-blocking)
 const testConnection = async () => {
   try {
-    const connection = await pool.getConnection();
+    // Add timeout to prevent hanging
+    const connection = await Promise.race([
+      pool.getConnection(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout')), 10000)
+      )
+    ]);
+    
     console.log('✅ Database connected successfully');
     console.log(`📊 Connected to: ${baseConfig.host}:${baseConfig.port}/${baseConfig.database}`);
     connection.release();
     return true;
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
-    console.error('🔧 Database config:', {
+    console.error('🔧 Database config (sanitized):', {
       host: baseConfig.host,
       port: baseConfig.port,
       database: baseConfig.database,
-      user: baseConfig.user,
+      user: baseConfig.user ? '***' : 'not set',
       ssl: baseConfig.ssl
     });
     return false;
