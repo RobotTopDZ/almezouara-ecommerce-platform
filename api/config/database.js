@@ -55,10 +55,18 @@ const testConnection = async () => {
   try {
     const connection = await pool.getConnection();
     console.log('✅ Database connected successfully');
+    console.log(`📊 Connected to: ${baseConfig.host}:${baseConfig.port}/${baseConfig.database}`);
     connection.release();
     return true;
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
+    console.error('🔧 Database config:', {
+      host: baseConfig.host,
+      port: baseConfig.port,
+      database: baseConfig.database,
+      user: baseConfig.user,
+      ssl: baseConfig.ssl
+    });
     return false;
   }
 };

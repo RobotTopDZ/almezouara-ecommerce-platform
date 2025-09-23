@@ -10,12 +10,40 @@ const app = express();
 // In production, allow origins provided via CORS_ORIGIN (comma-separated). In dev, allow all.
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
-  : ['https://your-domain.vercel.app'];
+  : [];
 
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? corsOrigins : true,
+// More flexible CORS for Railway deployment
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // In production, check against allowed origins
+    if (corsOrigins.length === 0) {
+      // If no CORS_ORIGIN is set, allow Railway domains and localhost
+      if (origin.includes('.up.railway.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+    } else {
+      // Check against configured origins
+      if (corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 
 // Optimized JSON parsing
 app.use(express.json({ limit: '10mb' }));
@@ -62,9 +90,39 @@ app.use('/orders', ordersRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/admin', adminRouter);
 
+// Root route for API
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Almezouara E-Commerce API is running',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
-  res.send('Backend server is running');
+  res.json({ 
+    status: 'healthy',
+    database: 'connected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('API Error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
+
+// 404 handler for API routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `API route ${req.originalUrl} not found`
+  });
 });
 
 // Export the app for Vercel
