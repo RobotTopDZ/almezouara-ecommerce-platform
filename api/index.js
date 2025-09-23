@@ -365,6 +365,50 @@ app.get('/debug', (req, res) => {
   });
 });
 
+// Database diagnostic endpoint
+app.get('/debug/database', async (req, res) => {
+  const { testConnection } = require('./config/database');
+  
+  try {
+    const isConnected = await testConnection();
+    
+    res.json({
+      status: 'database_debug',
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: isConnected,
+        config: {
+          url_provided: !!process.env.DATABASE_URL,
+          host: process.env.DATABASE_HOST || 'not set',
+          port: process.env.DATABASE_PORT || 'not set',
+          database: process.env.DATABASE_NAME || 'not set',
+          ssl_enabled: process.env.DATABASE_SSL || 'not set',
+          ssl_reject_unauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'not set'
+        }
+      },
+      recommendations: isConnected ? [
+        'Database is connected and working properly'
+      ] : [
+        'Create a MySQL service in Railway',
+        'Add DATABASE_URL=${{MySQL.MYSQL_URL}} to environment variables',
+        'Add DATABASE_SSL=true',
+        'Add DATABASE_SSL_REJECT_UNAUTHORIZED=false',
+        'Redeploy the application'
+      ]
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'database_debug',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      database: {
+        connected: false,
+        error_details: error.message
+      }
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('API Error:', err);

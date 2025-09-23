@@ -17,7 +17,9 @@
     "check:deployment": "node scripts/check-deployment.js",
     "postinstall": "node scripts/check-deployment.js",
     "serve:full": "npm run build && npm start",
-    "health:check": "curl -f http://localhost:${PORT:-3000}/health || exit 1"
+    "health:check": "curl -f http://localhost:${PORT:-3000}/health || exit 1",
+    "db:check": "node scripts/check-database.js",
+    "db:test": "NODE_ENV=development node scripts/check-database.js"
   },
   "keywords": [
     "ecommerce",
