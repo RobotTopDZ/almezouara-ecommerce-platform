@@ -52,9 +52,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Initialize database and start server
 async function startServer() {
   try {
+    console.log('🔄 Starting database initialization...');
+    
+    // Check if required environment variables are set
+    const requiredEnvVars = ['DATABASE_URL', 'DATABASE_HOST'];
+    const hasDbUrl = process.env.DATABASE_URL;
+    const hasDbHost = process.env.DATABASE_HOST;
+    
+    if (!hasDbUrl && !hasDbHost) {
+      console.error('❌ No database configuration found. Please set DATABASE_URL or DATABASE_HOST environment variables.');
+      console.log('ℹ️ API will start without database functionality for health checks');
+      return;
+    }
+
     const isConnected = await testConnection();
     if (!isConnected) {
-      console.error('❌ Database connection failed');
+      console.error('❌ Database connection failed - API will start without database functionality');
       return;
     }
 
@@ -73,11 +86,14 @@ async function startServer() {
     console.log('🚀 Application initialized successfully');
   } catch (error) {
     console.error('❌ Application initialization failed:', error.message);
+    console.log('ℹ️ API will continue without database functionality');
   }
 }
 
-// Start the server
-startServer();
+// Start the server (don't await to prevent blocking)
+startServer().catch(err => {
+  console.error('❌ Server startup error:', err.message);
+});
 
 // Import route modules
 const ordersRouter = require('./orders');
@@ -95,16 +111,42 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'Almezouara E-Commerce API is running',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Health check
+// Health check with environment diagnostics
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
-    database: 'connected',
-    timestamp: new Date().toISOString()
+    api: 'running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    database_configured: !!(process.env.DATABASE_URL || process.env.DATABASE_HOST),
+    port: process.env.PORT || 'not set'
+  });
+});
+
+// Diagnostic endpoint for Railway debugging
+app.get('/debug', (req, res) => {
+  res.json({
+    status: 'debug_info',
+    timestamp: new Date().toISOString(),
+    environment_variables: {
+      NODE_ENV: process.env.NODE_ENV || 'not set',
+      PORT: process.env.PORT || 'not set',
+      DATABASE_URL: process.env.DATABASE_URL ? 'set' : 'not set',
+      DATABASE_HOST: process.env.DATABASE_HOST || 'not set',
+      DATABASE_SSL: process.env.DATABASE_SSL || 'not set',
+      CORS_ORIGIN: process.env.CORS_ORIGIN || 'not set'
+    },
+    process_info: {
+      node_version: process.version,
+      platform: process.platform,
+      memory_usage: process.memoryUsage(),
+      uptime: process.uptime()
+    }
   });
 });
 

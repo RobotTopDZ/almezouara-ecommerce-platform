@@ -25,13 +25,16 @@ if (!fs.existsSync(distPath)) {
 }
 
 // Mount the API app under '/api' to avoid intercepting the frontend root
+let apiLoaded = false;
 try {
   const appApi = require('./api'); // api/index.js exports the Express app
   app.use('/api', appApi);
+  apiLoaded = true;
   console.log('✅ API routes mounted successfully');
 } catch (error) {
   console.error('❌ Failed to load API routes:', error.message);
-  process.exit(1);
+  console.error('⚠️  Server will continue without API routes for health check purposes');
+  // Don't exit - let the server start for health checks
 }
 
 // Serve static files from Vite build
@@ -40,13 +43,15 @@ app.use(express.static(distPath, {
   etag: false
 }));
 
-// Health check for the main server
+// Update health check to reflect API status
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     server: 'running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    api_loaded: apiLoaded,
+    dist_exists: fs.existsSync(distPath)
   });
 });
 

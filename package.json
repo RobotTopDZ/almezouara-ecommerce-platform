@@ -10,7 +10,7 @@
     "prestart": "npm run build",
     "start": "node server.js",
     "railway:build": "npm run build",
-    "railway:start": "node server.js",
+    "railway:start": "node scripts/railway-start.js",
     "test:build": "npm run build && node -e \"console.log('Build test passed')\"",
     "clean": "rm -rf dist node_modules/.vite",
     "check:deployment": "node scripts/check-deployment.js",
