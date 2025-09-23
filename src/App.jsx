@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import useAdminStore from './store/adminStore';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -19,6 +20,7 @@ import AdminCategories from './pages/AdminCategories';
 import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
+import AdminDebug from './pages/AdminDebug';
 
 // Components
 import Navbar from './components/layout/Navbar';
@@ -28,6 +30,12 @@ const App = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const [direction, setDirection] = useState('ltr');
+  const initAuth = useAdminStore(s => s.initAuth);
+
+  // Initialize admin auth on app start
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   // Set document direction based on language
   useEffect(() => {
@@ -66,6 +74,7 @@ const App = () => {
           <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
           <Route path="/admin/accounts" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
           <Route path="/admin/promotions" element={<RequireAdmin><AdminPromotions /></RequireAdmin>} />
+          <Route path="/admin/debug" element={<AdminDebug />} />
         </Routes>
       </main>
       

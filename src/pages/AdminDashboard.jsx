@@ -25,11 +25,34 @@ const AdminLayout = ({ children }) => (
 
 export const RequireAdmin = ({ children }) => {
   const isAuthenticated = useAdminStore(s => s.isAuthenticated);
+  const initAuth = useAdminStore(s => s.initAuth);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Initialize auth from localStorage
+    initAuth();
+    setIsLoading(false);
+  }, [initAuth]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <div className="bg-white rounded shadow p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p>Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     navigate('/admin/login');
     return null;
   }
+
   return children;
 };
 
@@ -42,16 +65,33 @@ export const AdminOverview = () => {
     const fetchStats = async () => {
       try {
         const response = await fetch('/api/admin/stats');
-        const data = await response.json();
-        setStats(data);
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        } else {
+          // If stats endpoint doesn't exist, use mock data
+          setStats({
+            totalOrders: 0,
+            totalRevenue: 0,
+            totalProducts: products.length,
+            totalCustomers: accounts.length
+          });
+        }
       } catch (error) {
         console.error('Error fetching stats:', error);
+        // Use mock data as fallback
+        setStats({
+          totalOrders: 0,
+          totalRevenue: 0,
+          totalProducts: products.length,
+          totalCustomers: accounts.length
+        });
       } finally {
         setLoading(false);
       }
     };
     fetchStats();
-  }, []);
+  }, [products.length, accounts.length]);
 
   const formatPrice = (price) => {
     return `${price.toLocaleString()} DZD`;
