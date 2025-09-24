@@ -31,7 +31,8 @@
     "diagnose:mysql": "node scripts/diagnose-mysql-railway.js",
     "diagnose:frontend": "node scripts/diagnose-frontend-issues.js",
     "test:modules": "node scripts/test-all-modules.js",
-    "force:deploy": "node scripts/force-deploy.js"
+    "force:deploy": "node scripts/force-deploy.js",
+    "fix:promotions": "node scripts/fix-promotions-table.js"
   },
   "keywords": [
     "ecommerce",

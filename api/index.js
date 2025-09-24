@@ -534,7 +534,7 @@ app.post('/init-database', async (req, res) => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
       
       `CREATE TABLE IF NOT EXISTS promotions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id VARCHAR(50) PRIMARY KEY,
         phone VARCHAR(20) NOT NULL,
         percentage DECIMAL(5,2) NOT NULL,
         description TEXT,
@@ -621,6 +621,67 @@ app.post('/init-database', async (req, res) => {
       error: 'Failed to initialize database', 
       details: error.message,
       mysql_version: '9.4.0'
+    });
+  }
+});
+
+// Fix promotions table schema
+app.post('/fix-promotions-table', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔧 Fixing promotions table schema via API...');
+    
+    // Check current schema
+    const [columns] = await pool.execute('DESCRIBE promotions');
+    const idColumn = columns.find(c => c.Field === 'id');
+    
+    if (idColumn && idColumn.Type.includes('int')) {
+      console.log('⚠️  ID column is INT, fixing it...');
+      
+      // Drop and recreate table
+      await pool.execute('DROP TABLE IF EXISTS promotions');
+      
+      await pool.execute(`
+        CREATE TABLE promotions (
+          id VARCHAR(50) PRIMARY KEY,
+          phone VARCHAR(20) NOT NULL,
+          percentage DECIMAL(5,2) NOT NULL,
+          description TEXT,
+          usage_limit INT DEFAULT 1,
+          usage_count INT DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_phone (phone)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `);
+      
+      console.log('✅ Promotions table schema fixed');
+      
+      res.json({
+        success: true,
+        message: 'Promotions table schema fixed successfully',
+        action: 'recreated_table',
+        old_type: idColumn.Type,
+        new_type: 'VARCHAR(50)'
+      });
+    } else {
+      console.log('✅ Promotions table schema already correct');
+      res.json({
+        success: true,
+        message: 'Promotions table schema already correct',
+        action: 'no_change_needed',
+        current_type: idColumn?.Type || 'unknown'
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fixing promotions table:', error);
+    res.status(500).json({
+      error: 'Failed to fix promotions table',
+      details: error.message
     });
   }
 });
