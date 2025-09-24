@@ -652,6 +652,120 @@ app.post('/init-database', async (req, res) => {
   }
 });
 
+// Populate initial data endpoint
+app.post('/populate-data', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🌱 Populating initial data via API...');
+    
+    // 1. Create categories
+    const categories = [
+      { name: 'Robes', description: 'Collection de robes élégantes' },
+      { name: 'Tops & Blouses', description: 'Hauts et blouses tendance' },
+      { name: 'Pantalons', description: 'Pantalons et jeans' },
+      { name: 'Accessoires', description: 'Bijoux et accessoires' }
+    ];
+    
+    const categoryIds = {};
+    for (const category of categories) {
+      try {
+        const [result] = await pool.execute(
+          'INSERT IGNORE INTO categories (name, description) VALUES (?, ?)',
+          [category.name, category.description]
+        );
+        if (result.insertId) {
+          categoryIds[category.name] = result.insertId;
+        } else {
+          // Get existing ID
+          const [existing] = await pool.execute(
+            'SELECT id FROM categories WHERE name = ?',
+            [category.name]
+          );
+          if (existing.length > 0) {
+            categoryIds[category.name] = existing[0].id;
+          }
+        }
+      } catch (error) {
+        console.log(`Category ${category.name} already exists`);
+      }
+    }
+    
+    // 2. Create sample products
+    const products = [
+      {
+        name: 'Robe Élégante Noire',
+        description: 'Robe noire élégante parfaite pour les soirées',
+        price: 2500,
+        category: 'Robes',
+        stock: 15
+      },
+      {
+        name: 'Blouse Florale',
+        description: 'Blouse légère avec motifs floraux',
+        price: 1800,
+        category: 'Tops & Blouses',
+        stock: 20
+      },
+      {
+        name: 'Jean Slim Taille Haute',
+        description: 'Jean slim confortable taille haute',
+        price: 3200,
+        category: 'Pantalons',
+        stock: 25
+      }
+    ];
+    
+    let productsCreated = 0;
+    for (const product of products) {
+      try {
+        const categoryId = categoryIds[product.category];
+        if (categoryId) {
+          await pool.execute(
+            'INSERT IGNORE INTO products (name, description, price, category_id, stock_quantity, images, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              product.name,
+              product.description,
+              product.price,
+              categoryId,
+              product.stock,
+              JSON.stringify(['/images/products/placeholder.jpg']),
+              JSON.stringify(['Noir', 'Blanc']),
+              JSON.stringify(['S', 'M', 'L'])
+            ]
+          );
+          productsCreated++;
+        }
+      } catch (error) {
+        console.log(`Product ${product.name} already exists`);
+      }
+    }
+    
+    // 3. Verify data
+    const [categoriesCount] = await pool.execute('SELECT COUNT(*) as count FROM categories');
+    const [productsCount] = await pool.execute('SELECT COUNT(*) as count FROM products');
+    
+    res.json({
+      success: true,
+      message: 'Initial data populated successfully',
+      data: {
+        categories: categoriesCount[0].count,
+        products: productsCount[0].count,
+        productsCreated
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error populating data:', error);
+    res.status(500).json({
+      error: 'Failed to populate data',
+      details: error.message
+    });
+  }
+});
+
 // Fix database collations for MySQL 9.x compatibility
 app.post('/fix-collations', async (req, res) => {
   try {
