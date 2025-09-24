@@ -73,10 +73,11 @@ router.get('/orders', async (req, res) => {
 // Get all promotions (admin)
 router.get('/promotions', async (req, res) => {
   try {
+    // Fix collation conflict by using COLLATE in JOIN
     const [promotions] = await pool.execute(`
       SELECT p.*, a.name as customer_name 
       FROM promotions p 
-      LEFT JOIN accounts a ON p.phone = a.phone 
+      LEFT JOIN accounts a ON p.phone COLLATE utf8mb4_0900_ai_ci = a.phone COLLATE utf8mb4_0900_ai_ci
       ORDER BY p.created_at DESC
       LIMIT 100
     `);

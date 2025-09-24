@@ -625,6 +625,55 @@ app.post('/init-database', async (req, res) => {
   }
 });
 
+// Fix database collations for MySQL 9.x compatibility
+app.post('/fix-collations', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔧 Fixing database collations for MySQL 9.x...');
+    
+    // Set all tables to use utf8mb4_0900_ai_ci (MySQL 9.x default)
+    const tables = [
+      'ALTER TABLE accounts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci',
+      'ALTER TABLE promotions CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci',
+      'ALTER TABLE orders CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci',
+      'ALTER TABLE order_items CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci',
+      'ALTER TABLE domicile_fees CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci',
+      'ALTER TABLE stopdesk_fees CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci'
+    ];
+    
+    const results = [];
+    
+    for (const sql of tables) {
+      try {
+        await pool.execute(sql);
+        const tableName = sql.match(/ALTER TABLE (\w+)/)[1];
+        results.push({ table: tableName, status: 'success' });
+        console.log(`✅ Fixed collation for table: ${tableName}`);
+      } catch (error) {
+        const tableName = sql.match(/ALTER TABLE (\w+)/)[1];
+        results.push({ table: tableName, status: 'error', error: error.message });
+        console.log(`⚠️  Error fixing ${tableName}:`, error.message);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Database collations standardized to utf8mb4_0900_ai_ci',
+      results
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing collations:', error);
+    res.status(500).json({
+      error: 'Failed to fix collations',
+      details: error.message
+    });
+  }
+});
+
 // Fix promotions table schema
 app.post('/fix-promotions-table', async (req, res) => {
   try {
