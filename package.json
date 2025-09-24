@@ -29,7 +29,8 @@
     "emergency:test": "node scripts/emergency-test.js",
     "railway:post-deploy": "node scripts/railway-post-deploy.js",
     "diagnose:mysql": "node scripts/diagnose-mysql-railway.js",
-    "diagnose:frontend": "node scripts/diagnose-frontend-issues.js"
+    "diagnose:frontend": "node scripts/diagnose-frontend-issues.js",
+    "test:modules": "node scripts/test-all-modules.js"
   },
   "keywords": [
     "ecommerce",

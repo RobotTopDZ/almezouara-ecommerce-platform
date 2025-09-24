@@ -1,7 +1,25 @@
 const express = require('express');
-const { pool } = require('./config/database');
+const { pool, testConnection } = require('./config/database');
 
 const router = express.Router();
+
+// Test database connection before processing promotions
+const ensureDBConnection = async () => {
+  if (!pool) {
+    console.log('❌ No database pool available for promotions');
+    return false;
+  }
+  
+  try {
+    // Test connection with a simple query
+    await pool.execute('SELECT 1');
+    console.log('✅ Database connection verified for promotions');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed for promotions:', error.message);
+    return false;
+  }
+};
 
 // Promotions management (admin)
 router.post('/', async (req, res) => {
@@ -24,8 +42,11 @@ router.post('/', async (req, res) => {
     }
     
     // Try database operation, fallback to mock if fails
+    const dbConnected = await ensureDBConnection();
+    
     try {
-      if (!pool) {
+      if (!dbConnected) {
+        console.log('⚠️ No database connection, using mock mode for promotions');
         throw new Error('No database connection');
       }
       
