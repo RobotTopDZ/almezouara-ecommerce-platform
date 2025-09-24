@@ -903,7 +903,11 @@ export const AdminCategories = () => {
 };
 
 export const AdminProducts = () => {
-  const { products, addProduct, removeProduct, categories } = useAdminStore();
+  // Real API data instead of store
+  const [products, setProducts] = React.useState([]);
+  const [categories, setCategories] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  
   const [form, setForm] = React.useState({ 
     name: '', 
     categoryId: '', 
@@ -918,6 +922,64 @@ export const AdminProducts = () => {
   const [newSize, setNewSize] = React.useState('');
   const [uploadingImages, setUploadingImages] = React.useState(false);
   const [uploadingColorImage, setUploadingColorImage] = React.useState(false);
+
+  // Load data from API
+  React.useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/admin/products');
+      const data = await response.json();
+      setProducts(data.products || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories');
+      const data = await response.json();
+      setCategories(data.categories || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const addProduct = async (productData) => {
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData)
+      });
+      if (response.ok) {
+        fetchProducts(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
+  };
+
+  const removeProduct = async (productId) => {
+    if (window.confirm('Supprimer ce produit ?')) {
+      try {
+        const response = await fetch(`/api/admin/products/${productId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          fetchProducts(); // Refresh list
+        }
+      } catch (error) {
+        console.error('Error removing product:', error);
+      }
+    }
+  };
 
   const addColor = () => {
     if (newColor.name && newColor.value) {
@@ -1007,12 +1069,15 @@ export const AdminProducts = () => {
     e.preventDefault();
     if (form.name && form.categoryId && form.price) {
       addProduct({
-        ...form,
+        name: form.name,
+        description: form.description,
         price: Number(form.price),
-        colors: colors,
+        categoryId: form.categoryId,
+        colors: colors.map(c => c.name), // Convert to simple array
         sizes: sizes,
         images: images,
-        inStock: form.inStock
+        stockQuantity: form.inStock ? 100 : 0, // Convert inStock to quantity
+        isActive: form.inStock
       });
       // Reset form
       setForm({ name: '', categoryId: '', description: '', price: '', inStock: true });
@@ -1021,6 +1086,17 @@ export const AdminProducts = () => {
       setImages([]);
     }
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Chargement des produits...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -1224,19 +1300,35 @@ export const AdminProducts = () => {
 
       {/* Products List */}
       <div className="space-y-3">
-        <h3 className="font-medium">Existing Products</h3>
-        {products.map(p => (
-          <div key={p.id} className="border rounded p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h4 className="font-medium">{p.name}</h4>
-                <p className="text-sm text-gray-600">{p.description}</p>
-                <p className="text-sm font-medium">{p.price} DZD</p>
+        <h3 className="font-medium">Existing Products ({products.length})</h3>
+        {products.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>Aucun produit trouvé</p>
+            <p className="text-sm">Créez votre premier produit ci-dessus</p>
+          </div>
+        ) : (
+          products.map(p => (
+            <div key={p.id} className="border rounded p-4">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h4 className="font-medium">{p.name}</h4>
+                  <p className="text-sm text-gray-600">{p.description}</p>
+                  <p className="text-sm font-medium">{p.price} DZD</p>
+                  <p className="text-xs text-gray-500">
+                    Catégorie: {p.category_name || 'Sans catégorie'} | 
+                    Stock: {p.stock_quantity || 0} | 
+                    {p.is_active ? 'Actif' : 'Inactif'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="text-blue-600 text-sm" onClick={()=>alert('Modification à venir')}>
+                    Modifier
+                  </button>
+                  <button className="text-red-600 text-sm" onClick={()=>removeProduct(p.id)}>
+                    Supprimer
+                  </button>
+                </div>
               </div>
-              <button className="text-red-600 text-sm" onClick={()=>removeProduct(p.id)}>
-                Delete
-              </button>
-            </div>
             
             {p.images && p.images.length > 0 && (
               <div className="flex gap-2 mb-2">
@@ -1268,7 +1360,8 @@ export const AdminProducts = () => {
               </div>
             )}
           </div>
-        ))}
+          ))
+        )}
       </div>
     </AdminLayout>
   );
