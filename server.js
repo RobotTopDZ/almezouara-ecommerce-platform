@@ -219,6 +219,26 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`📁 Static files: ${distExists ? 'enabled' : 'disabled'}`);
   console.log(`🔌 API routes: ${apiLoaded ? 'loaded' : 'failed'}`);
   console.log('=' .repeat(50));
+  
+  // Auto-populate shipping data if enabled
+  if (process.env.AUTO_POPULATE_SHIPPING === 'true' && apiLoaded) {
+    console.log('🔄 Auto-population enabled, starting post-deploy tasks...');
+    setTimeout(() => {
+      const { spawn } = require('child_process');
+      const postDeploy = spawn('node', ['scripts/railway-post-deploy.js'], {
+        stdio: 'inherit',
+        cwd: __dirname
+      });
+      
+      postDeploy.on('close', (code) => {
+        if (code === 0) {
+          console.log('✅ Post-deploy completed successfully');
+        } else {
+          console.error('❌ Post-deploy failed with code:', code);
+        }
+      });
+    }, 5000); // Wait 5 seconds after server start
+  }
 });
 
 // Handle server errors
