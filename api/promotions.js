@@ -1,22 +1,42 @@
 const express = require('express');
 const { pool, testConnection } = require('./config/database');
 
+// Force re-import pool to ensure it's available
+const database = require('./config/database');
+const dbPool = database.pool || pool;
+
 const router = express.Router();
 
 // Test database connection before processing promotions
 const ensureDBConnection = async () => {
-  if (!pool) {
+  console.log('🔍 Checking database connection for promotions...');
+  const activePool = dbPool || pool;
+  console.log('Pool status:', {
+    poolExists: !!activePool,
+    poolType: typeof activePool,
+    poolConstructor: activePool?.constructor?.name,
+    originalPool: !!pool,
+    dbPool: !!dbPool
+  });
+  
+  if (!activePool) {
     console.log('❌ No database pool available for promotions');
     return false;
   }
   
   try {
     // Test connection with a simple query
-    await pool.execute('SELECT 1');
-    console.log('✅ Database connection verified for promotions');
+    console.log('🔍 Testing pool.execute...');
+    const result = await activePool.execute('SELECT 1 as test');
+    console.log('✅ Database connection verified for promotions:', result[0]);
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed for promotions:', error.message);
+    console.error('❌ Database connection failed for promotions:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState
+    });
     return false;
   }
 };
@@ -50,15 +70,17 @@ router.post('/', async (req, res) => {
         throw new Error('No database connection');
       }
       
+      const activePool = dbPool || pool;
+      
       // Ensure account exists for this phone number
-      const [existingAccount] = await pool.execute(
+      const [existingAccount] = await activePool.execute(
         'SELECT phone FROM accounts WHERE phone = ?',
         [phoneNumber]
       );
       
       if (existingAccount.length === 0) {
         // Create account first
-        await pool.execute(
+        await activePool.execute(
           'INSERT INTO accounts (phone, name, password) VALUES (?, ?, ?)',
           [phoneNumber, 'Customer', 'default123']
         );
@@ -66,14 +88,14 @@ router.post('/', async (req, res) => {
       }
       
       // Check if promotion already exists for this phone
-      const [existingPromotions] = await pool.execute(
+      const [existingPromotions] = await activePool.execute(
         'SELECT id FROM promotions WHERE phone = ?',
         [phoneNumber]
       );
       
       if (existingPromotions.length > 0) {
         // Update existing promotion
-        await pool.execute(
+        await activePool.execute(
           'UPDATE promotions SET percentage = ?, description = ?, usage_limit = ?, usage_count = 0, is_active = TRUE WHERE phone = ?',
           [percentage, description || '', usageLimit, phoneNumber]
         );
@@ -93,7 +115,7 @@ router.post('/', async (req, res) => {
       } else {
         // Create new promotion
         const promotionId = `PROMO-${Date.now()}`;
-        await pool.execute(
+        await activePool.execute(
           'INSERT INTO promotions (id, phone, percentage, description, usage_limit, usage_count, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [promotionId, phoneNumber, percentage, description || '', usageLimit, 0, true]
         );
@@ -151,11 +173,13 @@ router.get('/:phone', async (req, res) => {
   try {
     const { phone } = req.params;
     
-    if (!pool) {
+    const dbConnected = await ensureDBConnection();
+    if (!dbConnected) {
       return res.status(404).json({ error: 'Promotion not found' });
     }
     
-    const [promotions] = await pool.execute(
+    const activePool = dbPool || pool;
+    const [promotions] = await activePool.execute(
       'SELECT * FROM promotions WHERE phone = ? AND is_active = TRUE',
       [phone]
     );
@@ -176,11 +200,13 @@ router.post('/:phone/use', async (req, res) => {
   try {
     const { phone } = req.params;
     
-    if (!pool) {
+    const dbConnected = await ensureDBConnection();
+    if (!dbConnected) {
       return res.status(404).json({ error: 'Promotion not found' });
     }
     
-    const [promotions] = await pool.execute(
+    const activePool = dbPool || pool;
+    const [promotions] = await activePool.execute(
       'SELECT * FROM promotions WHERE phone = ? AND is_active = TRUE',
       [phone]
     );
@@ -199,7 +225,7 @@ router.post('/:phone/use', async (req, res) => {
     const newUsageCount = promotion.usage_count + 1;
     const isStillActive = newUsageCount < promotion.usage_limit;
     
-    await pool.execute(
+    await activePool.execute(
       'UPDATE promotions SET usage_count = ?, is_active = ? WHERE phone = ?',
       [newUsageCount, isStillActive, phone]
     );

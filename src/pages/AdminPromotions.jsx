@@ -112,7 +112,7 @@ const AdminPromotions = () => {
         }
       } else {
         // Create new promotion
-        const response = await fetch('/api/promotions', {
+        const response = await fetch('/api/admin/promotions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(promotionData)

@@ -88,6 +88,59 @@ router.get('/promotions', async (req, res) => {
   }
 });
 
+// Create promotion (admin)
+router.post('/promotions', async (req, res) => {
+  try {
+    const { phoneNumber, percentage, description, usageLimit = 1 } = req.body;
+    
+    console.log('Admin promotion creation:', { phoneNumber, percentage, description, usageLimit });
+    
+    // Validate required fields
+    if (!phoneNumber || !percentage) {
+      return res.status(400).json({ error: 'Phone number and percentage are required' });
+    }
+    
+    // Ensure account exists
+    const [existingAccount] = await pool.execute(
+      'SELECT phone FROM accounts WHERE phone = ?',
+      [phoneNumber]
+    );
+    
+    if (existingAccount.length === 0) {
+      await pool.execute(
+        'INSERT INTO accounts (phone, name, password) VALUES (?, ?, ?)',
+        [phoneNumber, 'Customer', 'default123']
+      );
+    }
+    
+    // Create promotion
+    const promotionId = `PROMO-${Date.now()}-${Math.floor(Math.random() * 100)}`;
+    await pool.execute(
+      'INSERT INTO promotions (id, phone, percentage, description, usage_limit, usage_count, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [promotionId, phoneNumber, percentage, description || '', usageLimit, 0, true]
+    );
+    
+    res.json({
+      success: true,
+      promotionId,
+      message: 'Promotion created successfully',
+      promotion: {
+        id: promotionId,
+        phoneNumber,
+        percentage,
+        description: description || '',
+        usageLimit,
+        usageCount: 0,
+        isActive: true
+      }
+    });
+    
+  } catch (error) {
+    console.error('Admin create promotion error:', error);
+    res.status(500).json({ error: 'Failed to create promotion' });
+  }
+});
+
 // Get admin stats
 router.get('/stats', async (req, res) => {
   try {
