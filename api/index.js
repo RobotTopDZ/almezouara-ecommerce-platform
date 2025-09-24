@@ -606,7 +606,7 @@ app.post('/init-database', async (req, res) => {
         image VARCHAR(500),
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`,
       
       `CREATE TABLE IF NOT EXISTS products (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -614,17 +614,14 @@ app.post('/init-database', async (req, res) => {
         description TEXT,
         price DECIMAL(10,2) NOT NULL,
         category_id INT,
-        images JSON,
-        colors JSON,
-        sizes JSON,
+        images TEXT,
+        colors TEXT,
+        sizes TEXT,
         stock_quantity INT DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
-        INDEX idx_category (category_id),
-        INDEX idx_active (is_active)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
     ];
     
     for (const tableSQL of tables) {
@@ -764,6 +761,28 @@ app.post('/populate-data', async (req, res) => {
       details: error.message
     });
   }
+});
+
+// Simple image upload endpoint (mock)
+app.post('/upload', (req, res) => {
+  // Mock upload - in production you'd use multer + cloud storage
+  const mockImageUrl = '/images/products/placeholder-' + Date.now() + '.jpg';
+  res.json({ 
+    success: true, 
+    url: mockImageUrl 
+  });
+});
+
+app.post('/upload/multiple', (req, res) => {
+  // Mock multiple upload
+  const mockUrls = [
+    '/images/products/placeholder-' + Date.now() + '-1.jpg',
+    '/images/products/placeholder-' + Date.now() + '-2.jpg'
+  ];
+  res.json({ 
+    success: true, 
+    urls: mockUrls 
+  });
 });
 
 // Fix database collations for MySQL 9.x compatibility

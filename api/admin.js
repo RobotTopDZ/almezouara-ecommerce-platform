@@ -296,9 +296,9 @@ router.get('/products', async (req, res) => {
     // Parse JSON fields
     const formattedProducts = products.map(product => ({
       ...product,
-      images: product.images ? JSON.parse(product.images) : [],
-      colors: product.colors ? JSON.parse(product.colors) : [],
-      sizes: product.sizes ? JSON.parse(product.sizes) : []
+      images: product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : product.images) : [],
+      colors: product.colors ? (typeof product.colors === 'string' ? JSON.parse(product.colors) : product.colors) : [],
+      sizes: product.sizes ? (typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes) : []
     }));
     
     res.json({ products: formattedProducts });
