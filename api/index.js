@@ -763,6 +763,107 @@ app.post('/populate-data', async (req, res) => {
   }
 });
 
+// Simple database migration endpoint
+app.post('/api/migrate-simple', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔧 Running simple migration...');
+    
+    // Create tables one by one with simple queries
+    const migrations = [
+      {
+        name: 'accounts',
+        sql: `CREATE TABLE IF NOT EXISTS accounts (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          phone VARCHAR(20) UNIQUE NOT NULL,
+          email VARCHAR(255),
+          full_name VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'categories', 
+        sql: `CREATE TABLE IF NOT EXISTS categories (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL UNIQUE,
+          description TEXT,
+          image VARCHAR(500),
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'products',
+        sql: `CREATE TABLE IF NOT EXISTS products (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          price DECIMAL(10,2) NOT NULL,
+          category_id INT,
+          images TEXT,
+          colors TEXT,
+          sizes TEXT,
+          stock_quantity INT DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'orders',
+        sql: `CREATE TABLE IF NOT EXISTS orders (
+          id VARCHAR(50) PRIMARY KEY,
+          phone VARCHAR(20),
+          full_name VARCHAR(255),
+          wilaya VARCHAR(100),
+          city VARCHAR(100),
+          address TEXT,
+          delivery_method VARCHAR(50),
+          items TEXT,
+          total DECIMAL(10,2),
+          discount_percentage INT DEFAULT 0,
+          status VARCHAR(50) DEFAULT 'pending',
+          yalidine_tracking VARCHAR(100),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      }
+    ];
+    
+    const results = [];
+    
+    for (const migration of migrations) {
+      try {
+        await pool.execute(migration.sql);
+        results.push({ table: migration.name, status: 'created' });
+        console.log(`✅ Table ${migration.name} created/verified`);
+      } catch (error) {
+        console.error(`❌ Error creating ${migration.name}:`, error.message);
+        results.push({ table: migration.name, status: 'error', error: error.message });
+      }
+    }
+    
+    // Verify tables
+    const [tables] = await pool.execute('SHOW TABLES');
+    
+    res.json({
+      success: true,
+      message: 'Migration completed',
+      results,
+      tables: tables.map(t => Object.values(t)[0])
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      error: 'Migration failed',
+      details: error.message
+    });
+  }
+});
+
 // Simple image upload endpoint (mock)
 app.post('/upload', (req, res) => {
   // Mock upload - in production you'd use multer + cloud storage

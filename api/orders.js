@@ -54,16 +54,20 @@ router.post('/', async (req, res) => {
       const today = new Date().toISOString().slice(0,10);
       const orderId = `ORD-${Math.floor(Math.random() * 100000)}`;
       
-      // Check if customer has orders today
+      // Check if customer has orders today (simplified)
       let existingOrder = null;
       if (phoneNumber) {
-        const [existingOrders] = await pool.execute(
-          'SELECT * FROM orders WHERE phone = ? AND date = ?',
-          [phoneNumber, today]
-        );
-        
-        if (existingOrders.length > 0) {
-          existingOrder = existingOrders[0];
+        try {
+          const [existingOrders] = await pool.execute(
+            'SELECT * FROM orders WHERE phone = ? AND DATE(created_at) = CURDATE()',
+            [phoneNumber]
+          );
+          
+          if (existingOrders.length > 0) {
+            existingOrder = existingOrders[0];
+          }
+        } catch (error) {
+          console.log('⚠️ Error checking existing orders, creating new one');
         }
       }
       
@@ -89,19 +93,13 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
-        // Create new order
+        // Create new order (simplified structure)
         await pool.execute(`
-          INSERT INTO orders (id, phone, date, total, status, delivery_method, address, full_name, wilaya, city, shipping_cost, product_price, discount_percentage)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, today, total, 'processing', deliveryMethod, address, fullName, wilaya, city, shippingCost || 0, productPrice || 0, discountPercentage || 0]);
+          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, items, total, discount_percentage, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, JSON.stringify(items), total, discountPercentage || 0, 'pending']);
         
-        // Add order items
-        for (const item of items) {
-          await pool.execute(`
-            INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `, [orderId, item.id || null, item.name || '', item.price || 0, item.quantity || 1, item.image || null, item.color || null, item.size || null]);
-        }
+        console.log('✅ Order created successfully in database:', orderId);
         
         return res.json({
           success: true,
