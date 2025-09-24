@@ -509,6 +509,122 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Force database initialization for MySQL 9.x
+app.post('/init-database', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔄 Forcing database initialization for MySQL 9.x...');
+    
+    // Force create database if not exists
+    await pool.execute('CREATE DATABASE IF NOT EXISTS railway');
+    await pool.execute('USE railway');
+    
+    // Create tables with MySQL 9.x compatible syntax
+    const tables = [
+      `CREATE TABLE IF NOT EXISTS accounts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      
+      `CREATE TABLE IF NOT EXISTS promotions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone VARCHAR(20) NOT NULL,
+        percentage DECIMAL(5,2) NOT NULL,
+        description TEXT,
+        usage_limit INT DEFAULT 1,
+        usage_count INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_phone (phone)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      
+      `CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(50) PRIMARY KEY,
+        phone VARCHAR(20),
+        date DATE NOT NULL,
+        total DECIMAL(10,2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'processing',
+        delivery_method ENUM('domicile', 'stopdesk') NOT NULL,
+        address TEXT NOT NULL,
+        full_name VARCHAR(255) NOT NULL,
+        wilaya VARCHAR(100) NOT NULL,
+        city VARCHAR(100) NOT NULL,
+        shipping_cost DECIMAL(10,2) NOT NULL,
+        product_price DECIMAL(10,2) NOT NULL,
+        discount_percentage DECIMAL(5,2) DEFAULT 0,
+        yalidine_tracking VARCHAR(100) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_phone (phone),
+        INDEX idx_date (date)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      
+      `CREATE TABLE IF NOT EXISTS order_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id VARCHAR(50) NOT NULL,
+        product_id INT NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        quantity INT NOT NULL,
+        image VARCHAR(500),
+        color VARCHAR(100),
+        size VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_order_id (order_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      
+      `CREATE TABLE IF NOT EXISTS stopdesk_fees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nom_desk VARCHAR(255) NOT NULL,
+        commune VARCHAR(100) NOT NULL,
+        wilaya VARCHAR(100) NOT NULL,
+        prix DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_wilaya_commune (wilaya, commune)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      
+      `CREATE TABLE IF NOT EXISTS domicile_fees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        commune VARCHAR(100) NOT NULL,
+        wilaya VARCHAR(100) NOT NULL,
+        prix DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_wilaya_commune (wilaya, commune)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+    ];
+    
+    for (const tableSQL of tables) {
+      await pool.execute(tableSQL);
+    }
+    
+    // Verify tables created
+    const [tables_result] = await pool.execute('SHOW TABLES');
+    
+    res.json({
+      success: true,
+      message: 'Database initialized successfully for MySQL 9.x',
+      tables: tables_result.length,
+      mysql_version: '9.4.0',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    res.status(500).json({ 
+      error: 'Failed to initialize database', 
+      details: error.message,
+      mysql_version: '9.4.0'
+    });
+  }
+});
+
 // Populate shipping data endpoint (admin only)
 app.post('/populate-shipping', async (req, res) => {
   try {

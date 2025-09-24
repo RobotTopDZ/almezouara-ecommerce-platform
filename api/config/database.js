@@ -31,18 +31,33 @@ if (useConnectionUrl) {
 
 if (!baseConfig) {
   baseConfig = {
-    host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
-    user: process.env.DATABASE_USERNAME || process.env.DB_USER || 'root',
-    password: process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '',
-    database: process.env.DATABASE_NAME || process.env.DB_NAME || 'almezouara_db',
-    port: Number(process.env.DATABASE_PORT || process.env.DB_PORT || 3306),
-    ssl: sslEnabled ? { rejectUnauthorized } : false,
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT || 3306,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
+    ssl: process.env.DATABASE_SSL === 'true' ? {
+      rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false'
+    } : false,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true,
+    // MySQL 9.x compatibility
+    authPlugins: {
+      mysql_clear_password: () => () => Buffer.alloc(0)
+    },
+    // Handle MySQL 9.x authentication
+    insecureAuth: false,
+    supportBigNumbers: true,
+    bigNumberStrings: true
   };
 }
 
 const dbConfig = {
   ...baseConfig,
-  waitForConnections: true,
   connectionLimit: process.env.NODE_ENV === 'production' ? 20 : 10,
   queueLimit: 0,
 };
