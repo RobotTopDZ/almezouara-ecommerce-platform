@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Zoom } from 'swiper/modules';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { getCommunesByWilaya as getCommunesFromData } from '../data/shippingData';
+// Removed static data import - now using API
 import PromotionPopup from '../components/PromotionPopup';
 
 // Import Swiper styles
@@ -23,6 +23,7 @@ const ProductPage = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedCity, setSelectedCity] = useState('');
   const [shippingCost, setShippingCost] = useState(0);
+  const [availableCities, setAvailableCities] = useState([]);
   
   // New state for smart checkout
   const [checkoutStep, setCheckoutStep] = useState('phone'); // 'phone', 'customer-choice', 'form'
@@ -145,7 +146,7 @@ const ProductPage = () => {
   };
 
   // Handle customer choice
-  const handleCustomerChoice = (choice) => {
+  const handleCustomerChoice = async (choice) => {
     setCustomerChoice(choice);
     
     if (choice === 'use-previous' && customerInfo?.lastOrderInfo) {
@@ -159,7 +160,8 @@ const ProductPage = () => {
         deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod,
       });
       setSelectedCity(customerInfo.lastOrderInfo.city);
-      const cost = getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
+      await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
+      const cost = await getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
       setShippingCost(cost);
       setCheckoutStep('form');
     } else if (choice === 'modify' && customerInfo?.lastOrderInfo) {
@@ -173,7 +175,8 @@ const ProductPage = () => {
         deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod,
       });
       setSelectedCity(customerInfo.lastOrderInfo.city);
-      const cost = getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
+      await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
+      const cost = await getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
       setShippingCost(cost);
       setCheckoutStep('form');
     } else {
@@ -257,11 +260,23 @@ const ProductPage = () => {
     }
   };
 
-  // Get communes by wilaya
-  const getCommunesByWilaya = (wilaya, deliveryMethod) => {
-    if (!wilaya) return [];
-    const communes = getCommunesFromData(wilaya);
-    return communes.map(c => c.commune);
+  // Load cities for selected wilaya
+  const loadCitiesForWilaya = async (wilaya) => {
+    if (!wilaya) {
+      setAvailableCities([]);
+      return;
+    }
+    try {
+      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}`);
+      if (response.data.success && response.data.cities) {
+        setAvailableCities(response.data.cities.map(c => c.city));
+      } else {
+        setAvailableCities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching communes:', error);
+      setAvailableCities([]);
+    }
   };
 
   // Real Algerian wilayas
@@ -273,23 +288,21 @@ const ProductPage = () => {
     'Souk Ahras', 'Tipaza', 'Mila', 'Aïn Defla', 'Naâma', 'Aïn Témouchent', 'Ghardaïa', 'Relizane'
   ];
 
-  // Shipping cost lookup using actual data
-  const getShippingCost = (wilaya, commune, deliveryMethod) => {
+  // Shipping cost lookup using API
+  const getShippingCost = async (wilaya, commune, deliveryMethod) => {
     if (!wilaya || !commune) return 0;
     
-    if (deliveryMethod === 'domicile') {
-      // Find the specific commune in domicile data
-      const domicileData = getCommunesFromData(wilaya);
-      const communeData = domicileData.find(c => c.commune === commune);
-      return communeData ? communeData.domicilePrice : 0;
-    } else if (deliveryMethod === 'stopdesk') {
-      // Find the specific commune in stopdesk data
-      const stopdeskData = getCommunesFromData(wilaya);
-      const communeData = stopdeskData.find(c => c.commune === commune);
-      return communeData ? communeData.stopdeskPrice : 0;
+    try {
+      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&city=${encodeURIComponent(commune)}`);
+      if (response.data.success && response.data.shippingFee) {
+        const fee = response.data.shippingFee;
+        return deliveryMethod === 'domicile' ? fee.domicilePrice : fee.stopdeskPrice;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error fetching shipping cost:', error);
+      return 0;
     }
-    
-    return 0;
   };
 
   return (
@@ -723,10 +736,11 @@ const ProductPage = () => {
                             id="wilaya"
                             name="wilaya"
                             value={formData.wilaya}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               handleInputChange(e);
                               setSelectedCity('');
                               setShippingCost(0);
+                              await loadCitiesForWilaya(e.target.value);
                             }}
                             className="w-full border rounded-md px-3 py-2"
                             required
@@ -747,9 +761,9 @@ const ProductPage = () => {
                             id="city"
                             name="city"
                             value={selectedCity}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               setSelectedCity(e.target.value);
-                              const cost = getShippingCost(formData.wilaya, e.target.value, formData.deliveryMethod);
+                              const cost = await getShippingCost(formData.wilaya, e.target.value, formData.deliveryMethod);
                               setShippingCost(cost);
                             }}
                             className="w-full border rounded-md px-3 py-2"
@@ -757,8 +771,8 @@ const ProductPage = () => {
                             disabled={!formData.wilaya}
                           >
                             <option value="">{formData.wilaya ? (t('checkout.select_city') || 'Sélectionnez la ville') : 'Sélectionnez d\'abord la wilaya'}</option>
-                            {formData.wilaya && getCommunesByWilaya(formData.wilaya, formData.deliveryMethod)?.map((c) => (
-                              <option key={c} value={c}>{c}</option>
+                            {availableCities.map((city) => (
+                              <option key={city} value={city}>{city}</option>
                             ))}
                           </select>
                         </div>
