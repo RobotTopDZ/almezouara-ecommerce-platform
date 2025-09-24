@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --force",
     "preview": "vite preview",
     "prestart": "npm run build",
     "start": "node server.js",
@@ -30,7 +30,8 @@
     "railway:post-deploy": "node scripts/railway-post-deploy.js",
     "diagnose:mysql": "node scripts/diagnose-mysql-railway.js",
     "diagnose:frontend": "node scripts/diagnose-frontend-issues.js",
-    "test:modules": "node scripts/test-all-modules.js"
+    "test:modules": "node scripts/test-all-modules.js",
+    "force:deploy": "node scripts/force-deploy.js"
   },
   "keywords": [
     "ecommerce",

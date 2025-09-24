@@ -228,6 +228,16 @@ const ProductPage = () => {
       const discountedPrice = Math.round(product.price * (1 - (discountPercentage || 0) / 100));
       const totalProductPrice = discountedPrice * quantity;
       const totalWithShipping = totalProductPrice + shippingCost;
+      
+      console.log('💰 Order calculation:', {
+        productPrice: product.price,
+        discountedPrice,
+        quantity,
+        totalProductPrice,
+        shippingCost,
+        totalWithShipping
+      });
+      
       const orderPayload = {
         phoneNumber: formData.phoneNumber,
         items: [{ id: product.id, name: product.name, price: discountedPrice, quantity: quantity, image: product.images[0], color: selectedColor, size: selectedSize }],
@@ -293,14 +303,18 @@ const ProductPage = () => {
     if (!wilaya || !commune) return 0;
     
     try {
+      console.log(`🔍 Fetching shipping cost for ${wilaya} - ${commune} (${deliveryMethod})`);
       const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&city=${encodeURIComponent(commune)}`);
       if (response.data.success && response.data.shippingFee) {
         const fee = response.data.shippingFee;
-        return deliveryMethod === 'domicile' ? fee.domicilePrice : fee.stopdeskPrice;
+        const cost = deliveryMethod === 'domicile' ? fee.domicilePrice : fee.stopdeskPrice;
+        console.log(`✅ Shipping cost calculated: ${cost} DZD`);
+        return cost;
       }
+      console.log('❌ No shipping fee found in response');
       return 0;
     } catch (error) {
-      console.error('Error fetching shipping cost:', error);
+      console.error('❌ Error fetching shipping cost:', error);
       return 0;
     }
   };
