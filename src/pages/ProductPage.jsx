@@ -90,15 +90,19 @@ const ProductPage = () => {
       try {
         setPromoLoading(true);
         const res = await axios.get(`/api/promotions/${phone}`);
-        const promos = res.data?.promotions || [];
-        const best = promos.reduce((max, p) => Math.max(max, Number(p.percentage) || 0), 0);
-        setDiscountPercentage(best);
+        console.log('🎁 Promotion API response:', res.data);
         
-        // Show promotion popup if there's a promotion
-        if (best > 0 && promos.length > 0) {
-          const bestPromo = promos.find(p => Number(p.percentage) === best);
-          setCurrentPromotion(bestPromo);
+        // API returns single promotion object, not array
+        const promotion = res.data?.promotion;
+        if (promotion && promotion.percentage > 0) {
+          const percentage = Number(promotion.percentage);
+          setDiscountPercentage(percentage);
+          setCurrentPromotion(promotion);
           setShowPromotionPopup(true);
+          console.log('✅ Promotion applied:', percentage + '%');
+        } else {
+          setDiscountPercentage(0);
+          console.log('❌ No active promotion found');
         }
       } catch (e) {
         setDiscountPercentage(0);

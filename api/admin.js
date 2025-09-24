@@ -193,6 +193,214 @@ router.delete('/promotions/:id', async (req, res) => {
   }
 });
 
+// ===== CATEGORIES MANAGEMENT =====
+
+// Get all categories
+router.get('/categories', async (req, res) => {
+  try {
+    const [categories] = await pool.execute(
+      'SELECT * FROM categories ORDER BY name ASC'
+    );
+    res.json({ categories });
+  } catch (error) {
+    console.error('Get categories error:', error);
+    res.status(500).json({ error: 'Failed to get categories' });
+  }
+});
+
+// Create category
+router.post('/categories', async (req, res) => {
+  try {
+    const { name, description, image } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+    
+    const [result] = await pool.execute(
+      'INSERT INTO categories (name, description, image) VALUES (?, ?, ?)',
+      [name, description || '', image || '']
+    );
+    
+    res.json({
+      success: true,
+      categoryId: result.insertId,
+      message: 'Category created successfully'
+    });
+    
+  } catch (error) {
+    console.error('Create category error:', error);
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+// Update category
+router.put('/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, image, isActive } = req.body;
+    
+    await pool.execute(
+      'UPDATE categories SET name = ?, description = ?, image = ?, is_active = ? WHERE id = ?',
+      [name, description || '', image || '', isActive, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Category updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Update category error:', error);
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+// Delete category
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const [result] = await pool.execute(
+      'DELETE FROM categories WHERE id = ?',
+      [id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Category deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Delete category error:', error);
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
+// ===== PRODUCTS MANAGEMENT =====
+
+// Get all products
+router.get('/products', async (req, res) => {
+  try {
+    const [products] = await pool.execute(`
+      SELECT p.*, c.name as category_name 
+      FROM products p 
+      LEFT JOIN categories c ON p.category_id = c.id 
+      ORDER BY p.created_at DESC
+    `);
+    
+    // Parse JSON fields
+    const formattedProducts = products.map(product => ({
+      ...product,
+      images: product.images ? JSON.parse(product.images) : [],
+      colors: product.colors ? JSON.parse(product.colors) : [],
+      sizes: product.sizes ? JSON.parse(product.sizes) : []
+    }));
+    
+    res.json({ products: formattedProducts });
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({ error: 'Failed to get products' });
+  }
+});
+
+// Create product
+router.post('/products', async (req, res) => {
+  try {
+    const { name, description, price, categoryId, images, colors, sizes, stockQuantity } = req.body;
+    
+    if (!name || !price) {
+      return res.status(400).json({ error: 'Product name and price are required' });
+    }
+    
+    const [result] = await pool.execute(
+      'INSERT INTO products (name, description, price, category_id, images, colors, sizes, stock_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        name,
+        description || '',
+        price,
+        categoryId || null,
+        JSON.stringify(images || []),
+        JSON.stringify(colors || []),
+        JSON.stringify(sizes || []),
+        stockQuantity || 0
+      ]
+    );
+    
+    res.json({
+      success: true,
+      productId: result.insertId,
+      message: 'Product created successfully'
+    });
+    
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+// Update product
+router.put('/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, categoryId, images, colors, sizes, stockQuantity, isActive } = req.body;
+    
+    await pool.execute(
+      'UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, images = ?, colors = ?, sizes = ?, stock_quantity = ?, is_active = ? WHERE id = ?',
+      [
+        name,
+        description || '',
+        price,
+        categoryId || null,
+        JSON.stringify(images || []),
+        JSON.stringify(colors || []),
+        JSON.stringify(sizes || []),
+        stockQuantity || 0,
+        isActive,
+        id
+      ]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Product updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Update product error:', error);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+// Delete product
+router.delete('/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const [result] = await pool.execute(
+      'DELETE FROM products WHERE id = ?',
+      [id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Delete product error:', error);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
 // Get admin stats
 router.get('/stats', async (req, res) => {
   try {

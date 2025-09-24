@@ -32,7 +32,8 @@
     "diagnose:frontend": "node scripts/diagnose-frontend-issues.js",
     "test:modules": "node scripts/test-all-modules.js",
     "force:deploy": "node scripts/force-deploy.js",
-    "fix:promotions": "node scripts/fix-promotions-table.js"
+    "fix:promotions": "node scripts/fix-promotions-table.js",
+    "populate:data": "node scripts/populate-initial-data.js"
   },
   "keywords": [
     "ecommerce",
