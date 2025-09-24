@@ -27,7 +27,9 @@
     "test:simple": "node scripts/test-api-simple.js",
     "migrate:shipping": "node scripts/migrate-real-shipping-data.js",
     "emergency:test": "node scripts/emergency-test.js",
-    "railway:post-deploy": "node scripts/railway-post-deploy.js"
+    "railway:post-deploy": "node scripts/railway-post-deploy.js",
+    "diagnose:mysql": "node scripts/diagnose-mysql-railway.js",
+    "diagnose:frontend": "node scripts/diagnose-frontend-issues.js"
   },
   "keywords": [
     "ecommerce",

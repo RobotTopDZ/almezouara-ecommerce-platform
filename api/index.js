@@ -271,7 +271,41 @@ app.get('/shipping-fees', async (req, res) => {
     }
     
     if (wilaya && city) {
-      // Find specific city in wilaya
+      // Get both domicile and stopdesk prices from database
+      try {
+        if (pool) {
+          // Get domicile price
+          const [domicileResult] = await pool.execute(
+            'SELECT prix FROM domicile_fees WHERE wilaya = ? AND commune = ? LIMIT 1',
+            [wilaya, city]
+          );
+          
+          // Get stopdesk price
+          const [stopdeskResult] = await pool.execute(
+            'SELECT prix FROM stopdesk_fees WHERE wilaya = ? AND commune = ? LIMIT 1',
+            [wilaya, city]
+          );
+          
+          if (domicileResult.length > 0) {
+            const domicilePrice = parseFloat(domicileResult[0].prix);
+            const stopdeskPrice = stopdeskResult.length > 0 ? parseFloat(stopdeskResult[0].prix) : Math.max(200, domicilePrice - 200);
+            
+            return res.json({
+              success: true,
+              shippingFee: {
+                wilaya,
+                city,
+                domicilePrice,
+                stopdeskPrice
+              }
+            });
+          }
+        }
+      } catch (dbError) {
+        console.error('Database error getting specific shipping fee:', dbError);
+      }
+      
+      // Fallback: Find in loaded data
       const shippingFee = shippingFees.find(
         fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase() && 
                fee.commune.toLowerCase() === city.toLowerCase()
@@ -284,11 +318,11 @@ app.get('/shipping-fees', async (req, res) => {
             wilaya: shippingFee.wilaya,
             city: shippingFee.commune,
             domicilePrice: shippingFee.prix,
-            stopdeskPrice: Math.max(0, shippingFee.prix - 200)
+            stopdeskPrice: Math.max(200, shippingFee.prix - 200)
           }
         });
       } else {
-        // Default shipping fee if not found
+        // City not found, return default for wilaya
         return res.json({
           success: true,
           shippingFee: {
@@ -302,7 +336,43 @@ app.get('/shipping-fees', async (req, res) => {
     }
     
     if (wilaya) {
-      // Get all cities in wilaya
+      // Get all cities in wilaya from database
+      try {
+        if (pool) {
+          const [cities] = await pool.execute(
+            'SELECT DISTINCT commune, prix FROM domicile_fees WHERE wilaya = ? ORDER BY commune',
+            [wilaya]
+          );
+          
+          if (cities.length > 0) {
+            const citiesWithPrices = [];
+            
+            for (const city of cities) {
+              // Get stopdesk price for this city
+              const [stopdeskResult] = await pool.execute(
+                'SELECT prix FROM stopdesk_fees WHERE wilaya = ? AND commune = ? LIMIT 1',
+                [wilaya, city.commune]
+              );
+              
+              citiesWithPrices.push({
+                city: city.commune,
+                domicilePrice: parseFloat(city.prix),
+                stopdeskPrice: stopdeskResult.length > 0 ? parseFloat(stopdeskResult[0].prix) : Math.max(200, parseFloat(city.prix) - 200)
+              });
+            }
+            
+            return res.json({
+              success: true,
+              wilaya,
+              cities: citiesWithPrices
+            });
+          }
+        }
+      } catch (dbError) {
+        console.error('Database error getting cities for wilaya:', dbError);
+      }
+      
+      // Fallback: use loaded data
       const wilayaFees = shippingFees.filter(
         fee => fee.wilaya.toLowerCase() === wilaya.toLowerCase()
       );
@@ -314,7 +384,7 @@ app.get('/shipping-fees', async (req, res) => {
           cities: wilayaFees.map(fee => ({
             city: fee.commune,
             domicilePrice: fee.prix,
-            stopdeskPrice: Math.max(0, fee.prix - 200)
+            stopdeskPrice: Math.max(200, fee.prix - 200)
           }))
         });
       } else {

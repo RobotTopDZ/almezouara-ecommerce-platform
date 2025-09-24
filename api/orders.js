@@ -9,6 +9,7 @@ router.post('/', async (req, res) => {
     const { phoneNumber, items, total, deliveryMethod, address, fullName, wilaya, city, shippingCost, productPrice, discountPercentage } = req.body || {};
     
     console.log('Order creation attempt:', { phoneNumber, items: items?.length, total, deliveryMethod, fullName, wilaya, city });
+    console.log('Database pool status:', pool ? 'Available' : 'Not available');
     
     // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
