@@ -416,10 +416,117 @@ app.get('/shipping-fees', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Almezouara E-Commerce API is running',
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    status: 'healthy'
   });
+});
+
+// Quick migration endpoint
+app.post('/api/quick-migrate', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔧 Running quick migration...');
+    
+    // Drop and recreate orders table with correct structure
+    try {
+      await pool.execute('DROP TABLE IF EXISTS orders');
+      console.log('🗑️ Dropped existing orders table');
+    } catch (e) {
+      console.log('⚠️ No existing orders table to drop');
+    }
+    
+    // Create tables with correct structure
+    const tables = [
+      {
+        name: 'accounts',
+        sql: `CREATE TABLE IF NOT EXISTS accounts (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          phone VARCHAR(20) UNIQUE NOT NULL,
+          email VARCHAR(255),
+          full_name VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'categories',
+        sql: `CREATE TABLE IF NOT EXISTS categories (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL UNIQUE,
+          description TEXT,
+          image VARCHAR(500),
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'products',
+        sql: `CREATE TABLE IF NOT EXISTS products (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          price DECIMAL(10,2) NOT NULL,
+          category_id INT,
+          images TEXT,
+          colors TEXT,
+          sizes TEXT,
+          stock_quantity INT DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      },
+      {
+        name: 'orders',
+        sql: `CREATE TABLE IF NOT EXISTS orders (
+          id VARCHAR(50) PRIMARY KEY,
+          phone VARCHAR(20),
+          full_name VARCHAR(255),
+          wilaya VARCHAR(100),
+          city VARCHAR(100),
+          address TEXT,
+          delivery_method VARCHAR(50),
+          items TEXT,
+          total DECIMAL(10,2),
+          discount_percentage INT DEFAULT 0,
+          status VARCHAR(50) DEFAULT 'pending',
+          yalidine_tracking VARCHAR(100),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      }
+    ];
+    
+    const results = [];
+    
+    for (const table of tables) {
+      try {
+        await pool.execute(table.sql);
+        results.push({ table: table.name, status: 'created' });
+        console.log(`✅ Table ${table.name} created/verified`);
+      } catch (error) {
+        console.error(`❌ Error creating ${table.name}:`, error.message);
+        results.push({ table: table.name, status: 'error', error: error.message });
+      }
+    }
+    
+    // Verify tables
+    const [tablesList] = await pool.execute('SHOW TABLES');
+    
+    res.json({
+      success: true,
+      message: 'Quick migration completed',
+      results,
+      tables: tablesList.map(t => Object.values(t)[0])
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      error: 'Migration failed',
+      details: error.message
+    });
+  }
 });
 
 // Health check with environment diagnostics
