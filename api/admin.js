@@ -92,9 +92,9 @@ router.get('/promotions', async (req, res) => {
 // Create promotion (admin)
 router.post('/promotions', async (req, res) => {
   try {
-    const { phoneNumber, percentage, description, usageLimit = 1 } = req.body;
+    const { phoneNumber, percentage, description, usageLimit = 1, isActive = true } = req.body;
     
-    console.log('Admin promotion creation:', { phoneNumber, percentage, description, usageLimit });
+    console.log('Admin promotion creation:', { phoneNumber, percentage, description, usageLimit, isActive });
     
     // Validate required fields
     if (!phoneNumber || !percentage) {
@@ -118,7 +118,7 @@ router.post('/promotions', async (req, res) => {
     const promotionId = `PROMO-${Date.now()}-${Math.floor(Math.random() * 100)}`;
     await pool.execute(
       'INSERT INTO promotions (id, phone, percentage, description, usage_limit, usage_count, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [promotionId, phoneNumber, percentage, description || '', usageLimit, 0, true]
+      [promotionId, phoneNumber, percentage, description || '', usageLimit, 0, isActive]
     );
     
     res.json({
@@ -132,13 +132,64 @@ router.post('/promotions', async (req, res) => {
         description: description || '',
         usageLimit,
         usageCount: 0,
-        isActive: true
+        isActive
       }
     });
     
   } catch (error) {
     console.error('Admin create promotion error:', error);
     res.status(500).json({ error: 'Failed to create promotion' });
+  }
+});
+
+// Update promotion (admin)
+router.put('/promotions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { phoneNumber, percentage, description, usageLimit, isActive } = req.body;
+    
+    console.log('Admin promotion update:', { id, phoneNumber, percentage, description, usageLimit, isActive });
+    
+    await pool.execute(
+      'UPDATE promotions SET phone = ?, percentage = ?, description = ?, usage_limit = ?, is_active = ? WHERE id = ?',
+      [phoneNumber, percentage, description || '', usageLimit, isActive, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Promotion updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Admin update promotion error:', error);
+    res.status(500).json({ error: 'Failed to update promotion' });
+  }
+});
+
+// Delete promotion (admin)
+router.delete('/promotions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('Admin promotion deletion:', { id });
+    
+    const [result] = await pool.execute(
+      'DELETE FROM promotions WHERE id = ?',
+      [id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Promotion not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Promotion deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Admin delete promotion error:', error);
+    res.status(500).json({ error: 'Failed to delete promotion' });
   }
 });
 

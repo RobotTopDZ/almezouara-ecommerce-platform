@@ -97,7 +97,7 @@ const AdminPromotions = () => {
 
       if (editingPromotion) {
         // Update existing promotion
-        const response = await fetch(`/api/promotions/${editingPromotion.id}`, {
+        const response = await fetch(`/api/admin/promotions/${editingPromotion.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(promotionData)
@@ -158,7 +158,7 @@ const AdminPromotions = () => {
   const handleDelete = async (promotionId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette promotion ?')) {
       try {
-        const response = await fetch(`/api/promotions/${promotionId}`, {
+        const response = await fetch(`/api/admin/promotions/${promotionId}`, {
           method: 'DELETE'
         });
         
