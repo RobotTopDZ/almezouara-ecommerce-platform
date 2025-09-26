@@ -54,6 +54,9 @@ const distPath = path.join(__dirname, 'dist');
 const distExists = fs.existsSync(distPath);
 console.log(`📁 Dist folder exists: ${distExists}`);
 
+// API loading status (must be declared early)
+let apiLoaded = false;
+
 if (!distExists) {
   console.warn('⚠️  Dist folder not found - frontend will not be served');
   
