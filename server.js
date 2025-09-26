@@ -57,6 +57,17 @@ console.log(`📁 Dist folder exists: ${distExists}`);
 // API loading status (must be declared early)
 let apiLoaded = false;
 
+// Mount API routes
+try {
+  const apiApp = require('./api/index');
+  app.use('/api', apiApp);
+  apiLoaded = true;
+  console.log('✅ API routes mounted at /api');
+} catch (error) {
+  console.error('❌ Failed to load API routes:', error.message);
+  apiLoaded = false;
+}
+
 if (!distExists) {
   console.warn('⚠️  Dist folder not found - frontend will not be served');
   
