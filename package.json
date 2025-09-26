@@ -16,6 +16,7 @@
     "serve:full": "npm run build && npm start",
     "db:repair-orders": "node scripts/fix-orders-now.js",
     "test:orders-fix": "node scripts/test-orders-fix.js",
+    "test:emergency-fix": "node scripts/test-emergency-fix.js",
     "clean": "rm -rf dist node_modules/.vite",
     "check:deployment": "node scripts/check-deployment.js",
     "postinstall": "node scripts/check-deployment.js",
