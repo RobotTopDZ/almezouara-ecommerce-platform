@@ -529,6 +529,61 @@ app.post('/api/quick-migrate', async (req, res) => {
   }
 });
 
+// Emergency database fix endpoint
+app.post('/api/emergency-fix-orders', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🔧 Emergency fixing orders table...');
+    
+    // Check if items column exists
+    try {
+      const [columns] = await pool.execute('SHOW COLUMNS FROM orders LIKE ?', ['items']);
+      if (columns.length === 0) {
+        await pool.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
+        console.log('✅ Added items column to orders table');
+        return res.json({ success: true, message: 'Added items column to orders table' });
+      } else {
+        return res.json({ success: true, message: 'Orders table already has items column' });
+      }
+    } catch (error) {
+      if (error.code === '42S02') { // Table doesn't exist
+        await pool.execute(`
+          CREATE TABLE orders (
+            id VARCHAR(50) PRIMARY KEY,
+            phone VARCHAR(20),
+            full_name VARCHAR(255),
+            wilaya VARCHAR(100),
+            city VARCHAR(100),
+            address TEXT,
+            delivery_method VARCHAR(50),
+            items TEXT,
+            total DECIMAL(10,2),
+            discount_percentage INT DEFAULT 0,
+            status VARCHAR(50) DEFAULT 'pending',
+            yalidine_tracking VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        console.log('✅ Created orders table with correct structure');
+        return res.json({ success: true, message: 'Created orders table with correct structure' });
+      } else {
+        throw error;
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Emergency fix error:', error);
+    res.status(500).json({
+      error: 'Emergency fix failed',
+      details: error.message
+    });
+  }
+});
+
+
 // Health check with environment diagnostics
 app.get('/health', (req, res) => {
   res.json({ 
@@ -538,28 +593,6 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     database_configured: !!(process.env.DATABASE_URL || process.env.DATABASE_HOST),
     port: process.env.PORT || 'not set'
-  });
-});
-
-// Diagnostic endpoint for Railway debugging
-app.get('/debug', (req, res) => {
-  res.json({
-    status: 'debug_info',
-    timestamp: new Date().toISOString(),
-    environment_variables: {
-      NODE_ENV: process.env.NODE_ENV || 'not set',
-      PORT: process.env.PORT || 'not set',
-      DATABASE_URL: process.env.DATABASE_URL ? 'set' : 'not set',
-      DATABASE_HOST: process.env.DATABASE_HOST || 'not set',
-      DATABASE_SSL: process.env.DATABASE_SSL || 'not set',
-      CORS_ORIGIN: process.env.CORS_ORIGIN || 'not set'
-    },
-    process_info: {
-      node_version: process.version,
-      platform: process.platform,
-      memory_usage: process.memoryUsage(),
-      uptime: process.uptime()
-    }
   });
 });
 
