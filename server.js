@@ -97,30 +97,88 @@ if (fs.existsSync(publicPath)) {
     maxAge: '7d',
     etag: true
   }));
-  console.log('✅ Public directory served at /public');
 }
 
-// Mount API (non-blocking)
-let apiLoaded = false;
-try {
-  console.log('🔄 Loading API routes...');
-  const appApi = require('./api');
-  app.use('/api', appApi);
-  apiLoaded = true;
-  console.log('✅ API routes mounted successfully');
-} catch (error) {
-  console.error('❌ Failed to load API routes:', error.message);
-  console.error('⚠️  Server will continue without API routes');
-  
-  // Fallback API health endpoint
-  app.get('/api/health', (req, res) => {
-    res.status(503).json({
-      status: 'api_unavailable',
-      error: 'API failed to load',
-      timestamp: new Date().toISOString()
-    });
-  });
+
+// Auto-repair database on startup
+const autoRepairDatabase = async () => {
+  try {
+    console.log('🔧 Auto-repairing database...');
+    
+    const mysql = require('mysql2/promise');
+    
+    const dbConfig = {
+      host: process.env.DATABASE_HOST,
+      user: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false
+    };
+
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      Object.assign(dbConfig, {
+        host: url.hostname,
+        port: url.port || 3306,
+        user: url.username,
+        password: url.password,
+        database: url.pathname.replace(/^\//, '')
+      });
+      dbConfig.ssl = { rejectUnauthorized: false };
+    }
+
+    const pool = mysql.createPool(dbConfig);
+    
+    // Check if orders table exists and has correct structure
+    try {
+      const [columns] = await pool.execute('SHOW COLUMNS FROM orders LIKE ?', ['items']);
+      if (columns.length === 0) {
+        console.log('⚠️ Orders table missing items column, adding it...');
+        await pool.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
+        console.log('✅ Added items column to orders table');
+      } else {
+        console.log('✅ Orders table structure is correct');
+      }
+    } catch (error) {
+      if (error.code === '42S02') { // Table doesn't exist
+        console.log('⚠️ Orders table does not exist, creating it...');
+        await pool.execute(`
+          CREATE TABLE orders (
+            id VARCHAR(50) PRIMARY KEY,
+            phone VARCHAR(20),
+            full_name VARCHAR(255),
+            wilaya VARCHAR(100),
+            city VARCHAR(100),
+            address TEXT,
+            delivery_method VARCHAR(50),
+            items TEXT,
+            total DECIMAL(10,2),
+            discount_percentage INT DEFAULT 0,
+            status VARCHAR(50) DEFAULT 'pending',
+            yalidine_tracking VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        console.log('✅ Created orders table with correct structure');
+      } else {
+        console.error('❌ Database repair error:', error.message);
+      }
+    }
+    
+    await pool.end();
+    console.log('✅ Database auto-repair completed');
+    
+  } catch (error) {
+    console.error('❌ Failed to auto-repair database:', error.message);
+  }
+};
+
+// Run auto-repair if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  autoRepairDatabase();
 }
+
+
 
 // Debug endpoint
 app.get('/debug', (req, res) => {
