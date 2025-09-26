@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
       }
       
       if (existingOrder) {
-        // Add items to existing order (same-day grouping)
+        // Add items to existing order (use order_items table)
         for (const item of items) {
           await pool.execute(`
             INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
@@ -82,8 +82,8 @@ router.post('/', async (req, res) => {
         
         // Update order totals
         await pool.execute(
-          'UPDATE orders SET total = total + ?, product_price = product_price + ? WHERE id = ?',
-          [total, productPrice || 0, existingOrder.id]
+          'UPDATE orders SET total = total + ? WHERE id = ?',
+          [total, existingOrder.id]
         );
         
         return res.json({ 
@@ -93,11 +93,19 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
-        // Create new order (simplified structure)
+        // Create new order (corrected structure - no items column in orders table)
         await pool.execute(`
-          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, items, total, discount_percentage, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, JSON.stringify(items), total, discountPercentage || 0, 'pending']);
+          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
+        
+        // Insert order items separately
+        for (const item of items) {
+          await pool.execute(`
+            INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `, [orderId, item.id || null, item.name || '', item.price || 0, item.quantity || 1, item.image || null, item.color || null, item.size || null]);
+        }
         
         console.log('✅ Order created successfully in database:', orderId);
         
