@@ -15,7 +15,7 @@ import FAQPage from './pages/FAQPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard, { RequireAdmin, AdminOverview, AdminFees } from './pages/AdminDashboard';
-import AdminProducts from './pages/AdminProducts';
+import AdminProducts from './pages/AdminProductsNew';
 import AdminOrders from './pages/AdminOrders';
 import AdminCategories from './pages/AdminCategories';
 import AdminAccounts from './pages/AdminAccounts';
