@@ -42,15 +42,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Valid total amount is required' });
     }
     
-    // Try database operation, fallback to mock if fails
+    // Try database operation - NO MOCK MODE - FAIL IF DB FAILS
     const dbConnected = await ensureDBConnection();
     
+    if (!dbConnected) {
+      console.error('❌ Database connection failed - CANNOT CREATE ORDER');
+      return res.status(500).json({ 
+        error: 'Database connection failed',
+        message: 'Cannot process order at this time'
+      });
+    }
+    
     try {
-      if (!dbConnected) {
-        console.log('⚠️ No database connection, using mock mode');
-        throw new Error('No database connection');
-      }
-      
       const today = new Date().toISOString().slice(0,10);
       const orderId = `ORD-${Math.floor(Math.random() * 100000)}`;
       
@@ -130,30 +133,11 @@ router.post('/', async (req, res) => {
         });
       }
     } catch (dbError) {
-      console.log('Database error, using mock mode:', dbError.message);
-      
-      // Mock order creation for testing without database
-      const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      console.log('Mock order created:', orderId);
-      
-      return res.json({
-        success: true,
-        orderId,
-        message: 'Order created successfully (mock mode)',
-        order: {
-          id: orderId,
-          phoneNumber,
-          items,
-          total,
-          deliveryMethod,
-          address,
-          fullName,
-          wilaya,
-          city,
-          shippingCost,
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        }
+      console.error('❌ Database operation failed:', dbError.message);
+      return res.status(500).json({ 
+        error: 'Database operation failed',
+        details: dbError.message,
+        message: 'Cannot save order to database'
       });
     }
   } catch (error) {
