@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { categories as initialCategories } from '../data/categories';
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -22,13 +23,7 @@ const AdminLayout = ({ children }) => (
 );
 
 const AdminCategories = () => {
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Robes', description: 'Robes élégantes pour toutes les occasions', productCount: 15, color: '#FF6B6B', icon: 'dress' },
-    { id: 2, name: 'Hijabs', description: 'Hijabs modernes et confortables', productCount: 8, color: '#4ECDC4', icon: 'hijab' },
-    { id: 3, name: 'Abayas', description: 'Abayas traditionnelles et modernes', productCount: 12, color: '#45B7D1', icon: 'abaya' },
-    { id: 4, name: 'Accessoires', description: 'Accessoires pour compléter votre look', productCount: 6, color: '#96CEB4', icon: 'accessories' },
-    { id: 5, name: 'Chaussures', description: 'Chaussures confortables et stylées', productCount: 4, color: '#FFEAA7', icon: 'shoes' }
-  ]);
+  const [categories, setCategories] = useState(initialCategories);
 
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
