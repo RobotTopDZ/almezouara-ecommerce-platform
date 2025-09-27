@@ -35,11 +35,12 @@ const AdminProducts = () => {
     price: '',
     stock: '',
     description: '',
-    images: [''],
+    images: [],
     colors: [{ name: '', value: '#000000' }],
     sizes: [''],
     status: 'active'
   });
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -108,6 +109,50 @@ const AdminProducts = () => {
       return matchesSearch && matchesCategory && matchesStatus;
     });
 
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    setUploadingImages(true);
+    
+    try {
+      const formDataUpload = new FormData();
+      files.forEach(file => {
+        formDataUpload.append('images', file);
+      });
+      
+      const response = await axios.post('/api/products/upload-images', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, ...response.data.images]
+        }));
+        alert(`${response.data.images.length} image(s) uploaded successfully!`);
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      alert('Error uploading images');
+    } finally {
+      setUploadingImages(false);
+      // Clear the file input
+      e.target.value = '';
+    }
+  };
+  
+  // Remove image
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -119,7 +164,7 @@ const AdminProducts = () => {
         stock: parseInt(formData.stock),
         description: formData.description,
         status: formData.status,
-        images: formData.images.filter(img => img.trim() !== ''),
+        images: formData.images,
         colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
         sizes: formData.sizes.filter(size => size.trim() !== '')
       };
@@ -147,7 +192,7 @@ const AdminProducts = () => {
       price: '',
       stock: '',
       description: '',
-      images: [''],
+      images: [],
       colors: [{ name: '', value: '#000000' }],
       sizes: [''],
       status: 'active'
@@ -176,7 +221,7 @@ const AdminProducts = () => {
       price: product.price.toString(),
       stock: product.stock.toString(),
       description: product.description,
-      images: product.images.length > 0 ? product.images : [''],
+      images: product.images || [],
       colors: colors,
       sizes: product.sizes.length > 0 ? product.sizes : [''],
       status: product.status
@@ -568,36 +613,65 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                {/* Images */}
+                {/* Images Upload */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="url"
-                        value={image}
-                        onChange={(e) => updateArrayField('images', index, e.target.value)}
-                        placeholder="URL de l'image"
-                        className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
-                      {formData.images.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('images', index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          ❌
-                        </button>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Images du produit</label>
+                  
+                  {/* Upload Button */}
+                  <div className="mb-3">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                      disabled={uploadingImages}
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer ${
+                        uploadingImages ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {uploadingImages ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
+                          Téléchargement...
+                        </>
+                      ) : (
+                        <>
+                          📷 Choisir des images
+                        </>
                       )}
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, GIF (max 5MB par image)</p>
+                  </div>
+                  
+                  {/* Image Preview */}
+                  {formData.images.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 object-cover rounded border"
+                            onError={(e) => {
+                              e.target.src = '/images/placeholder.jpg';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addArrayField('images')}
-                    className="text-purple-600 hover:text-purple-800 text-sm"
-                  >
-                    + Ajouter une image
-                  </button>
+                  )}
                 </div>
 
                 {/* Colors */}

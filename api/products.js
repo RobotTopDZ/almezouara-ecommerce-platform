@@ -1,6 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('./config/database');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '..', 'images', 'products');
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Check if file is an image
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 // Initialize tables if they don't exist
 const initializeTables = async () => {
@@ -55,6 +90,29 @@ const initializeTables = async () => {
 
 // Initialize tables on first load
 initializeTables();
+
+// Image upload endpoint
+router.post('/upload-images', upload.array('images', 5), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No images uploaded' });
+    }
+    
+    // Generate URLs for uploaded images
+    const imageUrls = req.files.map(file => `/images/products/${file.filename}`);
+    
+    console.log('Images uploaded:', imageUrls);
+    
+    res.json({ 
+      success: true, 
+      images: imageUrls,
+      message: `${req.files.length} image(s) uploaded successfully`
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
+  }
+});
 
 // Get all products
 router.get('/', async (req, res) => {
@@ -192,6 +250,13 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
+    // Ensure proper JSON stringification
+    const imagesJson = JSON.stringify(Array.isArray(images) ? images : []);
+    const colorsJson = JSON.stringify(Array.isArray(colors) ? colors : []);
+    const sizesJson = JSON.stringify(Array.isArray(sizes) ? sizes : []);
+    
+    console.log('Saving JSON data:', { imagesJson, colorsJson, sizesJson });
+    
     const [result] = await pool.execute(`
       INSERT INTO products (
         name, category_id, price, stock, description, 
@@ -203,9 +268,9 @@ router.post('/', async (req, res) => {
       parseFloat(price),
       parseInt(stock),
       description || '',
-      JSON.stringify(images || []),
-      JSON.stringify(colors || []),
-      JSON.stringify(sizes || []),
+      imagesJson,
+      colorsJson,
+      sizesJson,
       status || 'active'
     ]);
     
