@@ -254,6 +254,10 @@ const ProductPage = () => {
         totalWithShipping
       });
       
+      console.log('🔍 Form data before order:', formData);
+      console.log('🔍 Customer info:', customerInfo);
+      console.log('🔍 Customer choice:', customerChoice);
+      
       const orderPayload = {
         phoneNumber: formData.phoneNumber,
         items: [{ id: product.id, name: product.name, price: discountedPrice, quantity: quantity, image: product.images[0], color: selectedColor, size: selectedSize }],
@@ -267,6 +271,8 @@ const ProductPage = () => {
         productPrice: totalProductPrice,
         discountPercentage: discountPercentage
       };
+      
+      console.log('🚀 Order payload:', orderPayload);
       const response = await axios.post('/api/orders', orderPayload);
       
       // Show beautiful success modal
