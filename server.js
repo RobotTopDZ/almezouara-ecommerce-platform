@@ -145,7 +145,7 @@ const autoRepairDatabase = async () => {
     
     // Check if orders table exists and has correct structure
     try {
-      const [columns] = await pool.execute('SHOW COLUMNS FROM orders LIKE ?', ['items']);
+      const [columns] = await pool.execute(`SHOW COLUMNS FROM orders LIKE 'items'`);
       if (columns.length === 0) {
         console.log('⚠️ Orders table missing items column, adding it...');
         await pool.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
@@ -176,6 +176,43 @@ const autoRepairDatabase = async () => {
         console.log('✅ Created orders table with correct structure');
       } else {
         console.error('❌ Database repair error:', error.message);
+      }
+    }
+    
+    // Check and fix promotions table structure
+    try {
+      console.log('🔍 Checking promotions table structure...');
+      const [promotionsColumns] = await pool.execute('DESCRIBE promotions');
+      const idColumn = promotionsColumns.find(c => c.Field === 'id');
+      
+      if (idColumn && idColumn.Type.includes('int')) {
+        console.log('⚠️  Promotions table has INT id, fixing to VARCHAR...');
+        
+        // Drop and recreate with correct schema
+        await pool.execute('DROP TABLE IF EXISTS promotions');
+        await pool.execute(`
+          CREATE TABLE promotions (
+            id VARCHAR(50) PRIMARY KEY,
+            phone VARCHAR(20) NOT NULL,
+            percentage DECIMAL(5,2) NOT NULL,
+            description TEXT,
+            usage_limit INT DEFAULT 1,
+            usage_count INT DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_phone (phone)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+        
+        console.log('✅ Promotions table fixed with VARCHAR id');
+      } else {
+        console.log('✅ Promotions table structure is correct');
+      }
+    } catch (error) {
+      if (error.code === '42S02') {
+        console.log('⚠️  Promotions table does not exist, will be created by API initialization');
+      } else {
+        console.error('❌ Promotions table repair error:', error.message);
       }
     }
     
