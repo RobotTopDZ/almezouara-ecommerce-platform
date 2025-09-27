@@ -70,13 +70,40 @@ router.get('/', async (req, res) => {
       ORDER BY p.created_at DESC
     `);
     
-    // Parse JSON fields
-    const formattedProducts = products.map(product => ({
-      ...product,
-      images: product.images ? JSON.parse(product.images) : [],
-      colors: product.colors ? JSON.parse(product.colors) : [],
-      sizes: product.sizes ? JSON.parse(product.sizes) : []
-    }));
+    // Parse JSON fields safely
+    const formattedProducts = products.map(product => {
+      let images = [];
+      let colors = [];
+      let sizes = [];
+      
+      try {
+        images = product.images ? JSON.parse(product.images) : [];
+      } catch (e) {
+        console.warn('Invalid images JSON for product', product.id, ':', product.images);
+        images = [];
+      }
+      
+      try {
+        colors = product.colors ? JSON.parse(product.colors) : [];
+      } catch (e) {
+        console.warn('Invalid colors JSON for product', product.id, ':', product.colors);
+        colors = [];
+      }
+      
+      try {
+        sizes = product.sizes ? JSON.parse(product.sizes) : [];
+      } catch (e) {
+        console.warn('Invalid sizes JSON for product', product.id, ':', product.sizes);
+        sizes = [];
+      }
+      
+      return {
+        ...product,
+        images,
+        colors,
+        sizes
+      };
+    });
     
     res.json({ success: true, products: formattedProducts });
   } catch (error) {
@@ -99,11 +126,37 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
+    // Parse JSON fields safely
+    let images = [];
+    let colors = [];
+    let sizes = [];
+    
+    try {
+      images = products[0].images ? JSON.parse(products[0].images) : [];
+    } catch (e) {
+      console.warn('Invalid images JSON for product', products[0].id);
+      images = [];
+    }
+    
+    try {
+      colors = products[0].colors ? JSON.parse(products[0].colors) : [];
+    } catch (e) {
+      console.warn('Invalid colors JSON for product', products[0].id);
+      colors = [];
+    }
+    
+    try {
+      sizes = products[0].sizes ? JSON.parse(products[0].sizes) : [];
+    } catch (e) {
+      console.warn('Invalid sizes JSON for product', products[0].id);
+      sizes = [];
+    }
+    
     const product = {
       ...products[0],
-      images: products[0].images ? JSON.parse(products[0].images) : [],
-      colors: products[0].colors ? JSON.parse(products[0].colors) : [],
-      sizes: products[0].sizes ? JSON.parse(products[0].sizes) : []
+      images,
+      colors,
+      sizes
     };
     
     res.json({ success: true, product });
@@ -244,6 +297,88 @@ router.get('/categories/list', async (req, res) => {
   } catch (error) {
     console.error('Get categories error:', error);
     res.status(500).json({ error: 'Failed to get categories' });
+  }
+});
+
+// Clean up corrupted JSON data (admin endpoint)
+router.post('/cleanup', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not connected' });
+    }
+    
+    console.log('🧹 Cleaning up corrupted JSON data...');
+    
+    // Get all products
+    const [products] = await pool.execute('SELECT id, images, colors, sizes FROM products');
+    
+    let cleanedCount = 0;
+    
+    for (const product of products) {
+      let needsUpdate = false;
+      let cleanImages = '[]';
+      let cleanColors = '[]';
+      let cleanSizes = '[]';
+      
+      // Check and fix images
+      if (product.images) {
+        try {
+          JSON.parse(product.images);
+          cleanImages = product.images;
+        } catch (e) {
+          console.log(`Fixing images for product ${product.id}:`, product.images);
+          // If it's a URL string, wrap it in array
+          if (typeof product.images === 'string' && product.images.startsWith('http')) {
+            cleanImages = JSON.stringify([product.images]);
+          } else {
+            cleanImages = '[]';
+          }
+          needsUpdate = true;
+        }
+      }
+      
+      // Check and fix colors
+      if (product.colors) {
+        try {
+          JSON.parse(product.colors);
+          cleanColors = product.colors;
+        } catch (e) {
+          console.log(`Fixing colors for product ${product.id}:`, product.colors);
+          cleanColors = '[]';
+          needsUpdate = true;
+        }
+      }
+      
+      // Check and fix sizes
+      if (product.sizes) {
+        try {
+          JSON.parse(product.sizes);
+          cleanSizes = product.sizes;
+        } catch (e) {
+          console.log(`Fixing sizes for product ${product.id}:`, product.sizes);
+          cleanSizes = '[]';
+          needsUpdate = true;
+        }
+      }
+      
+      if (needsUpdate) {
+        await pool.execute(
+          'UPDATE products SET images = ?, colors = ?, sizes = ? WHERE id = ?',
+          [cleanImages, cleanColors, cleanSizes, product.id]
+        );
+        cleanedCount++;
+      }
+    }
+    
+    console.log(`✅ Cleaned up ${cleanedCount} products`);
+    res.json({ 
+      success: true, 
+      message: `Cleaned up ${cleanedCount} products with corrupted JSON data`,
+      cleanedCount 
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({ error: 'Failed to cleanup data' });
   }
 });
 
