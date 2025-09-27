@@ -596,7 +596,7 @@ const ProductPage = () => {
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => setShowPreviousInfo(true)}
+                      onClick={() => handleCustomerChoice('use-previous')}
                       className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
                     >
                       ✅ Utiliser mes informations précédentes
