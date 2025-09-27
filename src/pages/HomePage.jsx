@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { useCategories } from '../hooks/useCategories';
 import axios from 'axios';
 
 // Import Swiper styles
@@ -13,22 +14,19 @@ import 'swiper/css/pagination';
 const HomePage = () => {
   const { t } = useTranslation();
   const [allProducts, setAllProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+  
+  // Use the shared categories hook
+  const { categories } = useCategories();
 
-  // Load products and categories from API
+  // Load products from API
   useEffect(() => {
-    const loadData = async () => {
+    const loadProducts = async () => {
       try {
-        console.log('Loading data from API...');
-        // Load both products and categories
-        const [productsRes, categoriesRes] = await Promise.all([
-          axios.get('/api/products'),
-          axios.get('/api/products/categories/list')
-        ]);
+        console.log('Loading products from API...');
+        const productsRes = await axios.get('/api/products');
         
-        // Handle products
         if (productsRes.data.success && productsRes.data.products) {
           const transformedProducts = productsRes.data.products
             .filter(product => product.status === 'active')
@@ -39,7 +37,7 @@ const HomePage = () => {
                 name: product.name,
                 price: product.price,
                 image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
-                category: product.category_name ? product.category_name.toLowerCase() : 'general'
+                category_name: product.category_name || 'General'
               };
             });
           console.log('Transformed products:', transformedProducts);
@@ -48,42 +46,15 @@ const HomePage = () => {
           console.log('Products API failed, using sample products');
           setAllProducts(sampleProducts);
         }
-        
-        // Handle categories
-        if (categoriesRes.data.success && categoriesRes.data.categories) {
-          const transformedCategories = categoriesRes.data.categories.map(cat => ({
-            id: cat.name.toLowerCase(),
-            name: cat.name.toUpperCase(),
-            originalName: cat.name
-          }));
-          setCategories(transformedCategories);
-          console.log('Loaded categories:', transformedCategories);
-        } else {
-          console.log('Categories API failed, using fallback');
-          setCategories([
-            { id: 'robes', name: 'ROBES', originalName: 'Robes' },
-            { id: 'hijabs', name: 'HIJABS', originalName: 'Hijabs' },
-            { id: 'abayas', name: 'ABAYAS', originalName: 'Abayas' },
-            { id: 'accessoires', name: 'ACCESSOIRES', originalName: 'Accessoires' },
-            { id: 'chaussures', name: 'CHAUSSURES', originalName: 'Chaussures' }
-          ]);
-        }
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error loading products:', error);
         setAllProducts(sampleProducts);
-        setCategories([
-          { id: 'robes', name: 'ROBES', originalName: 'Robes' },
-          { id: 'hijabs', name: 'HIJABS', originalName: 'Hijabs' },
-          { id: 'abayas', name: 'ABAYAS', originalName: 'Abayas' },
-          { id: 'accessoires', name: 'ACCESSOIRES', originalName: 'Accessoires' },
-          { id: 'chaussures', name: 'CHAUSSURES', originalName: 'Chaussures' }
-        ]);
       } finally {
         setLoading(false);
       }
     };
     
-    loadData();
+    loadProducts();
   }, []);
 
   // Fallback sample products data
@@ -93,147 +64,152 @@ const HomePage = () => {
       name: 'Robe Élégante',
       price: 3500,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 2,
       name: 'Hijab Premium',
       price: 1200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
     },
     {
       id: 3,
       name: 'Robe de Soirée',
       price: 4500,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 4,
       name: 'Ensemble Casual',
       price: 2800,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 5,
       name: 'Hijab Moderne',
       price: 1500,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
     },
     {
       id: 6,
       name: 'Robe Tendance',
       price: 3200,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 7,
       name: 'Chaussures Élégantes',
       price: 4200,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'shoes',
+      category_name: 'Chaussures',
     },
     {
       id: 8,
       name: 'Accessoire Chic',
       price: 900,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
     },
     {
       id: 9,
       name: 'Robe Moderne',
       price: 3800,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 10,
       name: 'Hijab Collection',
       price: 1800,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
     },
     {
       id: 11,
       name: 'Ensemble Chic',
       price: 3600,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 12,
       name: 'Sac Designer',
       price: 2500,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
     },
     {
       id: 13,
       name: 'Robe Luxe',
       price: 5200,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 14,
       name: 'Hijab Soie',
       price: 2200,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
     },
     {
       id: 15,
       name: 'Chaussures Mode',
       price: 3900,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'shoes',
+      category_name: 'Chaussures',
     },
     {
       id: 16,
       name: 'Bijoux Précieux',
       price: 1600,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
     },
     {
       id: 17,
       name: 'Robe Cocktail',
       price: 4200,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 18,
       name: 'Hijab Brodé',
       price: 1900,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
     },
     {
       id: 19,
       name: 'Ensemble Designer',
       price: 4800,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
     },
     {
       id: 20,
       name: 'Montre Élégante',
       price: 3200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
     }
   ];
 
   // Filter products based on selected category
   const filteredProducts = selectedCategory === 'all' 
     ? allProducts 
-    : allProducts.filter(product => product.category === selectedCategory);
+    : allProducts.filter(product => {
+      // Match category by name (case insensitive)
+      const productCategory = product.category_name ? product.category_name.toLowerCase() : '';
+      const selectedCategoryLower = selectedCategory.toLowerCase();
+      return productCategory === selectedCategoryLower;
+    });
   
   // Use infinite scroll hook with filtered products
   const { displayedItems: displayedProducts, hasMore, isLoading } = useInfiniteScroll(filteredProducts, 6);
@@ -337,9 +313,9 @@ const HomePage = () => {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => setSelectedCategory(category.originalName)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                selectedCategory === category.id
+                selectedCategory === category.originalName
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}

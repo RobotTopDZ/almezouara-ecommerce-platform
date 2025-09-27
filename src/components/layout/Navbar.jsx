@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCategories } from '../../hooks/useCategories';
 
 const Navbar = ({ toggleLanguage, currentLang }) => {
   const { t } = useTranslation();
@@ -9,13 +10,9 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const categories = [
-    { id: 'dresses', name: t('categories.dresses') },
-    { id: 'hijabs', name: t('categories.hijabs') },
-    { id: 'shoes', name: t('categories.shoes') },
-    { id: 'accessories', name: t('categories.accessories') },
-  ];
+  
+  // Use database categories
+  const { categories } = useCategories();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -120,15 +117,15 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
               {categories.map((category) => (
                 <Link
                   key={category.id}
-                  to={`/category/${category.id}`}
+                  to={`/category/${category.originalName}`}
                   className={`group relative flex-shrink-0 px-2.5 py-1.5 text-xs font-medium rounded-full transition-all duration-300 ${
-                    isCategoryActive(category.id)
+                    isCategoryActive(category.originalName)
                       ? 'text-white bg-primary shadow-md'
                       : 'text-gray-600 hover:text-primary hover:bg-gray-50'
                   }`}
                 >
-                  {category.name.toUpperCase()}
-                  {!isCategoryActive(category.id) && (
+                  {category.name}
+                  {!isCategoryActive(category.originalName) && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-full"></div>
                   )}
                 </Link>
@@ -142,10 +139,10 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
               {categories.map((category) => (
                 <Link
                   key={category.id}
-                  to={`/category/${category.id}`}
+                  to={`/category/${category.originalName}`}
                   className="text-text hover:text-primary transition-colors duration-300 font-medium"
                 >
-                  {category.name}
+                  {category.originalName}
                 </Link>
               ))}
             </div>
@@ -210,12 +207,12 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
                   {categories.map((category) => (
                     <Link
                       key={category.id}
-                      to={`/category/${category.id}`}
+                      to={`/category/${category.originalName}`}
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-300"
                     >
-                      <span className="text-2xl">{category.icon}</span>
-                      <span className="font-medium text-text">{category.name}</span>
+                      <span className="text-2xl">📁</span>
+                      <span className="font-medium text-text">{category.originalName}</span>
                     </Link>
                   ))}
                 </div>

@@ -54,9 +54,15 @@ const ProductPage = () => {
       try {
         setLoading(true);
         const response = await axios.get(`/api/products/${id}`);
+        console.log('ProductPage API response:', response.data);
         if (response.data.success && response.data.product) {
           const productData = response.data.product;
-          setProduct({
+          console.log('Raw product data:', productData);
+          console.log('Images:', productData.images);
+          console.log('Colors:', productData.colors);
+          console.log('Sizes:', productData.sizes);
+          
+          const transformedProduct = {
             id: productData.id,
             name: productData.name,
             price: productData.price,
@@ -67,7 +73,10 @@ const ProductPage = () => {
             stock: productData.stock || 0,
             category: productData.category_name || 'Général',
             status: productData.status || 'active'
-          });
+          };
+          
+          console.log('Transformed product:', transformedProduct);
+          setProduct(transformedProduct);
           
           // Set default selections
           if (productData.colors && productData.colors.length > 0) {
@@ -506,10 +515,11 @@ const ProductPage = () => {
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">{product.description}</p>
 
             {/* Color Selection */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-text mb-3">{t('product.select_color')}</h3>
-              <div className="flex space-x-3">
-                  {product.colors.map((color) => {
+            {product.colors && product.colors.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-text mb-3">Choisir une couleur</h3>
+                <div className="flex space-x-3">
+                    {product.colors.map((color) => {
                     const colorValue = typeof color === 'object' ? color.value : '#000000';
                     const colorName = typeof color === 'object' ? color.name : color;
                     const isSelected = selectedColor && (
@@ -531,28 +541,31 @@ const ProductPage = () => {
                       />
                     );
                   })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selection */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-text mb-3">{t('product.select_size')}</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
-                      selectedSize === size
-                        ? 'border-primary bg-primary text-white shadow-lg scale-105'
-                        : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-text mb-3">Choisir une taille</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
+                        selectedSize === size
+                          ? 'border-primary bg-primary text-white shadow-lg scale-105'
+                          : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity Selection */}
             <div className="mb-8">

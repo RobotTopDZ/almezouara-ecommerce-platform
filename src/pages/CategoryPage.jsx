@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { useCategories } from '../hooks/useCategories';
+import axios from 'axios';
 
 const CategoryPage = () => {
   const { id } = useParams();
@@ -13,15 +15,57 @@ const CategoryPage = () => {
     priceRange: '',
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Use the shared categories hook
+  const { categories } = useCategories();
 
-  // Expanded sample products data - in a real app, this would come from an API
-  const allProducts = [
+  // Load products from API
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/api/products');
+        
+        if (response.data.success && response.data.products) {
+          const transformedProducts = response.data.products
+            .filter(product => product.status === 'active')
+            .map(product => {
+              return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
+                category_name: product.category_name || 'General',
+                colors: product.colors || [],
+                sizes: product.sizes || []
+              };
+            });
+          setAllProducts(transformedProducts);
+        } else {
+          // Fallback to sample products if API fails
+          setAllProducts(sampleProducts);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setAllProducts(sampleProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadProducts();
+  }, []);
+
+  // Fallback sample products
+  const sampleProducts = [
     {
       id: 1,
       name: 'Robe Élégante',
       price: 3500,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
       colors: ['black', 'red', 'blue'],
       sizes: ['S', 'M', 'L', 'XL'],
     },
@@ -30,7 +74,7 @@ const CategoryPage = () => {
       name: 'Hijab Premium',
       price: 1200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
       colors: ['black', 'white', 'beige'],
       sizes: ['Standard'],
     },
@@ -39,7 +83,7 @@ const CategoryPage = () => {
       name: 'Robe de Soirée',
       price: 4500,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
       colors: ['red', 'blue', 'green'],
       sizes: ['S', 'M', 'L'],
     },
@@ -48,7 +92,7 @@ const CategoryPage = () => {
       name: 'Ensemble Casual',
       price: 2800,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
       colors: ['black', 'gray'],
       sizes: ['M', 'L', 'XL'],
     },
@@ -57,7 +101,7 @@ const CategoryPage = () => {
       name: 'Robe Moderne',
       price: 3200,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
       colors: ['pink', 'white'],
       sizes: ['S', 'M', 'L'],
     },
@@ -66,7 +110,7 @@ const CategoryPage = () => {
       name: 'Hijab Soie',
       price: 1800,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
       colors: ['gold', 'silver'],
       sizes: ['Standard'],
     },
@@ -75,7 +119,7 @@ const CategoryPage = () => {
       name: 'Chaussures Élégantes',
       price: 4200,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'shoes',
+      category_name: 'Chaussures',
       colors: ['black', 'brown'],
       sizes: ['36', '37', '38', '39', '40'],
     },
@@ -84,7 +128,7 @@ const CategoryPage = () => {
       name: 'Sac Designer',
       price: 2500,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
       colors: ['black', 'brown', 'red'],
       sizes: ['Standard'],
     },
@@ -93,7 +137,7 @@ const CategoryPage = () => {
       name: 'Robe Cocktail',
       price: 4800,
       image: '/images/IMG_0630-scaled.jpeg',
-      category: 'dresses',
+      category_name: 'Robes',
       colors: ['navy', 'burgundy'],
       sizes: ['S', 'M', 'L', 'XL'],
     },
@@ -102,7 +146,7 @@ const CategoryPage = () => {
       name: 'Hijab Brodé',
       price: 2200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category: 'hijabs',
+      category_name: 'Hijabs',
       colors: ['cream', 'rose'],
       sizes: ['Standard'],
     },
@@ -111,7 +155,7 @@ const CategoryPage = () => {
       name: 'Escarpins Mode',
       price: 3800,
       image: '/images/IMG_6789-scaled.jpeg',
-      category: 'shoes',
+      category_name: 'Chaussures',
       colors: ['nude', 'black'],
       sizes: ['36', '37', '38', '39'],
     },
@@ -120,7 +164,7 @@ const CategoryPage = () => {
       name: 'Bijoux Précieux',
       price: 1600,
       image: '/images/IMG_9260-scaled.jpeg',
-      category: 'accessories',
+      category_name: 'Accessoires',
       colors: ['gold', 'silver'],
       sizes: ['Standard'],
     }
@@ -130,7 +174,7 @@ const CategoryPage = () => {
   const filteredProducts = allProducts.filter((product) => {
     // If we're on a special category page like 'trending', 'new_arrivals', etc.
     // we would apply different filters, but for now we'll just filter by category
-    return product.category === id;
+    return product.category_name === id;
   });
 
   // Use infinite scroll hook for filtered products
@@ -143,15 +187,8 @@ const CategoryPage = () => {
 
   // Get category name
   const getCategoryName = () => {
+    // First check if it's a special category
     switch (id) {
-      case 'dresses':
-        return t('categories.dresses');
-      case 'hijabs':
-        return t('categories.hijabs');
-      case 'shoes':
-        return t('categories.shoes');
-      case 'accessories':
-        return t('categories.accessories');
       case 'trending':
         return t('home.trending');
       case 'special_offers':
@@ -161,7 +198,9 @@ const CategoryPage = () => {
       case 'popular':
         return t('home.popular');
       default:
-        return id;
+        // For regular categories, find in the database categories
+        const category = categories.find(cat => cat.originalName === id);
+        return category ? category.originalName : id;
     }
   };
 
@@ -183,6 +222,18 @@ const CategoryPage = () => {
       [name]: value,
     });
   };
+
+  // Show loading state while fetching products
+  if (loading) {
+    return (
+      <div className="pb-16 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Chargement des produits...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 pb-16">
