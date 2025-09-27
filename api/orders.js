@@ -96,11 +96,30 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
-        // Create new order (corrected structure - no items column in orders table)
-        await pool.execute(`
-          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
+        // Create new order - adapt to schema differences between environments
+        // Detect if a NOT NULL 'date' column exists (MySQL 9.x schema)
+        let hasDateColumn = false;
+        try {
+          const [dateCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'date'");
+          hasDateColumn = Array.isArray(dateCol) && dateCol.length > 0;
+        } catch (e) {
+          // Ignore detection errors and proceed without 'date'
+          hasDateColumn = false;
+        }
+
+        if (hasDateColumn) {
+          // Include 'date' column explicitly to satisfy NOT NULL constraint
+          await pool.execute(`
+            INSERT INTO orders (id, phone, date, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [orderId, phoneNumber || null, today, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
+        } else {
+          // Legacy schema without 'date'
+          await pool.execute(`
+            INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
+        }
         
         // Insert order items separately
         for (const item of items) {
