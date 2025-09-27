@@ -53,7 +53,7 @@ const initializeTables = async () => {
       )
     `);
     
-    // Create products table
+    // Create products table with proper JSON columns
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS products (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -62,9 +62,9 @@ const initializeTables = async () => {
         price DECIMAL(10,2) NOT NULL,
         stock INT DEFAULT 0,
         description TEXT,
-        images JSON,
-        colors JSON,
-        sizes JSON,
+        images TEXT,
+        colors TEXT,
+        sizes TEXT,
         status ENUM('active', 'inactive', 'out_of_stock') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -134,25 +134,46 @@ router.get('/', async (req, res) => {
       let colors = [];
       let sizes = [];
       
-      try {
-        images = product.images ? JSON.parse(product.images) : [];
-      } catch (e) {
-        console.warn('Invalid images JSON for product', product.id, ':', product.images);
-        images = [];
+      // Handle images
+      if (product.images) {
+        if (typeof product.images === 'string') {
+          try {
+            images = JSON.parse(product.images);
+          } catch (e) {
+            // If it's not valid JSON, treat as single URL
+            images = [product.images];
+          }
+        } else if (Array.isArray(product.images)) {
+          images = product.images;
+        }
       }
       
-      try {
-        colors = product.colors ? JSON.parse(product.colors) : [];
-      } catch (e) {
-        console.warn('Invalid colors JSON for product', product.id, ':', product.colors);
-        colors = [];
+      // Handle colors
+      if (product.colors) {
+        if (typeof product.colors === 'string') {
+          try {
+            colors = JSON.parse(product.colors);
+          } catch (e) {
+            // If it's not valid JSON, treat as single color name
+            colors = [{ name: product.colors, value: '#000000' }];
+          }
+        } else if (Array.isArray(product.colors)) {
+          colors = product.colors;
+        }
       }
       
-      try {
-        sizes = product.sizes ? JSON.parse(product.sizes) : [];
-      } catch (e) {
-        console.warn('Invalid sizes JSON for product', product.id, ':', product.sizes);
-        sizes = [];
+      // Handle sizes
+      if (product.sizes) {
+        if (typeof product.sizes === 'string') {
+          try {
+            sizes = JSON.parse(product.sizes);
+          } catch (e) {
+            // If it's not valid JSON, split by comma
+            sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+          }
+        } else if (Array.isArray(product.sizes)) {
+          sizes = product.sizes;
+        }
       }
       
       return {

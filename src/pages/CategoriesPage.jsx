@@ -1,11 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 const CategoriesPage = () => {
   const { t } = useTranslation();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = [
+  // Load categories from API
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await axios.get('/api/products/categories/list');
+        if (response.data.success && response.data.categories) {
+          // Transform database categories to match expected format
+          const transformedCategories = response.data.categories.map(cat => ({
+            id: cat.name.toLowerCase(),
+            name: cat.name,
+            description: cat.description || `Découvrez notre collection de ${cat.name.toLowerCase()}`,
+            image: '/images/IMG_0630-scaled.jpeg', // Default image
+            icon: getIconForCategory(cat.name),
+            color: getColorForCategory(cat.name)
+          }));
+          setCategories(transformedCategories);
+        } else {
+          // Fallback categories
+          setCategories(fallbackCategories);
+        }
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        setCategories(fallbackCategories);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadCategories();
+  }, []);
+
+  // Helper functions
+  const getIconForCategory = (name) => {
+    const icons = {
+      'robes': '👗',
+      'hijabs': '🧕',
+      'abayas': '👘',
+      'accessoires': '💎',
+      'chaussures': '👠'
+    };
+    return icons[name.toLowerCase()] || '🛍️';
+  };
+
+  const getColorForCategory = (name) => {
+    const colors = {
+      'robes': 'from-pink-500 to-pink-600',
+      'hijabs': 'from-purple-500 to-purple-600',
+      'abayas': 'from-blue-500 to-blue-600',
+      'accessoires': 'from-green-500 to-green-600',
+      'chaussures': 'from-yellow-500 to-yellow-600'
+    };
+    return colors[name.toLowerCase()] || 'from-gray-500 to-gray-600';
+  };
+
+  const fallbackCategories = [
     {
       id: 'dresses',
       name: t('categories.dresses'),
@@ -39,6 +96,17 @@ const CategoriesPage = () => {
       color: 'from-green-500 to-green-600'
     }
   ];
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-6 pb-16 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Chargement des catégories...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 pb-16">
