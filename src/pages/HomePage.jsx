@@ -43,12 +43,12 @@ const HomePage = () => {
           console.log('Transformed products:', transformedProducts);
           setAllProducts(transformedProducts);
         } else {
-          console.log('Products API failed, using sample products');
-          setAllProducts(sampleProducts);
+          console.log('Products API failed, using empty array');
+          setAllProducts([]);
         }
       } catch (error) {
         console.error('Error loading products:', error);
-        setAllProducts(sampleProducts);
+        setAllProducts([]);
       } finally {
         setLoading(false);
       }
@@ -213,13 +213,7 @@ const HomePage = () => {
   console.log(`Selected category: '${selectedCategory}'. Found ${filteredProducts.length} matching products out of ${allProducts.length} total.`);
 
   // The infinite scroll hook now receives the correctly filtered list of products.
-  const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore, reset } = useInfiniteScroll(filteredProducts, 10);
-
-  // When the category changes, we must reset the infinite scroll to start from the beginning of the new list.
-  useEffect(() => {
-    console.log('Category changed, resetting infinite scroll.');
-    reset();
-  }, [selectedCategory, reset]);
+  const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore } = useInfiniteScroll(filteredProducts, 10);
 
   // Sample slider data
   const sliderItems = [
