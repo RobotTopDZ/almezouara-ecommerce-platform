@@ -58,11 +58,21 @@ const CategoryPage = () => {
     loadProducts();
   }, []);
 
-  // This is the correct filtering logic.
-  // It compares the lowercase category name from the product with the category ID from the URL.
+  // Filter products by category ID
   const filteredProducts = allProducts.filter(product => {
-    const categoryName = product.category_name || 'general';
-    return categoryName.toLowerCase() === id.toLowerCase();
+    // First try to match by category_name (for backward compatibility)
+    if (product.category_name && product.category_name.toLowerCase() === id.toLowerCase()) {
+      return true;
+    }
+    // Then try to match by category (new format)
+    if (product.category && product.category.toLowerCase() === id.toLowerCase()) {
+      return true;
+    }
+    // If no match, check if this is the 'all' category
+    if (id.toLowerCase() === 'all') {
+      return true;
+    }
+    return false;
   });
 
   // Use infinite scroll hook for the correctly filtered products
@@ -70,7 +80,18 @@ const CategoryPage = () => {
 
   // Get category name for the header
   const getCategoryName = () => {
-    const category = categories.find(cat => cat.id.toLowerCase() === id.toLowerCase());
+    if (!id || id.toLowerCase() === 'all') return 'Tous les produits';
+    
+    // First try to find by id
+    let category = categories.find(cat => cat.id && cat.id.toLowerCase() === id.toLowerCase());
+    
+    // If not found by id, try to find by originalName
+    if (!category) {
+      category = categories.find(cat => 
+        cat.originalName && cat.originalName.toLowerCase() === id.toLowerCase()
+      );
+    }
+    
     return category ? category.originalName : id;
   };
 
@@ -101,10 +122,24 @@ const CategoryPage = () => {
   // Show loading state while fetching products
   if (loading) {
     return (
-      <div className="pb-16 flex justify-center items-center min-h-screen">
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Chargement des produits...</p>
+          <h2 className="text-xl font-semibold mb-2">Catégorie non spécifiée</h2>
+          <p className="text-gray-600">Aucune catégorie n'a été sélectionnée.</p>
+          <Link 
+            to="/" 
+            className="mt-4 inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            Retour à l'accueil
+          </Link>
         </div>
       </div>
     );
@@ -295,7 +330,7 @@ const CategoryPage = () => {
           </div>
 
           {/* Loading indicator */}
-          {isLoading && (
+          {isLoadingMore && (
             <div className="flex justify-center items-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
