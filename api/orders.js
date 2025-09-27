@@ -97,29 +97,71 @@ router.post('/', async (req, res) => {
         });
       } else {
         // Create new order - adapt to schema differences between environments
-        // Detect if a NOT NULL 'date' column exists (MySQL 9.x schema)
+        // Detect optional columns that can be NOT NULL in production schema
         let hasDateColumn = false;
+        let hasShippingCostColumn = false;
+        let hasProductPriceColumn = false;
+
         try {
           const [dateCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'date'");
           hasDateColumn = Array.isArray(dateCol) && dateCol.length > 0;
-        } catch (e) {
-          // Ignore detection errors and proceed without 'date'
-          hasDateColumn = false;
+        } catch (_) {}
+
+        try {
+          const [shipCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'shipping_cost'");
+          hasShippingCostColumn = Array.isArray(shipCol) && shipCol.length > 0;
+        } catch (_) {}
+
+        try {
+          const [prodCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'product_price'");
+          hasProductPriceColumn = Array.isArray(prodCol) && prodCol.length > 0;
+        } catch (_) {}
+
+        // Normalize monetary values
+        const totalNum = Number(total) || 0;
+        let shippingNum = Number.isFinite(Number(shippingCost)) ? Number(shippingCost) : null;
+        let productNum = Number.isFinite(Number(productPrice)) ? Number(productPrice) : null;
+
+        if (shippingNum === null && productNum !== null) {
+          shippingNum = Math.max(0, totalNum - productNum);
+        }
+        if (productNum === null && shippingNum !== null) {
+          productNum = Math.max(0, totalNum - shippingNum);
+        }
+        if (shippingNum === null && productNum === null) {
+          // Safe defaults if frontend didn't provide detailed split
+          shippingNum = 0;
+          productNum = totalNum;
         }
 
+        // Build columns/values dynamically
+        const cols = ['id', 'phone'];
+        const vals = [orderId, phoneNumber || null];
+
         if (hasDateColumn) {
-          // Include 'date' column explicitly to satisfy NOT NULL constraint
-          await pool.execute(`
-            INSERT INTO orders (id, phone, date, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `, [orderId, phoneNumber || null, today, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
-        } else {
-          // Legacy schema without 'date'
-          await pool.execute(`
-            INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, total, discountPercentage || 0, 'pending']);
+          cols.push('date');
+          vals.push(today);
         }
+
+        cols.push('full_name', 'wilaya', 'city', 'address', 'delivery_method');
+        vals.push(fullName, wilaya, city, address, deliveryMethod);
+
+        if (hasShippingCostColumn) {
+          cols.push('shipping_cost');
+          vals.push(shippingNum);
+        }
+        if (hasProductPriceColumn) {
+          cols.push('product_price');
+          vals.push(productNum);
+        }
+
+        cols.push('total', 'discount_percentage', 'status');
+        vals.push(totalNum, discountPercentage || 0, 'pending');
+
+        const placeholders = cols.map(() => '?').join(', ');
+        const insertSQL = `INSERT INTO orders (${cols.join(', ')}) VALUES (${placeholders})`;
+
+        await pool.execute(insertSQL, vals);
         
         // Insert order items separately
         for (const item of items) {
