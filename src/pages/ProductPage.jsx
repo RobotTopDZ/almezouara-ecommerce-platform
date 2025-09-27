@@ -34,6 +34,8 @@ const ProductPage = () => {
   const [showPreviousInfo, setShowPreviousInfo] = useState(false);
   const [showPromotionPopup, setShowPromotionPopup] = useState(false);
   const [currentPromotion, setCurrentPromotion] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(null);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -266,18 +268,24 @@ const ProductPage = () => {
       };
       const response = await axios.post('/api/orders', orderPayload);
       
-      if (response.data.orderType === 'merged') {
-        alert('✅ Produit ajouté à votre commande existante pour aujourd\'hui !\n\nVos commandes du même jour sont automatiquement regroupées dans votre panier.');
-      } else {
-        alert(t('product.order_success'));
-      }
+      // Show beautiful success modal
+      setOrderSuccess({
+        type: response.data.orderType === 'merged' ? 'merged' : 'new',
+        orderId: response.data.orderId,
+        customerName: formData.fullName,
+        total: totalWithShipping
+      });
+      setShowSuccessModal(true);
       
-      // Reset everything
-      resetCheckout();
-      setSelectedColor(null);
-      setSelectedSize(null);
-      setQuantity(1);
-      setShowCheckout(false);
+      // Reset everything after a delay
+      setTimeout(() => {
+        resetCheckout();
+        setSelectedColor(null);
+        setSelectedSize(null);
+        setQuantity(1);
+        setShowCheckout(false);
+        setShowSuccessModal(false);
+      }, 4000);
     } catch (err) {
       alert('Order failed');
     }
@@ -578,8 +586,8 @@ const ProductPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Bonjour {customerInfo.name} !</h3>
-                    <p className="text-sm text-gray-600">Nous avons trouvé vos informations de livraison</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Bonjour {customerInfo.lastOrderInfo?.fullName || 'cher(e) client(e)'} ! 💝</h3>
+                    <p className="text-sm text-gray-600">Nous avons retrouvé vos informations de livraison précédentes ✨</p>
                   </div>
 
 
@@ -882,8 +890,86 @@ const ProductPage = () => {
         isOpen={showPromotionPopup}
         onClose={() => setShowPromotionPopup(false)}
         promotion={currentPromotion}
-        customerName={customerInfo?.name || formData.fullName}
+        customerName={customerInfo?.lastOrderInfo?.fullName || formData.fullName}
       />
+
+      {/* Beautiful Success Modal */}
+      {showSuccessModal && orderSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <motion.div 
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center"
+          >
+            {/* Success Animation */}
+            <div className="mb-6">
+              <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex justify-center space-x-1 mb-2">
+                <span className="text-2xl animate-bounce" style={{animationDelay: '0ms'}}>🎉</span>
+                <span className="text-2xl animate-bounce" style={{animationDelay: '100ms'}}>💝</span>
+                <span className="text-2xl animate-bounce" style={{animationDelay: '200ms'}}>✨</span>
+              </div>
+            </div>
+
+            {/* Success Message */}
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">
+              {orderSuccess.type === 'merged' ? 'Produit ajouté avec succès!' : 'Commande confirmée!'}
+            </h2>
+            
+            <p className="text-gray-600 mb-4">
+              {orderSuccess.type === 'merged' 
+                ? `Merci ${orderSuccess.customerName} ! Votre produit a été ajouté à votre commande d'aujourd'hui. 🛍️`
+                : `Merci ${orderSuccess.customerName} pour votre confiance ! Votre commande a été enregistrée avec succès. 💖`
+              }
+            </p>
+
+            {/* Order Details */}
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-600">Numéro de commande:</span>
+                <span className="text-sm font-bold text-purple-600">{orderSuccess.orderId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-600">Total:</span>
+                <span className="text-lg font-bold text-green-600">{orderSuccess.total.toLocaleString()} DZD</span>
+              </div>
+            </div>
+
+            {/* Heart-warming message */}
+            <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4 mb-6">
+              <p className="text-sm text-gray-700 italic">
+                "Chez Almezouara, chaque commande est préparée avec amour et attention. 
+                Nous avons hâte de vous faire plaisir ! 💕"
+              </p>
+            </div>
+
+            {/* Next Steps */}
+            <div className="text-left bg-blue-50 rounded-xl p-4 mb-6">
+              <h4 className="font-semibold text-blue-800 mb-2 flex items-center">
+                <span className="mr-2">📞</span> Prochaines étapes:
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Notre équipe va vous contacter sous 24h</li>
+                <li>• Confirmation des détails de livraison</li>
+                <li>• Préparation soignée de votre commande</li>
+                <li>• Livraison rapide et sécurisée</li>
+              </ul>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+            >
+              Continuer mes achats 🛍️
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
