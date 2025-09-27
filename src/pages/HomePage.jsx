@@ -197,27 +197,29 @@ const HomePage = () => {
       name: 'Montre Élégante',
       price: 3200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Accessoires',
+      category: 'Accessoires',
     }
   ];
 
-  // Filter products based on selected category
-  const filteredProducts = selectedCategory === 'all' 
-    ? allProducts 
-    : allProducts.filter(product => {
-      // Match category by name (case insensitive)
-      const productCategory = product.category_name ? product.category_name.toLowerCase() : '';
-      const selectedCategoryLower = selectedCategory.toLowerCase();
-      return productCategory === selectedCategoryLower;
-    });
-  
-  // Use infinite scroll hook with filtered products
-  const { displayedItems: displayedProducts, hasMore, isLoading } = useInfiniteScroll(filteredProducts, 6);
-  
-  // Reset infinite scroll when category changes
+  // Filter products based on the currently selected category.
+  // This calculation is done directly on each render, ensuring it's always up-to-date.
+  const filteredProducts = allProducts.filter(product => {
+    if (selectedCategory === 'all') {
+      return true; // Include all products if 'all' is selected
+    }
+    return product.category === selectedCategory;
+  });
+
+  console.log(`Selected category: '${selectedCategory}'. Found ${filteredProducts.length} matching products out of ${allProducts.length} total.`);
+
+  // The infinite scroll hook now receives the correctly filtered list of products.
+  const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore, reset } = useInfiniteScroll(filteredProducts, 10);
+
+  // When the category changes, we must reset the infinite scroll to start from the beginning of the new list.
   useEffect(() => {
-    // This will trigger a re-render of the infinite scroll hook
-  }, [selectedCategory]);
+    console.log('Category changed, resetting infinite scroll.');
+    reset();
+  }, [selectedCategory, reset]);
 
   // Sample slider data
   const sliderItems = [

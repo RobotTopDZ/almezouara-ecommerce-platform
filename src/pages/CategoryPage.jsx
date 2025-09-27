@@ -44,12 +44,12 @@ const CategoryPage = () => {
             });
           setAllProducts(transformedProducts);
         } else {
-          // Fallback to sample products if API fails
-          setAllProducts(sampleProducts);
+          console.error('Failed to load products from API.');
+          setAllProducts([]); // Set to empty array on failure
         }
       } catch (error) {
         console.error('Error loading products:', error);
-        setAllProducts(sampleProducts);
+        setAllProducts([]); // Set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -58,150 +58,25 @@ const CategoryPage = () => {
     loadProducts();
   }, []);
 
-  // Fallback sample products
-  const sampleProducts = [
-    {
-      id: 1,
-      name: 'Robe Élégante',
-      price: 3500,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
-      colors: ['black', 'red', 'blue'],
-      sizes: ['S', 'M', 'L', 'XL'],
-    },
-    {
-      id: 2,
-      name: 'Hijab Premium',
-      price: 1200,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Hijabs',
-      colors: ['black', 'white', 'beige'],
-      sizes: ['Standard'],
-    },
-    {
-      id: 3,
-      name: 'Robe de Soirée',
-      price: 4500,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Robes',
-      colors: ['red', 'blue', 'green'],
-      sizes: ['S', 'M', 'L'],
-    },
-    {
-      id: 4,
-      name: 'Ensemble Casual',
-      price: 2800,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Robes',
-      colors: ['black', 'gray'],
-      sizes: ['M', 'L', 'XL'],
-    },
-    {
-      id: 5,
-      name: 'Robe Moderne',
-      price: 3200,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
-      colors: ['pink', 'white'],
-      sizes: ['S', 'M', 'L'],
-    },
-    {
-      id: 6,
-      name: 'Hijab Soie',
-      price: 1800,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Hijabs',
-      colors: ['gold', 'silver'],
-      sizes: ['Standard'],
-    },
-    {
-      id: 7,
-      name: 'Chaussures Élégantes',
-      price: 4200,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Chaussures',
-      colors: ['black', 'brown'],
-      sizes: ['36', '37', '38', '39', '40'],
-    },
-    {
-      id: 8,
-      name: 'Sac Designer',
-      price: 2500,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Accessoires',
-      colors: ['black', 'brown', 'red'],
-      sizes: ['Standard'],
-    },
-    {
-      id: 9,
-      name: 'Robe Cocktail',
-      price: 4800,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
-      colors: ['navy', 'burgundy'],
-      sizes: ['S', 'M', 'L', 'XL'],
-    },
-    {
-      id: 10,
-      name: 'Hijab Brodé',
-      price: 2200,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Hijabs',
-      colors: ['cream', 'rose'],
-      sizes: ['Standard'],
-    },
-    {
-      id: 11,
-      name: 'Escarpins Mode',
-      price: 3800,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Chaussures',
-      colors: ['nude', 'black'],
-      sizes: ['36', '37', '38', '39'],
-    },
-    {
-      id: 12,
-      name: 'Bijoux Précieux',
-      price: 1600,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Accessoires',
-      colors: ['gold', 'silver'],
-      sizes: ['Standard'],
-    }
-  ];
-
-  // Filter products by category
-  const filteredProducts = allProducts.filter((product) => {
-    // If we're on a special category page like 'trending', 'new_arrivals', etc.
-    // we would apply different filters, but for now we'll just filter by category
-    return product.category_name === id;
+  // This is the correct filtering logic.
+  // It compares the lowercase category name from the product with the category ID from the URL.
+  const filteredProducts = allProducts.filter(product => {
+    const categoryName = product.category_name || 'general';
+    return categoryName.toLowerCase() === id.toLowerCase();
   });
 
-  // Use infinite scroll hook for filtered products
-  const { displayedItems: displayedProducts, hasMore, isLoading } = useInfiniteScroll(filteredProducts, 6);
+  // Use infinite scroll hook for the correctly filtered products
+  const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore } = useInfiniteScroll(filteredProducts, 12);
+
+  // Get category name for the header
+  const getCategoryName = () => {
+    const category = categories.find(cat => cat.id.toLowerCase() === id.toLowerCase());
+    return category ? category.originalName : id;
+  };
 
   // Format price with DZD
   const formatPrice = (price) => {
     return `${price.toLocaleString()} DZD`;
-  };
-
-  // Get category name
-  const getCategoryName = () => {
-    // First check if it's a special category
-    switch (id) {
-      case 'trending':
-        return t('home.trending');
-      case 'special_offers':
-        return t('home.special_offers');
-      case 'new_arrivals':
-        return t('home.new_arrivals');
-      case 'popular':
-        return t('home.popular');
-      default:
-        // For regular categories, find in the database categories
-        const category = categories.find(cat => cat.originalName === id);
-        return category ? category.originalName : id;
-    }
   };
 
   // Toggle view mode
