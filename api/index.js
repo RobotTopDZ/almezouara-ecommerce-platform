@@ -99,12 +99,14 @@ startServer().catch(err => {
 const ordersRouter = require('./orders');
 const promotionsRouter = require('./promotions');
 const adminRouter = require('./admin');
+const productsRouter = require('./products');
 
 // Use route modules
 // Mount routers without '/api' prefix because this app is mounted at '/api' in server.js
 app.use('/orders', ordersRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/admin', adminRouter);
+app.use('/products', productsRouter);
 
 // Basic product endpoints
 app.get('/products', async (req, res) => {
