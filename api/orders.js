@@ -96,15 +96,6 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
-        // Ensure account exists for the phone number to satisfy foreign key
-        if (phoneNumber) {
-          const [accounts] = await pool.execute('SELECT phone FROM accounts WHERE phone = ?', [phoneNumber]);
-          if (accounts.length === 0) {
-            console.log(`Creating new account for ${phoneNumber}`);
-            await pool.execute('INSERT INTO accounts (phone, name) VALUES (?, ?)', [phoneNumber, fullName]);
-          }
-        }
-
         // Create new order - adapt to schema differences between environments
         // Detect optional columns that can be NOT NULL in production schema
         let hasDateColumn = false;
@@ -243,6 +234,35 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Get orders error:', error);
     res.json({ orders: [] });
+  }
+});
+
+// Get last order details by phone number
+router.get('/last-by-phone/:phone', async (req, res) => {
+  try {
+    const { phone } = req.params;
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    const dbConnected = await ensureDBConnection();
+    if (!dbConnected) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+
+    const [orders] = await pool.execute(
+      'SELECT full_name, wilaya, city, address FROM orders WHERE phone = ? ORDER BY created_at DESC LIMIT 1',
+      [phone]
+    );
+
+    if (orders.length > 0) {
+      res.json({ success: true, data: orders[0] });
+    } else {
+      res.status(404).json({ success: false, message: 'No orders found for this phone number' });
+    }
+  } catch (error) {
+    console.error('Get last order by phone error:', error);
+    res.status(500).json({ error: 'Failed to retrieve last order' });
   }
 });
 
