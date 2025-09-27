@@ -256,6 +256,7 @@ router.get('/last-by-phone/:phone', async (req, res) => {
     );
 
     if (orders.length > 0) {
+      console.log('📋 Database order data:', orders[0]);
       res.json({ success: true, data: orders[0] });
     } else {
       res.status(404).json({ success: false, message: 'No orders found for this phone number' });

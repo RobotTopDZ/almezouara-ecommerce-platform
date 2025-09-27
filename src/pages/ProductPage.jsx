@@ -125,15 +125,25 @@ const ProductPage = () => {
       const response = await axios.get(`/api/orders/last-by-phone/${phone}`);
 
       // Transform the API response to match expected format
+      console.log('📋 Raw API response:', response.data.data);
+      
+      // Handle different possible values for delivery method
+      let deliveryMethod = response.data.data.delivery_method;
+      if (!deliveryMethod || deliveryMethod === 'null' || deliveryMethod === '') {
+        deliveryMethod = 'domicile'; // Default fallback
+      }
+      
       const customerData = {
         lastOrderInfo: {
           fullName: response.data.data.full_name,
           wilaya: response.data.data.wilaya,
           city: response.data.data.city,
           address: response.data.data.address,
-          deliveryMethod: response.data.data.delivery_method
+          deliveryMethod: deliveryMethod
         }
       };
+      
+      console.log('🔄 Transformed customer data:', customerData);
       setCustomerInfo(customerData);
       setCheckoutStep('customer-choice');
     } catch (error) {
@@ -163,18 +173,24 @@ const ProductPage = () => {
 
   // Handle customer choice
   const handleCustomerChoice = async (choice) => {
+    console.log('🎯 Customer choice:', choice);
+    console.log('📋 Customer info before choice:', customerInfo);
+    
     setCustomerChoice(choice);
     
     if (choice === 'use-previous' && customerInfo?.lastOrderInfo) {
       // Auto-fill form with previous info
-      setFormData({
+      const newFormData = {
         ...formData,
         phoneNumber: phoneNumber,
         fullName: customerInfo.lastOrderInfo.fullName,
         wilaya: customerInfo.lastOrderInfo.wilaya,
         address: customerInfo.lastOrderInfo.address,
         deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || 'domicile',
-      });
+      };
+      
+      console.log('📋 Setting form data to:', newFormData);
+      setFormData(newFormData);
       setSelectedCity(customerInfo.lastOrderInfo.city);
       await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
       const cost = await getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
