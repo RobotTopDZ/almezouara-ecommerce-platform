@@ -52,6 +52,8 @@ router.get('/orders', async (req, res) => {
   try {
     const [orders] = await pool.execute(`
       SELECT o.*, 
+             o.full_name as fullName,
+             o.phone as phoneNumber,
              GROUP_CONCAT(
                CONCAT(oi.product_name, ' (', oi.quantity, 'x)')
                SEPARATOR ', '

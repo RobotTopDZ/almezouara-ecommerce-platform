@@ -120,9 +120,18 @@ const ProductPage = () => {
     setIsSearchingCustomer(true);
     setShowPreviousInfo(false); // Reset the show info state
     try {
-      const response = await axios.get(`/api/customers/search/${phone}`);
+      const response = await axios.get(`/api/orders/last-by-phone/${phone}`);
 
-      setCustomerInfo(response.data);
+      // Transform the API response to match expected format
+      const customerData = {
+        lastOrderInfo: {
+          fullName: response.data.data.full_name,
+          wilaya: response.data.data.wilaya,
+          city: response.data.data.city,
+          address: response.data.data.address
+        }
+      };
+      setCustomerInfo(customerData);
       setCheckoutStep('customer-choice');
     } catch (error) {
       // Customer not found, proceed to form
