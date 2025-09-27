@@ -13,18 +13,25 @@ import 'swiper/css/pagination';
 const HomePage = () => {
   const { t } = useTranslation();
   const [allProducts, setAllProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  // Load products from API
+  // Load products and categories from API
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        console.log('Loading products from API...');
-        const response = await axios.get('/api/products');
-        if (response.data.success && response.data.products) {
-          // Transform database products to match expected format
-          const transformedProducts = response.data.products
-            .filter(product => product.status === 'active') // Only show active products
+        console.log('Loading data from API...');
+        // Load both products and categories
+        const [productsRes, categoriesRes] = await Promise.all([
+          axios.get('/api/products'),
+          axios.get('/api/products/categories/list')
+        ]);
+        
+        // Handle products
+        if (productsRes.data.success && productsRes.data.products) {
+          const transformedProducts = productsRes.data.products
+            .filter(product => product.status === 'active')
             .map(product => {
               console.log('Transforming product:', product.id, product.name);
               return {
@@ -38,20 +45,45 @@ const HomePage = () => {
           console.log('Transformed products:', transformedProducts);
           setAllProducts(transformedProducts);
         } else {
-          // Fallback to sample products if API fails
-          console.log('API failed, using sample products');
+          console.log('Products API failed, using sample products');
           setAllProducts(sampleProducts);
         }
+        
+        // Handle categories
+        if (categoriesRes.data.success && categoriesRes.data.categories) {
+          const transformedCategories = categoriesRes.data.categories.map(cat => ({
+            id: cat.name.toLowerCase(),
+            name: cat.name.toUpperCase(),
+            originalName: cat.name
+          }));
+          setCategories(transformedCategories);
+          console.log('Loaded categories:', transformedCategories);
+        } else {
+          console.log('Categories API failed, using fallback');
+          setCategories([
+            { id: 'robes', name: 'ROBES', originalName: 'Robes' },
+            { id: 'hijabs', name: 'HIJABS', originalName: 'Hijabs' },
+            { id: 'abayas', name: 'ABAYAS', originalName: 'Abayas' },
+            { id: 'accessoires', name: 'ACCESSOIRES', originalName: 'Accessoires' },
+            { id: 'chaussures', name: 'CHAUSSURES', originalName: 'Chaussures' }
+          ]);
+        }
       } catch (error) {
-        console.error('Error loading products:', error);
-        // Fallback to sample products
+        console.error('Error loading data:', error);
         setAllProducts(sampleProducts);
+        setCategories([
+          { id: 'robes', name: 'ROBES', originalName: 'Robes' },
+          { id: 'hijabs', name: 'HIJABS', originalName: 'Hijabs' },
+          { id: 'abayas', name: 'ABAYAS', originalName: 'Abayas' },
+          { id: 'accessoires', name: 'ACCESSOIRES', originalName: 'Accessoires' },
+          { id: 'chaussures', name: 'CHAUSSURES', originalName: 'Chaussures' }
+        ]);
       } finally {
         setLoading(false);
       }
     };
     
-    loadProducts();
+    loadData();
   }, []);
 
   // Fallback sample products data
@@ -198,8 +230,18 @@ const HomePage = () => {
     }
   ];
 
-  // Use infinite scroll hook
-  const { displayedItems: displayedProducts, hasMore, isLoading } = useInfiniteScroll(allProducts, 6);
+  // Filter products based on selected category
+  const filteredProducts = selectedCategory === 'all' 
+    ? allProducts 
+    : allProducts.filter(product => product.category === selectedCategory);
+  
+  // Use infinite scroll hook with filtered products
+  const { displayedItems: displayedProducts, hasMore, isLoading } = useInfiniteScroll(filteredProducts, 6);
+  
+  // Reset infinite scroll when category changes
+  useEffect(() => {
+    // This will trigger a re-render of the infinite scroll hook
+  }, [selectedCategory]);
 
   // Sample slider data
   const sliderItems = [
@@ -274,6 +316,38 @@ const HomePage = () => {
             </SwiperSlide>
           ))}
         </Swiper>
+      </div>
+
+      {/* Mobile Category Filter */}
+      <div className="md:hidden px-4 py-3 bg-white border-b border-gray-100">
+        <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
+          {/* TOUT button */}
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+              selectedCategory === 'all'
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            TOUT
+          </button>
+          
+          {/* Dynamic category buttons */}
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                selectedCategory === category.id
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Mobile Quick Actions */}
