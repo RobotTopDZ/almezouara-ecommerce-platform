@@ -36,6 +36,9 @@ const ProductPage = () => {
   const [currentPromotion, setCurrentPromotion] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -45,8 +48,52 @@ const ProductPage = () => {
     deliveryMethod: '',
   });
 
-  // Sample product data - in a real app, this would come from an API
-  const product = {
+  // Load product data from API
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/products/${id}`);
+        if (response.data.success && response.data.product) {
+          const productData = response.data.product;
+          setProduct({
+            id: productData.id,
+            name: productData.name,
+            price: productData.price,
+            description: productData.description || 'Description non disponible',
+            images: productData.images || ['/images/IMG_0630-scaled.jpeg'],
+            colors: productData.colors || [],
+            sizes: productData.sizes || [],
+            stock: productData.stock || 0,
+            category: productData.category_name || 'Général',
+            status: productData.status || 'active'
+          });
+          
+          // Set default selections
+          if (productData.colors && productData.colors.length > 0) {
+            setSelectedColor(productData.colors[0]);
+          }
+          if (productData.sizes && productData.sizes.length > 0) {
+            setSelectedSize(productData.sizes[0]);
+          }
+        } else {
+          setError('Produit non trouvé');
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+        setError('Erreur lors du chargement du produit');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) {
+      loadProduct();
+    }
+  }, [id]);
+
+  // Sample product data for fallback
+  const fallbackProduct = {
     id: 1,
     name: 'Robe Élégante',
     price: 3500,
@@ -72,7 +119,7 @@ const ProductPage = () => {
 
   const [discountPercentage, setDiscountPercentage] = useState(0);
   const [promoLoading, setPromoLoading] = useState(false);
-  const discountedPrice = Math.round(product.price * (1 - (discountPercentage || 0) / 100));
+  const discountedPrice = product ? Math.round(product.price * (1 - (discountPercentage || 0) / 100)) : 0;
 
   const normalizePhone = (raw) => {
     if (!raw) return '';
@@ -281,7 +328,15 @@ const ProductPage = () => {
       
       const orderPayload = {
         phoneNumber: formData.phoneNumber,
-        items: [{ id: product.id, name: product.name, price: discountedPrice, quantity: quantity, image: product.images[0], color: selectedColor, size: selectedSize }],
+        items: [{ 
+          id: product.id, 
+          name: product.name, 
+          price: discountedPrice, 
+          quantity: quantity, 
+          image: product.images[0], 
+          color: selectedColor ? (typeof selectedColor === 'object' ? selectedColor.name : selectedColor) : '', 
+          size: selectedSize 
+        }],
         total: totalWithShipping,
         deliveryMethod: formData.deliveryMethod,
         address: formData.address,
@@ -366,6 +421,34 @@ const ProductPage = () => {
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 pb-16 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Chargement du produit...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="container mx-auto px-4 py-8 pb-16 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😔</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Produit non trouvé</h2>
+          <p className="text-gray-600 mb-4">{error || 'Ce produit n\'existe pas ou a été supprimé.'}</p>
+          <a href="/" className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+            Retour à l'accueil
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 pb-16">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -410,13 +493,13 @@ const ProductPage = () => {
             <p className="text-2xl lg:text-3xl font-bold text-primary mb-6">{formatPrice(product.price)}</p>
             )}
             
-            {product.inStock ? (
-              <div className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold mb-6">
-                ✓ {t('product.in_stock')}
+            {product.stock > 0 ? (
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
+                ✓ En stock ({product.stock} disponible{product.stock > 1 ? 's' : ''})
               </div>
             ) : (
-              <div className="inline-block px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-semibold mb-6">
-                ✗ {t('product.out_of_stock')}
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-6">
+                ✗ Rupture de stock
               </div>
             )}
 
@@ -426,20 +509,28 @@ const ProductPage = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-text mb-3">{t('product.select_color')}</h3>
               <div className="flex space-x-3">
-                {product.colors.map((color) => (
-                  <button
-                    key={color.value}
-                    onClick={() => setSelectedColor(color.value)}
-                    className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
-                      selectedColor === color.value 
-                        ? 'border-primary shadow-lg scale-110' 
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                    aria-label={`Select color ${color.name}`}
-                  />
-                ))}
+                  {product.colors.map((color) => {
+                    const colorValue = typeof color === 'object' ? color.value : '#000000';
+                    const colorName = typeof color === 'object' ? color.name : color;
+                    const isSelected = selectedColor && (
+                      (typeof selectedColor === 'object' && selectedColor.name === colorName) ||
+                      (typeof selectedColor === 'string' && selectedColor === colorName)
+                    );
+                    
+                    return (
+                      <button
+                        key={colorName}
+                        onClick={() => setSelectedColor(color)}
+                        className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
+                          isSelected
+                            ? 'border-primary shadow-lg scale-110' 
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                        style={{ backgroundColor: colorValue }}
+                        title={colorName}
+                      />
+                    );
+                  })}
               </div>
             </div>
 
@@ -493,9 +584,9 @@ const ProductPage = () => {
                 resetCheckout();
                 setShowCheckout(true);
               }}
-              disabled={!product.inStock || !selectedColor || !selectedSize}
+              disabled={product.stock <= 0 || !selectedColor || !selectedSize}
               className={`w-full py-4 px-8 rounded-xl font-semibold text-white text-lg transition-all duration-300 ${
-                product.inStock && selectedColor && selectedSize 
+                product.stock > 0 && selectedColor && selectedSize 
                   ? 'bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
@@ -542,7 +633,7 @@ const ProductPage = () => {
                 <div className="ml-3">
                   <h3 className="font-medium text-text">{product.name}</h3>
                   <p className="text-sm text-gray-500">
-                    {selectedColor && product.colors.find(c => c.value === selectedColor)?.name} - {selectedSize}
+                    {selectedColor && (typeof selectedColor === 'object' ? selectedColor.name : selectedColor)} - {selectedSize}
                   </p>
                   <p className="text-sm text-gray-500">Quantité: {quantity}</p>
                   {discountPercentage > 0 ? (
