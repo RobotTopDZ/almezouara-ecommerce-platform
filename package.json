@@ -25,9 +25,11 @@
     "db:test": "NODE_ENV=development node scripts/check-database.js",
     "db:test-railway": "node scripts/test-railway-connection.js",
     "db:populate": "node scripts/populate-shipping-data.js",
+    "db:verify": "node scripts/verify-db-schema.js",
     "test:all": "node scripts/test-all-functions.js",
     "test:production": "TEST_URL=https://almezouara-ecommerce-platform-production.up.railway.app node scripts/test-all-functions.js",
     "test:simple": "node scripts/test-api-simple.js",
+    "db:migrate": "node scripts/migrations/20230927_create_promotion_usage_table.js",
     "migrate:shipping": "node scripts/migrate-real-shipping-data.js",
     "emergency:test": "node scripts/emergency-test.js",
     "railway:post-deploy": "node scripts/railway-post-deploy.js",
@@ -36,6 +38,7 @@
     "test:modules": "node scripts/test-all-modules.js",
     "force:deploy": "node scripts/force-deploy.js",
     "fix:promotions": "node scripts/fix-promotions-table.js",
+    "deploy:production": "node scripts/deploy-production.js",
     "populate:data": "node scripts/populate-initial-data.js"
   },
   "keywords": [

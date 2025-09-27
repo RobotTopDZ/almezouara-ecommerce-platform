@@ -41,6 +41,83 @@ const ensureDBConnection = async () => {
   }
 };
 
+// Create promotion_usage table if not exists
+const ensurePromotionUsageTable = async () => {
+  try {
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS promotion_usage (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        promotion_id VARCHAR(50) NOT NULL,
+        user_id VARCHAR(50) NOT NULL,
+        order_id VARCHAR(50) NOT NULL,
+        used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_promotion_usage (promotion_id, user_id, order_id)
+      )
+    `);
+    console.log('✅ Promotion usage table verified');
+  } catch (error) {
+    console.error('❌ Error creating promotion_usage table:', error);
+  }
+};
+
+// Initialize tables
+ensurePromotionUsageTable();
+
+// Track promotion usage
+const trackPromotionUsage = async (promotionId, userId, orderId) => {
+  try {
+    await pool.execute(
+      'INSERT INTO promotion_usage (promotion_id, user_id, order_id) VALUES (?, ?, ?)',
+      [promotionId, userId, orderId]
+    );
+    
+    // Update usage count in promotions table
+    await pool.execute(
+      'UPDATE promotions SET usage_count = usage_count + 1 WHERE id = ?',
+      [promotionId]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error tracking promotion usage:', error);
+    return false;
+  }
+};
+
+// Check if promotion can be used
+const canUsePromotion = async (promotionId, userId) => {
+  try {
+    const [promotion] = await pool.execute(
+      'SELECT * FROM promotions WHERE id = ? AND is_active = TRUE',
+      [promotionId]
+    );
+    
+    if (!promotion || promotion.length === 0) {
+      return { canUse: false, message: 'Promotion not found or inactive' };
+    }
+    
+    // Check usage limit
+    if (promotion.usage_limit > 0 && promotion.usage_count >= promotion.usage_limit) {
+      return { canUse: false, message: 'Promotion usage limit reached' };
+    }
+    
+    // Check if user has already used this promotion
+    const [usage] = await pool.execute(
+      'SELECT * FROM promotion_usage WHERE promotion_id = ? AND user_id = ?',
+      [promotionId, userId]
+    );
+    
+    if (usage && usage.length > 0) {
+      return { canUse: false, message: 'You have already used this promotion' };
+    }
+    
+    return { canUse: true, promotion: promotion[0] };
+  } catch (error) {
+    console.error('Error checking promotion usage:', error);
+    return { canUse: false, message: 'Error validating promotion' };
+  }
+};
+
 // Promotions management (admin)
 router.post('/', async (req, res) => {
   try {
@@ -191,52 +268,50 @@ router.get('/:phone', async (req, res) => {
     res.json({ promotion: promotions[0] });
   } catch (error) {
     console.error('Get promotion error:', error);
-    res.status(500).json({ error: 'Failed to get promotion' });
   }
 });
 
-// Use promotion (decrement usage count)
-router.post('/:phone/use', async (req, res) => {
+// Track promotion usage after successful order
+router.post('/track-usage', async (req, res) => {
   try {
-    const { phone } = req.params;
+    const { promotionId, userId, orderId } = req.body;
     
-    const dbConnected = await ensureDBConnection();
-    if (!dbConnected) {
-      return res.status(404).json({ error: 'Promotion not found' });
+    if (!promotionId || !userId || !orderId) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    const activePool = dbPool || pool;
-    const [promotions] = await activePool.execute(
-      'SELECT * FROM promotions WHERE phone = ? AND is_active = TRUE',
-      [phone]
+    // Verify the promotion exists and is active
+    const [promotions] = await pool.execute(
+      'SELECT * FROM promotions WHERE id = ? AND is_active = TRUE',
+      [promotionId]
     );
     
     if (promotions.length === 0) {
-      return res.status(404).json({ error: 'No active promotion found' });
+      return res.status(404).json({ error: 'Promotion not found or inactive' });
     }
     
     const promotion = promotions[0];
     
-    if (promotion.usage_count >= promotion.usage_limit) {
-      return res.status(400).json({ error: 'Promotion usage limit exceeded' });
+    // Check if promotion has already been used for this order
+    const [existingUsage] = await pool.execute(
+      'SELECT * FROM promotion_usage WHERE promotion_id = ? AND order_id = ?',
+      [promotionId, orderId]
+    );
+    
+    if (existingUsage.length > 0) {
+      return res.status(400).json({ error: 'Promotion already used for this order' });
     }
     
-    // Increment usage count
-    const newUsageCount = promotion.usage_count + 1;
-    const isStillActive = newUsageCount < promotion.usage_limit;
-    
-    await activePool.execute(
-      'UPDATE promotions SET usage_count = ?, is_active = ? WHERE phone = ?',
-      [newUsageCount, isStillActive, phone]
-    );
+    // Track the usage
+    await trackPromotionUsage(promotionId, userId, orderId);
     
     res.json({
       success: true,
-      message: 'Promotion used successfully',
+      message: 'Promotion usage tracked successfully',
       promotion: {
         ...promotion,
-        usage_count: newUsageCount,
-        is_active: isStillActive
+        usage_count: promotion.usage_count + 1,
+        is_active: promotion.usage_limit === 0 || (promotion.usage_count + 1) < promotion.usage_limit
       }
     });
   } catch (error) {
