@@ -205,31 +205,60 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    // Parse JSON fields safely
+    // Parse JSON fields safely (same logic as list products)
     let images = [];
     let colors = [];
     let sizes = [];
     
-    try {
-      images = products[0].images ? JSON.parse(products[0].images) : [];
-    } catch (e) {
-      console.warn('Invalid images JSON for product', products[0].id);
-      images = [];
+    // Handle images
+    if (products[0].images) {
+      if (typeof products[0].images === 'string') {
+        try {
+          images = JSON.parse(products[0].images);
+        } catch (e) {
+          // If it's not valid JSON, treat as single URL
+          images = [products[0].images];
+        }
+      } else if (Array.isArray(products[0].images)) {
+        images = products[0].images;
+      }
     }
     
-    try {
-      colors = products[0].colors ? JSON.parse(products[0].colors) : [];
-    } catch (e) {
-      console.warn('Invalid colors JSON for product', products[0].id);
-      colors = [];
+    // Handle colors
+    if (products[0].colors) {
+      if (typeof products[0].colors === 'string') {
+        try {
+          colors = JSON.parse(products[0].colors);
+        } catch (e) {
+          // If it's not valid JSON, treat as single color name
+          colors = [{ name: products[0].colors, value: '#000000' }];
+        }
+      } else if (Array.isArray(products[0].colors)) {
+        colors = products[0].colors;
+      }
     }
     
-    try {
-      sizes = products[0].sizes ? JSON.parse(products[0].sizes) : [];
-    } catch (e) {
-      console.warn('Invalid sizes JSON for product', products[0].id);
-      sizes = [];
+    // Handle sizes
+    if (products[0].sizes) {
+      if (typeof products[0].sizes === 'string') {
+        try {
+          sizes = JSON.parse(products[0].sizes);
+        } catch (e) {
+          // If it's not valid JSON, split by comma
+          sizes = products[0].sizes.split(',').map(s => s.trim()).filter(s => s);
+        }
+      } else if (Array.isArray(products[0].sizes)) {
+        sizes = products[0].sizes;
+      }
     }
+    
+    console.log('Single product parsed data:', {
+      id: products[0].id,
+      name: products[0].name,
+      images: images,
+      colors: colors,
+      sizes: sizes
+    });
     
     const product = {
       ...products[0],
