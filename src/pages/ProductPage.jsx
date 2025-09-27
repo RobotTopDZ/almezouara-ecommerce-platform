@@ -311,15 +311,7 @@ const ProductPage = () => {
       });
       setShowSuccessModal(true);
       
-      // Reset everything after a delay
-      setTimeout(() => {
-        resetCheckout();
-        setSelectedColor(null);
-        setSelectedSize(null);
-        setQuantity(1);
-        setShowCheckout(false);
-        setShowSuccessModal(false);
-      }, 4000);
+      // Don't auto-close - let user close manually for better experience
     } catch (err) {
       alert('Order failed');
     }
@@ -996,7 +988,15 @@ const ProductPage = () => {
 
             {/* Close Button */}
             <button
-              onClick={() => setShowSuccessModal(false)}
+              onClick={() => {
+                // Reset everything when user closes success modal
+                setShowSuccessModal(false);
+                resetCheckout();
+                setSelectedColor(null);
+                setSelectedSize(null);
+                setQuantity(1);
+                setShowCheckout(false);
+              }}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
             >
               Continuer mes achats 🛍️

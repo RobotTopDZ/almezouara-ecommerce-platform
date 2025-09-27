@@ -664,26 +664,62 @@ const AdminOrders = () => {
                 </div>
 
                 {/* Order Summary */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Résumé de la commande</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Sous-total:</span>
-                      <span>{formatPrice(selectedOrder.productPrice || selectedOrder.total)} DA</span>
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                  <h3 className="text-lg font-semibold mb-3 text-purple-900 flex items-center">
+                    💰 Détails financiers de la commande
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    {/* Product breakdown */}
+                    <div className="bg-white rounded-lg p-3 border">
+                      <h4 className="font-medium text-gray-800 mb-2">📦 Détail des produits:</h4>
+                      {formatOrderItems(selectedOrder.items).map((item, index) => (
+                        <div key={index} className="flex justify-between items-center py-1">
+                          <span className="text-gray-700">
+                            {item.name} {item.color && `(${item.color})`} {item.size && `- ${item.size}`} × {item.quantity || 1}
+                          </span>
+                          <span className="font-medium">{formatPrice(item.price * (item.quantity || 1))} DA</span>
+                        </div>
+                      ))}
                     </div>
-                    {selectedOrder.discountPercentage > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Réduction ({selectedOrder.discountPercentage}%):</span>
-                        <span>-{formatPrice((selectedOrder.productPrice || selectedOrder.total) * selectedOrder.discountPercentage / 100)} DA</span>
+                    
+                    {/* Pricing breakdown */}
+                    <div className="bg-white rounded-lg p-3 border">
+                      <h4 className="font-medium text-gray-800 mb-2">💳 Calcul du prix:</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">💎 Sous-total produits:</span>
+                          <span className="font-medium">{formatPrice(selectedOrder.productPrice || selectedOrder.total - (selectedOrder.shippingCost || 0))} DA</span>
+                        </div>
+                        {selectedOrder.discountPercentage > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>🎉 Réduction ({selectedOrder.discountPercentage}%):</span>
+                            <span className="font-medium">-{formatPrice((selectedOrder.productPrice || selectedOrder.total) * selectedOrder.discountPercentage / 100)} DA</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">🚚 Frais de livraison ({selectedOrder.deliveryMethod === 'domicile' ? 'Domicile' : 'Stopdesk'}):</span>
+                          <span className="font-medium">{formatPrice(selectedOrder.shippingCost || 0)} DA</span>
+                        </div>
+                        <div className="border-t pt-2 mt-2">
+                          <div className="flex justify-between font-bold text-lg text-purple-800">
+                            <span>💯 Total final:</span>
+                            <span className="text-xl">{formatPrice(selectedOrder.total)} DA</span>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span>Frais de livraison:</span>
-                      <span>{formatPrice(selectedOrder.shippingCost || 0)} DA</span>
                     </div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                      <span>Total:</span>
-                      <span>{formatPrice(selectedOrder.total)} DA</span>
+                    
+                    {/* Additional order info */}
+                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                      <h4 className="font-medium text-blue-800 mb-2">📋 Informations supplémentaires:</h4>
+                      <div className="space-y-1 text-xs text-blue-700">
+                        <div><strong>ID Commande:</strong> {selectedOrder.id}</div>
+                        <div><strong>Méthode de livraison:</strong> {selectedOrder.deliveryMethod === 'domicile' ? '🏠 Livraison à domicile' : '📦 Stopdesk (Yalidine)'}</div>
+                        <div><strong>Statut de paiement:</strong> <span className="text-orange-600">💳 À la livraison (COD)</span></div>
+                        {selectedOrder.yalidineTracking && (
+                          <div><strong>Suivi Yalidine:</strong> <span className="font-mono">{selectedOrder.yalidineTracking}</span></div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
