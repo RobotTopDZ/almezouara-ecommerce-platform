@@ -115,6 +115,11 @@ const ProductPage = () => {
     fetchPromotions();
   }, [phoneNumber, formData.phoneNumber]);
 
+  // Debug: Monitor form data changes
+  useEffect(() => {
+    console.log('📋 Form data changed:', formData);
+  }, [formData]);
+
   // Customer search function
   const searchCustomer = async (phone) => {
     if (!phone || phone.length < 10) return;
@@ -288,7 +293,13 @@ const ProductPage = () => {
         discountPercentage: discountPercentage
       };
       
-      console.log('🚀 Order payload:', orderPayload);
+      // CRITICAL FIX: Ensure deliveryMethod is never undefined
+      if (!orderPayload.deliveryMethod) {
+        console.log('⚠️ CRITICAL: deliveryMethod is undefined, using fallback');
+        orderPayload.deliveryMethod = 'domicile';
+      }
+      
+      console.log('🚀 Final order payload:', orderPayload);
       const response = await axios.post('/api/orders', orderPayload);
       
       // Show beautiful success modal
