@@ -34,8 +34,12 @@ const AdminProducts = () => {
     price: '',
     stock: '',
     description: '',
+    images: [],
+    colors: [],
+    sizes: [],
     status: 'active'
   });
+  const [imageFiles, setImageFiles] = useState([]);
 
   // Load data on component mount
   useEffect(() => {
@@ -74,6 +78,81 @@ const AdminProducts = () => {
     }
   };
 
+  // Handle image file selection
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageUrl = event.target.result;
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, imageUrl]
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  // Remove image
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Add color
+  const addColor = () => {
+    setFormData(prev => ({
+      ...prev,
+      colors: [...prev.colors, '']
+    }));
+  };
+
+  // Update color
+  const updateColor = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.map((color, i) => i === index ? value : color)
+    }));
+  };
+
+  // Remove color
+  const removeColor = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Add size
+  const addSize = () => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, '']
+    }));
+  };
+
+  // Update size
+  const updateSize = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.map((size, i) => i === index ? value : size)
+    }));
+  };
+
+  // Remove size
+  const removeSize = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -85,9 +164,9 @@ const AdminProducts = () => {
         stock: parseInt(formData.stock),
         description: formData.description,
         status: formData.status,
-        images: [],
-        colors: [],
-        sizes: []
+        images: formData.images.filter(img => img.trim() !== ''),
+        colors: formData.colors.filter(color => color.trim() !== ''),
+        sizes: formData.sizes.filter(size => size.trim() !== '')
       };
 
       if (editingProduct) {
@@ -114,6 +193,9 @@ const AdminProducts = () => {
       price: product.price.toString(),
       stock: product.stock.toString(),
       description: product.description || '',
+      images: product.images || [],
+      colors: product.colors || [],
+      sizes: product.sizes || [],
       status: product.status
     });
     setShowModal(true);
@@ -139,8 +221,12 @@ const AdminProducts = () => {
       price: '',
       stock: '',
       description: '',
+      images: [],
+      colors: [],
+      sizes: [],
       status: 'active'
     });
+    setImageFiles([]);
     setEditingProduct(null);
     setShowModal(false);
   };
@@ -286,7 +372,7 @@ const AdminProducts = () => {
       {/* Product Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
@@ -373,6 +459,104 @@ const AdminProducts = () => {
                     rows={3}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                </div>
+
+                {/* Images Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Images du produit
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  {formData.images.length > 0 && (
+                    <div className="mt-2 grid grid-cols-3 gap-2">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Colors */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Couleurs disponibles
+                  </label>
+                  {formData.colors.map((color, index) => (
+                    <div key={index} className="flex items-center space-x-2 mb-2">
+                      <input
+                        type="text"
+                        value={color}
+                        onChange={(e) => updateColor(index, e.target.value)}
+                        placeholder="Ex: Rouge, Noir, Bleu"
+                        className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeColor(index)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addColor}
+                    className="text-purple-600 hover:text-purple-800 text-sm"
+                  >
+                    + Ajouter une couleur
+                  </button>
+                </div>
+
+                {/* Sizes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tailles disponibles
+                  </label>
+                  {formData.sizes.map((size, index) => (
+                    <div key={index} className="flex items-center space-x-2 mb-2">
+                      <input
+                        type="text"
+                        value={size}
+                        onChange={(e) => updateSize(index, e.target.value)}
+                        placeholder="Ex: S, M, L, XL"
+                        className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSize(index)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addSize}
+                    className="text-purple-600 hover:text-purple-800 text-sm"
+                  >
+                    + Ajouter une taille
+                  </button>
                 </div>
 
                 <div>

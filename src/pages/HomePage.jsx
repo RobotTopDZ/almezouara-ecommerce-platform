@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import axios from 'axios';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -11,9 +12,44 @@ import 'swiper/css/pagination';
 
 const HomePage = () => {
   const { t } = useTranslation();
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Expanded sample products data - in a real app, this would come from an API
-  const allProducts = [
+  // Load products from API
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const response = await axios.get('/api/products');
+        if (response.data.success && response.data.products) {
+          // Transform database products to match expected format
+          const transformedProducts = response.data.products
+            .filter(product => product.status === 'active') // Only show active products
+            .map(product => ({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
+              category: product.category_name ? product.category_name.toLowerCase() : 'general'
+            }));
+          setAllProducts(transformedProducts);
+        } else {
+          // Fallback to sample products if API fails
+          setAllProducts(sampleProducts);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        // Fallback to sample products
+        setAllProducts(sampleProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadProducts();
+  }, []);
+
+  // Fallback sample products data
+  const sampleProducts = [
     {
       id: 1,
       name: 'Robe Élégante',
@@ -187,6 +223,18 @@ const HomePage = () => {
   const formatPrice = (price) => {
     return `${price.toLocaleString()} DZD`;
   };
+
+  // Show loading state while fetching products
+  if (loading) {
+    return (
+      <div className="pb-16 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Chargement des produits...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-16">
