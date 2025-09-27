@@ -96,6 +96,15 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
+        // Ensure account exists for the phone number to satisfy foreign key
+        if (phoneNumber) {
+          const [accounts] = await pool.execute('SELECT phone FROM accounts WHERE phone = ?', [phoneNumber]);
+          if (accounts.length === 0) {
+            console.log(`Creating new account for ${phoneNumber}`);
+            await pool.execute('INSERT INTO accounts (phone, full_name) VALUES (?, ?)', [phoneNumber, fullName]);
+          }
+        }
+
         // Create new order - adapt to schema differences between environments
         // Detect optional columns that can be NOT NULL in production schema
         let hasDateColumn = false;
