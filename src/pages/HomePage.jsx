@@ -13,74 +13,45 @@ import 'swiper/css/pagination';
 const HomePage = () => {
   const { t } = useTranslation();
   const [allProducts, setAllProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load products and categories from API
+  // Load products from API
   useEffect(() => {
-    const loadData = async () => {
+    const loadProducts = async () => {
       try {
-        // Load both products and categories in parallel
-        const [productsRes, categoriesRes] = await Promise.all([
-          axios.get('/api/products'),
-          axios.get('/api/products/categories/list')
-        ]);
-        
-        // Handle products
-        if (productsRes.data.success && productsRes.data.products) {
+        console.log('Loading products from API...');
+        const response = await axios.get('/api/products');
+        if (response.data.success && response.data.products) {
           // Transform database products to match expected format
-          const transformedProducts = productsRes.data.products
+          const transformedProducts = response.data.products
             .filter(product => product.status === 'active') // Only show active products
-            .map(product => ({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
-              category: product.category_name ? product.category_name.toLowerCase() : 'general'
-            }));
+            .map(product => {
+              console.log('Transforming product:', product.id, product.name);
+              return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
+                category: product.category_name ? product.category_name.toLowerCase() : 'general'
+              };
+            });
+          console.log('Transformed products:', transformedProducts);
           setAllProducts(transformedProducts);
         } else {
           // Fallback to sample products if API fails
+          console.log('API failed, using sample products');
           setAllProducts(sampleProducts);
         }
-        
-        // Handle categories
-        if (categoriesRes.data.success && categoriesRes.data.categories) {
-          // Transform database categories to match expected format
-          const transformedCategories = categoriesRes.data.categories.map(cat => ({
-            id: cat.name.toLowerCase(),
-            name: cat.name,
-            image: '/images/IMG_0630-scaled.jpeg', // Default image
-            count: `${allProducts.filter(p => p.category === cat.name.toLowerCase()).length}+ produits`
-          }));
-          setCategories(transformedCategories);
-        } else {
-          // Fallback categories
-          setCategories([
-            { id: 'robes', name: 'Robes', image: '/images/IMG_0630-scaled.jpeg', count: '15+ produits' },
-            { id: 'hijabs', name: 'Hijabs', image: '/images/IMG_6710-scaled.jpeg', count: '30+ produits' },
-            { id: 'abayas', name: 'Abayas', image: '/images/IMG_6789-scaled.jpeg', count: '12+ produits' },
-            { id: 'accessoires', name: 'Accessoires', image: '/images/IMG_9260-scaled.jpeg', count: '6+ produits' },
-            { id: 'chaussures', name: 'Chaussures', image: '/images/IMG_6710-scaled.jpeg', count: '4+ produits' }
-          ]);
-        }
       } catch (error) {
-        console.error('Error loading data:', error);
-        // Fallback to sample data
+        console.error('Error loading products:', error);
+        // Fallback to sample products
         setAllProducts(sampleProducts);
-        setCategories([
-          { id: 'robes', name: 'Robes', image: '/images/IMG_0630-scaled.jpeg', count: '15+ produits' },
-          { id: 'hijabs', name: 'Hijabs', image: '/images/IMG_6710-scaled.jpeg', count: '30+ produits' },
-          { id: 'abayas', name: 'Abayas', image: '/images/IMG_6789-scaled.jpeg', count: '12+ produits' },
-          { id: 'accessoires', name: 'Accessoires', image: '/images/IMG_9260-scaled.jpeg', count: '6+ produits' },
-          { id: 'chaussures', name: 'Chaussures', image: '/images/IMG_6710-scaled.jpeg', count: '4+ produits' }
-        ]);
       } finally {
         setLoading(false);
       }
     };
     
-    loadData();
+    loadProducts();
   }, []);
 
   // Fallback sample products data
@@ -379,7 +350,12 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-text text-center mb-12">Catégories Populaires</h2>
           <div className="grid grid-cols-2 gap-4">
-            {categories.slice(0, 4).map((category) => (
+            {[
+              { id: 'dresses', name: 'Robes', image: '/images/IMG_0630-scaled.jpeg', count: '15+ produits' },
+              { id: 'hijabs', name: 'Hijabs', image: '/images/IMG_6710-scaled.jpeg', count: '30+ produits' },
+              { id: 'shoes', name: 'Chaussures', image: '/images/IMG_9260-scaled.jpeg', count: '25+ produits' },
+              { id: 'accessories', name: 'Accessoires', image: '/images/IMG_6710-scaled.jpeg', count: '40+ produits' }
+            ].map((category) => (
               <Link
                 key={category.id}
                 to={`/category/${category.id}`}
@@ -449,12 +425,15 @@ const HomePage = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {displayedProducts.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-              >
+            {displayedProducts.map((product) => {
+              console.log('Rendering product link:', product.id, product.name);
+              return (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  onClick={() => console.log('Clicked product:', product.id, 'Link to:', `/product/${product.id}`)}
+                >
                 <div className="aspect-square overflow-hidden">
                   <img
                     src={product.image}
@@ -473,7 +452,8 @@ const HomePage = () => {
                   </div>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
 
           {/* Loading indicator */}
