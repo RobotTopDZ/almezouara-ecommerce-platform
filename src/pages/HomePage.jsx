@@ -37,7 +37,8 @@ const HomePage = () => {
                 name: product.name,
                 price: product.price,
                 image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
-                category_name: product.category_name || 'General'
+                // Normalize category to a single lowercase field for filtering
+                category: product.category_name ? String(product.category_name).toLowerCase() : 'general'
               };
             });
           console.log('Transformed products:', transformedProducts);
@@ -64,21 +65,21 @@ const HomePage = () => {
       name: 'Robe Élégante',
       price: 3500,
       image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
+      category: 'robes',
     },
     {
       id: 2,
       name: 'Hijab Premium',
       price: 1200,
       image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Hijabs',
+      category: 'hijabs',
     },
     {
       id: 3,
       name: 'Robe de Soirée',
       price: 4500,
       image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Robes',
+      category: 'robes',
     },
     {
       id: 4,
@@ -207,7 +208,7 @@ const HomePage = () => {
     if (selectedCategory === 'all') {
       return true; // Include all products if 'all' is selected
     }
-    return product.category === selectedCategory;
+    return (product.category || '').toLowerCase() === String(selectedCategory).toLowerCase();
   });
 
   console.log(`Selected category: '${selectedCategory}'. Found ${filteredProducts.length} matching products out of ${allProducts.length} total.`);
@@ -309,9 +310,9 @@ const HomePage = () => {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.originalName)}
+              onClick={() => setSelectedCategory(category.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                selectedCategory === category.originalName
+                selectedCategory === category.id
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -503,7 +504,7 @@ const HomePage = () => {
           </div>
 
           {/* Loading indicator */}
-          {isLoading && (
+          {isLoadingMore && (
             <div className="flex justify-center items-center py-16">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
