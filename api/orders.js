@@ -101,7 +101,7 @@ router.post('/', async (req, res) => {
           const [accounts] = await pool.execute('SELECT phone FROM accounts WHERE phone = ?', [phoneNumber]);
           if (accounts.length === 0) {
             console.log(`Creating new account for ${phoneNumber}`);
-            await pool.execute('INSERT INTO accounts (phone, full_name) VALUES (?, ?)', [phoneNumber, fullName]);
+            await pool.execute('INSERT INTO accounts (phone, name) VALUES (?, ?)', [phoneNumber, fullName]);
           }
         }
 
