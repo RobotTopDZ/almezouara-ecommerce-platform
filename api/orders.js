@@ -251,7 +251,7 @@ router.get('/last-by-phone/:phone', async (req, res) => {
     }
 
     const [orders] = await pool.execute(
-      'SELECT full_name, wilaya, city, address FROM orders WHERE phone = ? ORDER BY created_at DESC LIMIT 1',
+      'SELECT full_name, wilaya, city, address, delivery_method FROM orders WHERE phone = ? ORDER BY created_at DESC LIMIT 1',
       [phone]
     );
 

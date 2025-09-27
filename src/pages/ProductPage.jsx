@@ -130,7 +130,8 @@ const ProductPage = () => {
           fullName: response.data.data.full_name,
           wilaya: response.data.data.wilaya,
           city: response.data.data.city,
-          address: response.data.data.address
+          address: response.data.data.address,
+          deliveryMethod: response.data.data.delivery_method
         }
       };
       setCustomerInfo(customerData);
@@ -172,7 +173,7 @@ const ProductPage = () => {
         fullName: customerInfo.lastOrderInfo.fullName,
         wilaya: customerInfo.lastOrderInfo.wilaya,
         address: customerInfo.lastOrderInfo.address,
-        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod,
+        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || 'domicile',
       });
       setSelectedCity(customerInfo.lastOrderInfo.city);
       await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
@@ -187,7 +188,7 @@ const ProductPage = () => {
         fullName: customerInfo.lastOrderInfo.fullName,
         wilaya: customerInfo.lastOrderInfo.wilaya,
         address: customerInfo.lastOrderInfo.address,
-        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod,
+        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || 'domicile',
       });
       setSelectedCity(customerInfo.lastOrderInfo.city);
       await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
