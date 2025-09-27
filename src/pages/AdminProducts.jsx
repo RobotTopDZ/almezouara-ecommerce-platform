@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { categories } from '../data/categories';
+import axios from 'axios';
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -23,22 +23,9 @@ const AdminLayout = ({ children }) => (
 );
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Robe Élégante Rouge',
-      category: 'Robes',
-      categoryId: 1,
-      price: 3500,
-      stock: 15,
-      description: 'Une robe élégante parfaite pour toutes les occasions',
-      images: ['/images/IMG_0630-scaled.jpeg'],
-      colors: ['Rouge', 'Noir', 'Bleu'],
-      sizes: ['S', 'M', 'L', 'XL'],
-      status: 'active',
-      createdAt: '2024-01-15'
-    }
-  ]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -49,10 +36,64 @@ const AdminProducts = () => {
     stock: '',
     description: '',
     images: [''],
-    colors: [''],
+    colors: [{ name: '', value: '#000000' }],
     sizes: [''],
     status: 'active'
   });
+
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load products and categories in parallel
+      const [productsRes, categoriesRes] = await Promise.all([
+        axios.get('/api/products'),
+        axios.get('/api/products/categories/list')
+      ]);
+      
+      if (productsRes.data.success) {
+        const transformedProducts = productsRes.data.products.map(product => ({
+          ...product,
+          category: product.category_name || 'Non défini',
+          categoryId: product.category_id,
+          colors: product.colors || [],
+          sizes: product.sizes || [],
+          images: product.images || []
+        }));
+        setProducts(transformedProducts);
+      }
+      
+      if (categoriesRes.data.success) {
+        setCategories(categoriesRes.data.categories || []);
+      } else {
+        // Fallback categories
+        setCategories([
+          { id: 1, name: 'Robes', color: '#FF6B6B' },
+          { id: 2, name: 'Hijabs', color: '#4ECDC4' },
+          { id: 3, name: 'Abayas', color: '#45B7D1' },
+          { id: 4, name: 'Accessoires', color: '#96CEB4' },
+          { id: 5, name: 'Chaussures', color: '#FFEAA7' }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Set fallback categories
+      setCategories([
+        { id: 1, name: 'Robes', color: '#FF6B6B' },
+        { id: 2, name: 'Hijabs', color: '#4ECDC4' },
+        { id: 3, name: 'Abayas', color: '#45B7D1' },
+        { id: 4, name: 'Accessoires', color: '#96CEB4' },
+        { id: 5, name: 'Chaussures', color: '#FFEAA7' }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -67,30 +108,36 @@ const AdminProducts = () => {
       return matchesSearch && matchesCategory && matchesStatus;
     });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const categoryData = categories.find(cat => cat.id.toString() === formData.categoryId);
-    const productData = {
-      ...formData,
-      id: editingProduct ? editingProduct.id : Date.now(),
-      category: categoryData?.name || '',
-      categoryId: parseInt(formData.categoryId),
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      colors: formData.colors.filter(color => color.trim() !== ''),
-      sizes: formData.sizes.filter(size => size.trim() !== ''),
-      images: formData.images.filter(img => img.trim() !== ''),
-      createdAt: editingProduct ? editingProduct.createdAt : new Date().toISOString().split('T')[0]
-    };
+    try {
+      const productData = {
+        name: formData.name,
+        category_id: parseInt(formData.categoryId),
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        description: formData.description,
+        status: formData.status,
+        images: formData.images.filter(img => img.trim() !== ''),
+        colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
+        sizes: formData.sizes.filter(size => size.trim() !== '')
+      };
 
-    if (editingProduct) {
-      setProducts(products.map(p => p.id === editingProduct.id ? productData : p));
-    } else {
-      setProducts([...products, productData]);
+      if (editingProduct) {
+        await axios.put(`/api/products/${editingProduct.id}`, productData);
+      } else {
+        await axios.post('/api/products', productData);
+      }
+      
+      // Reload data and close modal
+      await loadData();
+      resetForm();
+      alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      alert('Erreur lors de la sauvegarde du produit');
     }
-
-    resetForm();
   };
 
   const resetForm = () => {
@@ -101,7 +148,7 @@ const AdminProducts = () => {
       stock: '',
       description: '',
       images: [''],
-      colors: [''],
+      colors: [{ name: '', value: '#000000' }],
       sizes: [''],
       status: 'active'
     });
@@ -111,6 +158,18 @@ const AdminProducts = () => {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    
+    // Transform colors to new format if they're strings
+    let colors = [{ name: '', value: '#000000' }];
+    if (product.colors && product.colors.length > 0) {
+      colors = product.colors.map(color => {
+        if (typeof color === 'string') {
+          return { name: color, value: '#000000' };
+        }
+        return color;
+      });
+    }
+    
     setFormData({
       name: product.name,
       categoryId: product.categoryId.toString(),
@@ -118,33 +177,56 @@ const AdminProducts = () => {
       stock: product.stock.toString(),
       description: product.description,
       images: product.images.length > 0 ? product.images : [''],
-      colors: product.colors.length > 0 ? product.colors : [''],
+      colors: colors,
       sizes: product.sizes.length > 0 ? product.sizes : [''],
       status: product.status
     });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      setProducts(products.filter(p => p.id !== id));
+      try {
+        await axios.delete(`/api/products/${id}`);
+        await loadData();
+        alert('Produit supprimé avec succès!');
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Erreur lors de la suppression du produit');
+      }
     }
   };
 
   const addArrayField = (field) => {
-    setFormData({
-      ...formData,
-      [field]: [...formData[field], '']
-    });
+    if (field === 'colors') {
+      setFormData({
+        ...formData,
+        colors: [...formData.colors, { name: '', value: '#000000' }]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [field]: [...formData[field], '']
+      });
+    }
   };
 
-  const updateArrayField = (field, index, value) => {
-    const newArray = [...formData[field]];
-    newArray[index] = value;
-    setFormData({
-      ...formData,
-      [field]: newArray
-    });
+  const updateArrayField = (field, index, value, colorProperty = null) => {
+    if (field === 'colors' && colorProperty) {
+      const newColors = [...formData.colors];
+      newColors[index][colorProperty] = value;
+      setFormData({
+        ...formData,
+        colors: newColors
+      });
+    } else {
+      const newArray = [...formData[field]];
+      newArray[index] = value;
+      setFormData({
+        ...formData,
+        [field]: newArray
+      });
+    }
   };
 
   const removeArrayField = (field, index) => {
@@ -165,6 +247,19 @@ const AdminProducts = () => {
   const formatPrice = (price) => {
     return `${price.toLocaleString()} DA`;
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">Chargement des produits...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -309,13 +404,23 @@ const AdminProducts = () => {
                       <div className="flex items-center space-x-1">
                         <span className="text-xs text-gray-500">Couleurs:</span>
                         <div className="flex space-x-1">
-                          {product.colors.slice(0, 3).map((color, index) => (
-                            <span key={index} className="text-xs bg-gray-100 px-1 py-0.5 rounded">
-                              {color}
-                            </span>
-                          ))}
-                          {product.colors.length > 3 && (
-                            <span className="text-xs text-gray-400">+{product.colors.length - 3}</span>
+                          {product.colors.slice(0, 4).map((color, index) => {
+                            // Handle both old string format and new object format
+                            const colorValue = typeof color === 'string' ? '#000000' : color.value;
+                            const colorName = typeof color === 'string' ? color : color.name;
+                            return (
+                              <div key={index} className="flex items-center space-x-1">
+                                <div 
+                                  className="w-3 h-3 rounded-full border border-gray-300" 
+                                  style={{ backgroundColor: colorValue }}
+                                  title={colorName}
+                                ></div>
+                                <span className="text-xs text-gray-600">{colorName}</span>
+                              </div>
+                            );
+                          })}
+                          {product.colors.length > 4 && (
+                            <span className="text-xs text-gray-400">+{product.colors.length - 4}</span>
                           )}
                         </div>
                       </div>
@@ -501,10 +606,17 @@ const AdminProducts = () => {
                   {formData.colors.map((color, index) => (
                     <div key={index} className="flex items-center space-x-2 mb-2">
                       <input
+                        type="color"
+                        value={color.value || '#000000'}
+                        onChange={(e) => updateArrayField('colors', index, e.target.value, 'value')}
+                        className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                        title="Choisir la couleur"
+                      />
+                      <input
                         type="text"
-                        value={color}
-                        onChange={(e) => updateArrayField('colors', index, e.target.value)}
-                        placeholder="Ex: Rouge, Noir, Bleu"
+                        value={color.name || ''}
+                        onChange={(e) => updateArrayField('colors', index, e.target.value, 'name')}
+                        placeholder="Nom de la couleur (ex: Rouge)"
                         className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                       {formData.colors.length > 1 && (
