@@ -163,12 +163,67 @@ router.post('/', async (req, res) => {
 
         await pool.execute(insertSQL, vals);
         
-        // Insert order items separately
-        for (const item of items) {
-          await pool.execute(`
-            INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `, [orderId, item.id || null, item.name || '', item.price || 0, item.quantity || 1, item.image || null, item.color || null, item.size || null]);
+        // Start a transaction for order creation
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+        
+        try {
+          // Insert order items and update stock
+          for (const item of items) {
+            const variantId = item.variantId || null;
+            const quantity = item.quantity || 1;
+            
+            // Insert order item
+            await connection.execute(`
+              INSERT INTO order_items (order_id, product_id, variant_id, product_name, price, quantity, image, color, size)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+              orderId, 
+              item.id || null, 
+              variantId,
+              item.name || '', 
+              item.price || 0, 
+              quantity, 
+              item.image || null, 
+              item.color || null, 
+              item.size || null
+            ]);
+            
+            // Update stock
+            if (variantId) {
+              // Update variant stock
+              await connection.execute(
+                'UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+                [quantity, variantId]
+              );
+              
+              // Update product stock (sum of all variants)
+              await connection.execute(`
+                UPDATE products p
+                SET stock = (
+                  SELECT COALESCE(SUM(stock), 0)
+                  FROM product_variants
+                  WHERE product_id = p.id
+                )
+                WHERE id = ?
+              `, [item.id]);
+            } else {
+              // For products without variants
+              await connection.execute(
+                'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+                [quantity, item.id]
+              );
+            }
+          }
+          
+          await connection.commit();
+          connection.release();
+          
+        } catch (error) {
+          await connection.rollback();
+          connection.release();
+          console.error('Order processing failed:', error);
+          throw error;
         }
         
         console.log('✅ Order created successfully in database:', orderId);

@@ -252,19 +252,27 @@ router.get('/:id', async (req, res) => {
       }
     }
     
+    // Get variants for this product
+    const [variants] = await pool.execute(
+      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY color_name, size',
+      [req.params.id]
+    );
+    
     console.log('Single product parsed data:', {
       id: products[0].id,
       name: products[0].name,
       images: images,
       colors: colors,
-      sizes: sizes
+      sizes: sizes,
+      variants: variants.length
     });
     
     const product = {
       ...products[0],
       images,
       colors,
-      sizes
+      sizes,
+      variants: variants || []
     };
     
     res.json({ success: true, product });
@@ -276,6 +284,7 @@ router.get('/:id', async (req, res) => {
 
 // Create product
 router.post('/', async (req, res) => {
+  const transaction = await pool.getConnection();
   try {
     if (!pool) {
       return res.status(500).json({ error: 'Database not connected' });
@@ -290,15 +299,19 @@ router.post('/', async (req, res) => {
       images,
       colors,
       sizes,
+      variants,
       status
     } = req.body;
     
-    console.log('Creating product:', { name, category_id, price, stock, status });
+    console.log('Creating product:', { name, category_id, price, stock, status, variantsCount: variants?.length });
     
     // Validate required fields
-    if (!name || !category_id || !price || stock === undefined) {
+    if (!name || !category_id || !price) {
+      await transaction.rollback();
       return res.status(400).json({ error: 'Missing required fields' });
     }
+    
+    await transaction.beginTransaction();
     
     // Ensure proper JSON stringification
     const imagesJson = JSON.stringify(Array.isArray(images) ? images : []);
@@ -307,7 +320,15 @@ router.post('/', async (req, res) => {
     
     console.log('Saving JSON data:', { imagesJson, colorsJson, sizesJson });
     
-    const [result] = await pool.execute(`
+    // Calculate total stock from variants if provided
+    let totalStock = 0;
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      totalStock = variants.reduce((sum, variant) => sum + (parseInt(variant.stock) || 0), 0);
+    } else if (stock !== undefined) {
+      totalStock = parseInt(stock);
+    }
+    
+    const [result] = await transaction.execute(`
       INSERT INTO products (
         name, category_id, price, stock, description, 
         images, colors, sizes, status, created_at, updated_at
@@ -316,7 +337,7 @@ router.post('/', async (req, res) => {
       name,
       category_id,
       parseFloat(price),
-      parseInt(stock),
+      totalStock,
       description || '',
       imagesJson,
       colorsJson,
@@ -324,19 +345,65 @@ router.post('/', async (req, res) => {
       status || 'active'
     ]);
     
+    const productId = result.insertId;
+    
+    // Create variants if provided
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      console.log('Creating variants:', variants.length);
+      
+      for (const variant of variants) {
+        const {
+          color_name,
+          color_value = '#000000',
+          size,
+          stock: variantStock = 0,
+          sku = null,
+          barcode = null,
+          price_adjustment = 0
+        } = variant;
+        
+        if (color_name && size) {
+          await transaction.execute(`
+            INSERT INTO product_variants (
+              product_id, color_name, color_value, size, stock, 
+              sku, barcode, price_adjustment, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+          `, [
+            productId,
+            color_name,
+            color_value,
+            size,
+            parseInt(variantStock),
+            sku,
+            barcode,
+            parseFloat(price_adjustment)
+          ]);
+        }
+      }
+      
+      // Update product stock to sum of all variants
+      await updateProductStock(transaction, productId);
+    }
+    
+    await transaction.commit();
+    
     res.json({ 
       success: true, 
       message: 'Product created successfully',
-      productId: result.insertId 
+      productId: productId 
     });
   } catch (error) {
+    await transaction.rollback();
     console.error('Create product error:', error);
     res.status(500).json({ error: 'Failed to create product' });
+  } finally {
+    if (transaction) await transaction.release();
   }
 });
 
 // Update product
 router.put('/:id', async (req, res) => {
+  const transaction = await pool.getConnection();
   try {
     const {
       name,
@@ -347,10 +414,21 @@ router.put('/:id', async (req, res) => {
       images,
       colors,
       sizes,
+      variants,
       status
     } = req.body;
     
-    const [result] = await pool.execute(`
+    await transaction.beginTransaction();
+    
+    // Calculate total stock from variants if provided
+    let totalStock = 0;
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      totalStock = variants.reduce((sum, variant) => sum + (parseInt(variant.stock) || 0), 0);
+    } else if (stock !== undefined) {
+      totalStock = parseInt(stock);
+    }
+    
+    const [result] = await transaction.execute(`
       UPDATE products SET
         name = ?, category_id = ?, price = ?, stock = ?, description = ?,
         images = ?, colors = ?, sizes = ?, status = ?, updated_at = NOW()
@@ -359,7 +437,7 @@ router.put('/:id', async (req, res) => {
       name,
       category_id,
       parseFloat(price),
-      parseInt(stock),
+      totalStock,
       description || '',
       JSON.stringify(images || []),
       JSON.stringify(colors || []),
@@ -369,13 +447,59 @@ router.put('/:id', async (req, res) => {
     ]);
     
     if (result.affectedRows === 0) {
+      await transaction.rollback();
       return res.status(404).json({ error: 'Product not found' });
     }
     
+    // Update variants if provided
+    if (variants && Array.isArray(variants)) {
+      // Delete existing variants
+      await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+      
+      // Create new variants
+      for (const variant of variants) {
+        const {
+          color_name,
+          color_value = '#000000',
+          size,
+          stock: variantStock = 0,
+          sku = null,
+          barcode = null,
+          price_adjustment = 0
+        } = variant;
+        
+        if (color_name && size) {
+          await transaction.execute(`
+            INSERT INTO product_variants (
+              product_id, color_name, color_value, size, stock, 
+              sku, barcode, price_adjustment, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+          `, [
+            req.params.id,
+            color_name,
+            color_value,
+            size,
+            parseInt(variantStock),
+            sku,
+            barcode,
+            parseFloat(price_adjustment)
+          ]);
+        }
+      }
+      
+      // Update product stock to sum of all variants
+      await updateProductStock(transaction, req.params.id);
+    }
+    
+    await transaction.commit();
+    
     res.json({ success: true, message: 'Product updated successfully' });
   } catch (error) {
+    await transaction.rollback();
     console.error('Update product error:', error);
     res.status(500).json({ error: 'Failed to update product' });
+  } finally {
+    if (transaction) await transaction.release();
   }
 });
 

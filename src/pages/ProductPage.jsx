@@ -78,12 +78,20 @@ const ProductPage = () => {
           console.log('Transformed product:', transformedProduct);
           setProduct(transformedProduct);
           
-          // Set default selections
-          if (productData.colors && productData.colors.length > 0) {
-            setSelectedColor(productData.colors[0]);
-          }
-          if (productData.sizes && productData.sizes.length > 0) {
-            setSelectedSize(productData.sizes[0]);
+          // Set default selections based on variants if available
+          if (productData.variants && productData.variants.length > 0) {
+            // Use the first variant's color and size as default
+            const firstVariant = productData.variants[0];
+            setSelectedColor(firstVariant.color_name);
+            setSelectedSize(firstVariant.size);
+          } else {
+            // Fallback to old logic for products without variants
+            if (productData.colors && productData.colors.length > 0) {
+              setSelectedColor(productData.colors[0]);
+            }
+            if (productData.sizes && productData.sizes.length > 0) {
+              setSelectedSize(productData.sizes[0]);
+            }
           }
         } else {
           setError('Produit non trouvé');
@@ -175,6 +183,25 @@ const ProductPage = () => {
   useEffect(() => {
     console.log('📋 Form data changed:', formData);
   }, [formData]);
+
+  // Reset selected size when color changes
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0 && selectedColor) {
+      // Check if current selected size is available for the new color
+      const availableSizes = product.variants
+        .filter(variant => variant.color_name === selectedColor)
+        .map(variant => variant.size);
+      
+      if (!availableSizes.includes(selectedSize)) {
+        // Reset to first available size for this color
+        if (availableSizes.length > 0) {
+          setSelectedSize(availableSizes[0]);
+        } else {
+          setSelectedSize(null);
+        }
+      }
+    }
+  }, [selectedColor, product, selectedSize]);
 
   // Customer search function
   const searchCustomer = async (phone) => {
@@ -335,10 +362,32 @@ const ProductPage = () => {
       console.log('🔍 Customer info:', customerInfo);
       console.log('🔍 Customer choice:', customerChoice);
       
+      // Find the variant ID based on selected color and size
+      let variantId = null;
+      if (product.variants && product.variants.length > 0) {
+        const selectedVariant = product.variants.find(variant => {
+          const colorMatch = selectedColor ? 
+            (typeof selectedColor === 'object' ? 
+              variant.color_name === selectedColor.name : 
+              variant.color_name === selectedColor) : 
+            true;
+          const sizeMatch = selectedSize ? variant.size === selectedSize : true;
+          return colorMatch && sizeMatch;
+        });
+        
+        if (selectedVariant) {
+          variantId = selectedVariant.id;
+          console.log('Found variant:', selectedVariant);
+        } else {
+          console.log('No variant found for:', { selectedColor, selectedSize });
+        }
+      }
+      
       const orderPayload = {
         phoneNumber: formData.phoneNumber,
         items: [{ 
           id: product.id, 
+          variantId: variantId,
           name: product.name, 
           price: discountedPrice, 
           quantity: quantity, 
@@ -502,70 +551,151 @@ const ProductPage = () => {
             <p className="text-2xl lg:text-3xl font-bold text-primary mb-6">{formatPrice(product.price)}</p>
             )}
             
-            {product.stock > 0 ? (
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
-                ✓ En stock ({product.stock} disponible{product.stock > 1 ? 's' : ''})
-              </div>
-            ) : (
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-6">
-                ✗ Rupture de stock
-              </div>
-            )}
+{(() => {
+              // Show stock based on selected variant or total product stock
+              let stockDisplay = null;
+              let currentStock = product.stock;
+              let isInStock = product.stock > 0;
+              
+              if (product.variants && product.variants.length > 0 && selectedColor && selectedSize) {
+                // Find the specific variant
+                const selectedVariant = product.variants.find(variant => 
+                  variant.color_name === selectedColor && variant.size === selectedSize
+                );
+                
+                if (selectedVariant) {
+                  currentStock = selectedVariant.stock;
+                  isInStock = selectedVariant.stock > 0;
+                }
+              }
+              
+              if (isInStock) {
+                stockDisplay = (
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
+                    ✓ En stock ({currentStock} disponible{currentStock > 1 ? 's' : ''})
+                  </div>
+                );
+              } else {
+                stockDisplay = (
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-6">
+                    ✗ Rupture de stock
+                  </div>
+                );
+              }
+              
+              return stockDisplay;
+            })()}
 
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">{product.description}</p>
 
             {/* Color Selection */}
-            {product.colors && product.colors.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-text mb-3">Choisir une couleur</h3>
-                <div className="flex space-x-3">
-                    {product.colors.map((color) => {
-                    const colorValue = typeof color === 'object' ? color.value : '#000000';
-                    const colorName = typeof color === 'object' ? color.name : color;
-                    const isSelected = selectedColor && (
-                      (typeof selectedColor === 'object' && selectedColor.name === colorName) ||
-                      (typeof selectedColor === 'string' && selectedColor === colorName)
-                    );
-                    
-                    return (
-                      <button
-                        key={colorName}
-                        onClick={() => setSelectedColor(color)}
-                        className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
-                          isSelected
-                            ? 'border-primary shadow-lg scale-110' 
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                        style={{ backgroundColor: colorValue }}
-                        title={colorName}
-                      />
-                    );
-                  })}
+            {(() => {
+              // Get available colors from variants if available, otherwise from product.colors
+              let availableColors = [];
+              if (product.variants && product.variants.length > 0) {
+                // Get unique colors from variants
+                const colorMap = new Map();
+                product.variants.forEach(variant => {
+                  if (!colorMap.has(variant.color_name)) {
+                    colorMap.set(variant.color_name, {
+                      name: variant.color_name,
+                      value: variant.color_value || '#000000'
+                    });
+                  }
+                });
+                availableColors = Array.from(colorMap.values());
+              } else if (product.colors && product.colors.length > 0) {
+                availableColors = product.colors.map(color => 
+                  typeof color === 'object' ? color : { name: color, value: '#000000' }
+                );
+              }
+              
+              return availableColors.length > 0 ? (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-text mb-3">Choisir une couleur</h3>
+                  <div className="flex space-x-3">
+                    {availableColors.map((color) => {
+                      const isSelected = selectedColor === color.name;
+                      
+                      return (
+                        <button
+                          key={color.name}
+                          onClick={() => setSelectedColor(color.name)}
+                          className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
+                            isSelected
+                              ? 'border-primary shadow-lg scale-110' 
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
 
             {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-text mb-3">Choisir une taille</h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
-                        selectedSize === size
-                          ? 'border-primary bg-primary text-white shadow-lg scale-105'
-                          : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+            {(() => {
+              // Get available sizes from variants if available, otherwise from product.sizes
+              let availableSizes = [];
+              if (product.variants && product.variants.length > 0) {
+                // Get unique sizes from variants, filtered by selected color if any
+                const sizeSet = new Set();
+                product.variants.forEach(variant => {
+                  if (!selectedColor || variant.color_name === selectedColor) {
+                    sizeSet.add(variant.size);
+                  }
+                });
+                availableSizes = Array.from(sizeSet);
+              } else if (product.sizes && product.sizes.length > 0) {
+                availableSizes = product.sizes;
+              }
+              
+              return availableSizes.length > 0 ? (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-text mb-3">Choisir une taille</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {availableSizes.map((size) => {
+                      // Check if this size is available for the selected color
+                      let isAvailable = true;
+                      let stockInfo = '';
+                      
+                      if (product.variants && product.variants.length > 0) {
+                        const variant = product.variants.find(v => 
+                          v.color_name === selectedColor && v.size === size
+                        );
+                        if (variant) {
+                          isAvailable = variant.stock > 0;
+                          stockInfo = ` (${variant.stock} en stock)`;
+                        } else {
+                          isAvailable = false;
+                        }
+                      }
+                      
+                      return (
+                        <button
+                          key={size}
+                          onClick={() => isAvailable ? setSelectedSize(size) : null}
+                          disabled={!isAvailable}
+                          className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
+                            selectedSize === size
+                              ? 'border-primary bg-primary text-white shadow-lg scale-105'
+                              : isAvailable
+                              ? 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                              : 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
+                          }`}
+                          title={isAvailable ? `${size}${stockInfo}` : 'Non disponible'}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
 
             {/* Quantity Selection */}
             <div className="mb-8">

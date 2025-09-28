@@ -186,7 +186,7 @@ const AdminProducts = () => {
     setFormData(prev => {
       const existingIndex = prev.variants.findIndex(
         v => v.id === currentVariant.id || 
-             (v.color === currentVariant.color && v.size === currentVariant.size)
+             (v.color_name === currentVariant.color_name && v.size === currentVariant.size)
       );
       
       const newVariant = {
@@ -211,12 +211,14 @@ const AdminProducts = () => {
     
     // Reset the form
     setCurrentVariant({
-      color: '',
+      id: null,
+      color_name: '',
+      color_value: '#000000',
       size: '',
       stock: 0,
       sku: '',
-      price_adjustment: 0,
-      id: null
+      barcode: '',
+      price_adjustment: 0
     });
   };
   
@@ -772,6 +774,161 @@ const AdminProducts = () => {
                   >
                     + Ajouter une taille
                   </button>
+                </div>
+
+                {/* Variants Management */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Gestion des Variantes et Stock</h3>
+                  
+                  {/* Add Variant Form */}
+                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Ajouter une variante</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Couleur *
+                        </label>
+                        <input
+                          type="text"
+                          value={currentVariant.color_name}
+                          onChange={(e) => setCurrentVariant({...currentVariant, color_name: e.target.value})}
+                          placeholder="Ex: Rouge, Noir, Bleu"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Valeur couleur
+                        </label>
+                        <input
+                          type="color"
+                          value={currentVariant.color_value}
+                          onChange={(e) => setCurrentVariant({...currentVariant, color_value: e.target.value})}
+                          className="w-full border border-gray-300 rounded px-1 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Taille *
+                        </label>
+                        <input
+                          type="text"
+                          value={currentVariant.size}
+                          onChange={(e) => setCurrentVariant({...currentVariant, size: e.target.value})}
+                          placeholder="Ex: S, M, L"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Stock *
+                        </label>
+                        <input
+                          type="number"
+                          value={currentVariant.stock}
+                          onChange={(e) => setCurrentVariant({...currentVariant, stock: parseInt(e.target.value) || 0})}
+                          min="0"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Ajustement prix (DA)
+                        </label>
+                        <input
+                          type="number"
+                          value={currentVariant.price_adjustment}
+                          onChange={(e) => setCurrentVariant({...currentVariant, price_adjustment: parseFloat(e.target.value) || 0})}
+                          step="0.01"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          SKU (optionnel)
+                        </label>
+                        <input
+                          type="text"
+                          value={currentVariant.sku}
+                          onChange={(e) => setCurrentVariant({...currentVariant, sku: e.target.value})}
+                          placeholder="Code produit unique"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Code-barres (optionnel)
+                        </label>
+                        <input
+                          type="text"
+                          value={currentVariant.barcode}
+                          onChange={(e) => setCurrentVariant({...currentVariant, barcode: e.target.value})}
+                          placeholder="Code-barres"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={saveVariant}
+                      className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                    >
+                      {currentVariant.id ? 'Modifier la variante' : 'Ajouter la variante'}
+                    </button>
+                  </div>
+                  
+                  {/* Variants List */}
+                  {formData.variants.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        Variantes configurées ({formData.variants.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {formData.variants.map((variant, index) => (
+                          <div key={variant.id || index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                            <div className="flex items-center space-x-4">
+                              <div 
+                                className="w-6 h-6 rounded-full border-2 border-gray-300"
+                                style={{ backgroundColor: variant.color_value }}
+                                title={variant.color_name}
+                              ></div>
+                              <div>
+                                <div className="font-medium text-sm">
+                                  {variant.color_name} - {variant.size}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Stock: {variant.stock} | Prix: {variant.price_adjustment > 0 ? `+${variant.price_adjustment}` : variant.price_adjustment < 0 ? variant.price_adjustment : 'Standard'} DA
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => editVariant(variant)}
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeVariant(variant.id)}
+                                className="text-red-600 hover:text-red-800 text-sm"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
