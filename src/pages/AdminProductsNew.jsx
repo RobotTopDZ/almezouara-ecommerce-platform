@@ -34,12 +34,12 @@ const AdminProducts = () => {
     price: '',
     stock: '',
     description: '',
-    images: [],
+    images: [''], // Start with one empty URL field
     colors: [],
     sizes: [],
     status: 'active'
   });
-  const [imageFiles, setImageFiles] = useState([]);
+  const [imageURL, setImageURL] = useState('');
 
   // Load data on component mount
   useEffect(() => {
@@ -78,30 +78,42 @@ const AdminProducts = () => {
     }
   };
 
-  // Handle image file selection
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageUrl = event.target.result;
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, imageUrl]
-          }));
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+  // Add image URL
+  const addImageURL = (e) => {
+    e.preventDefault();
+    if (imageURL.trim() !== '') {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, imageURL.trim()]
+      }));
+      setImageURL('');
+    }
   };
 
-  // Remove image
-  const removeImage = (index) => {
+  // Add new URL input field
+  const addURLField = () => {
     setFormData(prev => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      images: [...prev.images, '']
+    }));
+  };
+
+  // Handle URL input change
+  const handleURLChange = (index, value) => {
+    const newImages = [...formData.images];
+    newImages[index] = value;
+    setFormData(prev => ({
+      ...prev,
+      images: newImages
+    }));
+  };
+
+  // Remove image URL
+  const removeImage = (indexToRemove) => {
+    const newImages = formData.images.filter((_, index) => index !== indexToRemove);
+    setFormData(prev => ({
+      ...prev,
+      images: newImages.length > 0 ? newImages : [''] // Always keep at least one URL field
     }));
   };
 
@@ -226,7 +238,6 @@ const AdminProducts = () => {
       sizes: [],
       status: 'active'
     });
-    setImageFiles([]);
     setEditingProduct(null);
     setShowModal(false);
   };
@@ -461,38 +472,56 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                {/* Images Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Images du produit
-                  </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  {formData.images.length > 0 && (
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      {formData.images.map((image, index) => (
-                        <div key={index} className="relative">
+                {/* Images URLs */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Images URLs</label>
+                  <div className="space-y-2">
+                    {formData.images.map((url, index) => (
+                      <div key={index} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={url}
+                          onChange={(e) => handleURLChange(index, e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          disabled={formData.images.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addURLField}
+                      className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+                    >
+                      + Add Another Image URL
+                    </button>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.images.filter(url => url.trim() !== '').map((url, index) => (
+                        <div key={index} className="relative group">
                           <img
-                            src={image}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-20 object-cover rounded border"
+                            src={url}
+                            alt={`Preview ${index}`}
+                            className="h-20 w-20 object-cover rounded border border-gray-300"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2080%2080%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_18c6f6c8b36%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_18c6f6c8b36%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2220.5%22%20y%3D%2242.5%22%3E80x80%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+                            }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                          >
-                            ×
-                          </button>
                         </div>
                       ))}
                     </div>
-                  )}
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Ajoutez les URLs des images du produit</p>
                 </div>
 
                 {/* Colors */}
