@@ -35,12 +35,11 @@ const AdminProducts = () => {
     price: '',
     stock: '',
     description: '',
-    images: [],
+    images: [''], // Start with one empty URL field
     colors: [{ name: '', value: '#000000' }],
     sizes: [''],
     status: 'active'
   });
-  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -109,47 +108,46 @@ const AdminProducts = () => {
       return matchesSearch && matchesCategory && matchesStatus;
     });
 
-  // Handle image upload
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  // Convert Google Drive URL to direct image link
+  const processImageURL = (url) => {
+    if (!url) return '';
     
-    setUploadingImages(true);
-    
-    try {
-      const formDataUpload = new FormData();
-      files.forEach(file => {
-        formDataUpload.append('images', file);
-      });
-      
-      const response = await axios.post('/api/products/upload-images', formDataUpload, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      if (response.data.success) {
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, ...response.data.images]
-        }));
-        alert(`${response.data.images.length} image(s) uploaded successfully!`);
+    // Handle Google Drive URL
+    if (url.includes('drive.google.com')) {
+      // Handle Google Drive shareable link format
+      const fileIdMatch = url.match(/[\w\-]{20,}/);
+      if (fileIdMatch && fileIdMatch[0]) {
+        return `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
       }
-    } catch (error) {
-      console.error('Image upload error:', error);
-      alert('Error uploading images');
-    } finally {
-      setUploadingImages(false);
-      // Clear the file input
-      e.target.value = '';
     }
+    
+    return url;
   };
-  
-  // Remove image
-  const removeImage = (index) => {
+
+  // Handle URL input change
+  const handleURLChange = (index, value) => {
+    const newImages = [...formData.images];
+    newImages[index] = value;
     setFormData(prev => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      images: newImages
+    }));
+  };
+
+  // Add new URL input field
+  const addURLField = () => {
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, '']
+    }));
+  };
+
+  // Remove image URL
+  const removeImage = (indexToRemove) => {
+    const newImages = formData.images.filter((_, index) => index !== indexToRemove);
+    setFormData(prev => ({
+      ...prev,
+      images: newImages.length > 0 ? newImages : [''] // Always keep at least one URL field
     }));
   };
 
@@ -157,6 +155,16 @@ const AdminProducts = () => {
     e.preventDefault();
     
     try {
+      // Process all image URLs before submitting
+      const processedImages = formData.images
+        .filter(img => img.trim() !== '')
+        .map(img => processImageURL(img));
+
+      if (processedImages.length === 0) {
+        alert('Veuillez ajouter au moins une image');
+        return;
+      }
+
       const productData = {
         name: formData.name,
         category_id: parseInt(formData.categoryId),
@@ -164,7 +172,7 @@ const AdminProducts = () => {
         stock: parseInt(formData.stock),
         description: formData.description,
         status: formData.status,
-        images: formData.images,
+        images: processedImages,
         colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
         sizes: formData.sizes.filter(size => size.trim() !== '')
       };
@@ -192,7 +200,7 @@ const AdminProducts = () => {
       price: '',
       stock: '',
       description: '',
-      images: [],
+      images: [''], // Start with one empty URL field
       colors: [{ name: '', value: '#000000' }],
       sizes: [''],
       status: 'active'
@@ -613,65 +621,105 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                {/* Images Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Images du produit</label>
-                  
-                  {/* Upload Button */}
-                  <div className="mb-3">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="image-upload"
-                      disabled={uploadingImages}
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer ${
-                        uploadingImages ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                {/* Images URLs */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Images URLs (supports Google Drive links)
+                  </label>
+                  <div className="space-y-4">
+                    {formData.images.map((url, index) => {
+                      const processedUrl = processImageURL(url);
+                      const isGoogleDrive = url.includes('drive.google.com');
+                      
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={url}
+                              onChange={(e) => handleURLChange(index, e.target.value)}
+                              placeholder="https://drive.google.com/... or direct image URL"
+                              className="flex-1 p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 whitespace-nowrap"
+                              disabled={formData.images.length <= 1}
+                              title="Remove image"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          
+                          {/* Image Preview */}
+                          {processedUrl && (
+                            <div className="relative border rounded p-2 bg-gray-50">
+                              <div className="text-xs text-gray-500 mb-1">Preview:</div>
+                              <div className="flex items-center space-x-2 overflow-x-auto">
+                                <img 
+                                  src={processedUrl} 
+                                  alt={`Preview ${index + 1}`}
+                                  className="h-24 w-auto object-contain border rounded"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-family%3D%22Arial%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%239ca3af%22%3EImage%20not%20found%3C%2Ftext%3E%3C%2Fsvg%3E';
+                                  }}
+                                />
+                                {isGoogleDrive && (
+                                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                    <div className="font-medium">Google Drive Detected</div>
+                                    <div className="text-xs text-gray-500">Link will be converted automatically</div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={addURLField}
+                      className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-2"
                     >
-                      {uploadingImages ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
-                          Téléchargement...
-                        </>
-                      ) : (
-                        <>
-                          📷 Choisir des images
-                        </>
-                      )}
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, GIF (max 5MB par image)</p>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add another image URL
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Tip: Paste Google Drive shareable links directly. They'll be converted automatically.
+                    </p>
                   </div>
-                  
-                  {/* Image Preview */}
-                  {formData.images.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {formData.images.map((image, index) => (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.images.filter(url => url.trim() !== '').map((url, index) => (
                         <div key={index} className="relative group">
                           <img
-                            src={image}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-20 object-cover rounded border"
+                            src={processImageURL(url)}
+                            alt={`Preview ${index}`}
+                            className="h-20 w-20 object-cover rounded border border-gray-300"
                             onError={(e) => {
-                              e.target.src = '/images/placeholder.jpg';
+                              e.target.onerror = null;
+                              e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2240%22%20y%3D%2240%22%20font-family%3D%22Arial%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%239ca3af%22%3EImage%3C%2Ftext%3E%3C%2Fsvg%3E';
                             }}
                           />
                           <button
                             type="button"
                             onClick={() => removeImage(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove image"
                           >
-                            ×
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
                           </button>
                         </div>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Colors */}
