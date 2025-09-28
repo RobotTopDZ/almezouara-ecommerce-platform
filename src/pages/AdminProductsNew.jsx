@@ -98,6 +98,22 @@ const AdminProducts = () => {
     }));
   };
 
+  // Convert Google Drive URL to direct image link
+  const processImageURL = (url) => {
+    if (!url) return '';
+    
+    // Handle Google Drive URL
+    if (url.includes('drive.google.com')) {
+      // Handle Google Drive shareable link format
+      const fileIdMatch = url.match(/[\w\-]{20,}/);
+      if (fileIdMatch && fileIdMatch[0]) {
+        return `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
+      }
+    }
+    
+    return url;
+  };
+
   // Handle URL input change
   const handleURLChange = (index, value) => {
     const newImages = [...formData.images];
@@ -474,34 +490,74 @@ const AdminProducts = () => {
 
                 {/* Images URLs */}
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Images URLs</label>
-                  <div className="space-y-2">
-                    {formData.images.map((url, index) => (
-                      <div key={index} className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          value={url}
-                          onChange={(e) => handleURLChange(index, e.target.value)}
-                          placeholder="https://example.com/image.jpg"
-                          className="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                          disabled={formData.images.length <= 1}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Images URLs (supports Google Drive links)
+                  </label>
+                  <div className="space-y-4">
+                    {formData.images.map((url, index) => {
+                      const processedUrl = processImageURL(url);
+                      const isGoogleDrive = url.includes('drive.google.com');
+                      
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={url}
+                              onChange={(e) => handleURLChange(index, e.target.value)}
+                              placeholder="https://drive.google.com/... or direct image URL"
+                              className="flex-1 p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 whitespace-nowrap"
+                              disabled={formData.images.length <= 1}
+                              title="Remove image"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          
+                          {/* Image Preview */}
+                          {processedUrl && (
+                            <div className="relative border rounded p-2 bg-gray-50">
+                              <div className="text-xs text-gray-500 mb-1">Preview:</div>
+                              <div className="flex items-center space-x-2 overflow-x-auto">
+                                <img 
+                                  src={processedUrl} 
+                                  alt={`Preview ${index + 1}`}
+                                  className="h-24 w-auto object-contain border rounded"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-family%3D%22Arial%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%239ca3af%22%3EImage%20not%20found%3C%2Ftext%3E%3C%2Fsvg%3E';
+                                  }}
+                                />
+                                {isGoogleDrive && (
+                                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                    <div className="font-medium">Google Drive Detected</div>
+                                    <div className="text-xs text-gray-500">Link will be converted automatically</div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                     <button
                       type="button"
                       onClick={addURLField}
-                      className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+                      className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-2"
                     >
-                      + Add Another Image URL
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add another image URL
                     </button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Tip: Paste Google Drive shareable links directly. They'll be converted automatically.
+                    </p>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
