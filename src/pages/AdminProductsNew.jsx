@@ -220,6 +220,9 @@ const AdminProducts = () => {
       barcode: '',
       price_adjustment: 0
     });
+    
+    // Show success message
+    alert(`✅ Variante ajoutée avec succès!\n\nCouleur: ${newVariant.color_name}\nTaille: ${newVariant.size}\nStock: ${newVariant.stock}\n\nVous pouvez maintenant ajouter d'autres variantes ou créer le produit.`);
   };
   
   // Edit variant
@@ -280,7 +283,7 @@ const AdminProducts = () => {
       }
       
       if (formData.variants.length === 0) {
-        alert('Veuillez ajouter au moins une variante (couleur et taille)');
+        alert('⚠️ IMPORTANT: Vous devez ajouter au moins une variante avec stock pour ce produit!\n\nCliquez sur "Ajouter cette variante au produit" après avoir rempli:\n- Couleur\n- Taille\n- Stock (quantité)');
         return;
       }
 
@@ -594,7 +597,12 @@ const AdminProducts = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stock Total: {totalStock}
                     </label>
-                    <div className="text-xs text-gray-500">Géré par les variantes ci-dessous</div>
+                    <div className="text-xs text-gray-500">
+                      {formData.variants.length > 0 
+                        ? `Calculé automatiquement à partir de ${formData.variants.length} variante(s)`
+                        : 'Ajoutez des variantes ci-dessous pour gérer le stock'
+                      }
+                    </div>
                   </div>
                 </div>
 
@@ -778,11 +786,34 @@ const AdminProducts = () => {
 
                 {/* Variants Management */}
                 <div className="border-t pt-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Gestion des Variantes et Stock</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">Gestion des Variantes et Stock</h3>
+                    {formData.variants.length === 0 && (
+                      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-3 py-2 rounded-lg text-sm">
+                        ⚠️ Vous devez ajouter au moins une variante pour gérer le stock
+                      </div>
+                    )}
+                  </div>
+                  
+                  {formData.variants.length === 0 && (
+                    <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-4">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">💡 Comment ça marche ?</h4>
+                      <div className="text-xs text-blue-700 space-y-1">
+                        <p>• <strong>Exemple:</strong> Pour une robe disponible en Rouge (S, M, L) et Noir (M, L, XL)</p>
+                        <p>• <strong>Étape 1:</strong> Ajoutez "Rouge" + "S" + Stock "5" → Cliquez "Ajouter cette variante"</p>
+                        <p>• <strong>Étape 2:</strong> Ajoutez "Rouge" + "M" + Stock "3" → Cliquez "Ajouter cette variante"</p>
+                        <p>• <strong>Étape 3:</strong> Continuez pour toutes les combinaisons...</p>
+                        <p>• <strong>Résultat:</strong> Le stock total sera calculé automatiquement (5+3+...)</p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Add Variant Form */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Ajouter une variante</h4>
+                  <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg mb-4">
+                    <h4 className="text-sm font-medium text-blue-800 mb-3 flex items-center">
+                      <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">+</span>
+                      Ajouter une variante (Couleur + Taille + Stock)
+                    </h4>
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -823,7 +854,8 @@ const AdminProducts = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-red-600 mb-1 flex items-center">
+                          <span className="bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs mr-1">!</span>
                           Stock *
                         </label>
                         <input
@@ -831,8 +863,10 @@ const AdminProducts = () => {
                           value={currentVariant.stock}
                           onChange={(e) => setCurrentVariant({...currentVariant, stock: parseInt(e.target.value) || 0})}
                           min="0"
-                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Quantité en stock"
+                          className="w-full border-2 border-red-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-50"
                         />
+                        <div className="text-xs text-red-600 mt-1">Quantité disponible pour cette variante</div>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -878,17 +912,19 @@ const AdminProducts = () => {
                     <button
                       type="button"
                       onClick={saveVariant}
-                      className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-bold flex items-center justify-center"
                     >
-                      {currentVariant.id ? 'Modifier la variante' : 'Ajouter la variante'}
+                      <span className="mr-2">+</span>
+                      {currentVariant.id ? 'Modifier la variante' : 'Ajouter cette variante au produit'}
                     </button>
                   </div>
                   
                   {/* Variants List */}
                   {formData.variants.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        Variantes configurées ({formData.variants.length})
+                      <h4 className="text-sm font-medium text-green-700 mb-3 flex items-center">
+                        <span className="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">✓</span>
+                        Variantes configurées ({formData.variants.length}) - Stock total: {totalStock}
                       </h4>
                       <div className="space-y-2">
                         {formData.variants.map((variant, index) => (
@@ -904,7 +940,8 @@ const AdminProducts = () => {
                                   {variant.color_name} - {variant.size}
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  Stock: {variant.stock} | Prix: {variant.price_adjustment > 0 ? `+${variant.price_adjustment}` : variant.price_adjustment < 0 ? variant.price_adjustment : 'Standard'} DA
+                                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded font-medium">Stock: {variant.stock}</span>
+                                  <span className="ml-2">Prix: {variant.price_adjustment > 0 ? `+${variant.price_adjustment}` : variant.price_adjustment < 0 ? variant.price_adjustment : 'Standard'} DA</span>
                                 </div>
                               </div>
                             </div>
