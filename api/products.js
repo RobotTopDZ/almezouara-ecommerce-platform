@@ -453,42 +453,65 @@ router.put('/:id', async (req, res) => {
     
     // Update variants if provided
     if (variants && Array.isArray(variants)) {
-      // Delete existing variants
-      await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
-      
-      // Create new variants
-      for (const variant of variants) {
-        const {
-          color_name,
-          color_value = '#000000',
-          size,
-          stock: variantStock = 0,
-          sku = null,
-          barcode = null,
-          price_adjustment = 0
-        } = variant;
-        
-        if (color_name && size) {
-          await transaction.execute(`
-            INSERT INTO product_variants (
-              product_id, color_name, color_value, size, stock, 
-              sku, barcode, price_adjustment, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-          `, [
-            req.params.id,
-            color_name,
-            color_value,
-            size,
-            parseInt(variantStock),
-            sku,
-            barcode,
-            parseFloat(price_adjustment)
-          ]);
+      try {
+        // Check if product_variants table exists
+        try {
+          // Delete existing variants
+          await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+          
+          // Create new variants
+          for (const variant of variants) {
+            const {
+              color_name,
+              color_value = '#000000',
+              size,
+              stock: variantStock = 0,
+              sku = null,
+              barcode = null,
+              price_adjustment = 0
+            } = variant;
+            
+            if (color_name && size) {
+              await transaction.execute(`
+                INSERT INTO product_variants (
+                  product_id, color_name, color_value, size, stock, 
+                  sku, barcode, price_adjustment, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+              `, [
+                req.params.id,
+                color_name,
+                color_value,
+                size,
+                parseInt(variantStock),
+                sku,
+                barcode,
+                parseFloat(price_adjustment)
+              ]);
+            }
+          }
+          
+          // Update product stock to sum of all variants
+          await updateProductStock(transaction, req.params.id);
+        } catch (variantError) {
+          // If table doesn't exist, log and continue without variants
+          if (variantError.code === 'ER_NO_SUCH_TABLE') {
+            console.log('product_variants table does not exist, skipping variant operations');
+            // Update the stock directly from the main product
+            if (typeof stock !== 'undefined') {
+              await transaction.execute('UPDATE products SET stock = ? WHERE id = ?', [
+                parseInt(stock),
+                req.params.id
+              ]);
+            }
+          } else {
+            // For other errors, rethrow
+            throw variantError;
+          }
         }
+      } catch (error) {
+        console.error('Error handling variants:', error);
+        throw error;
       }
-      
-      // Update product stock to sum of all variants
-      await updateProductStock(transaction, req.params.id);
     }
     
     await transaction.commit();
@@ -519,8 +542,18 @@ router.delete('/:id', async (req, res) => {
     // Delete order items that reference this product (if any)
     await transaction.execute('DELETE FROM order_items WHERE product_id = ?', [req.params.id]);
     
-    // Delete all variants
-    await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+    // Delete all variants (if table exists)
+    try {
+      await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+    } catch (variantError) {
+      // If table doesn't exist, log and continue
+      if (variantError.code === 'ER_NO_SUCH_TABLE') {
+        console.log('product_variants table does not exist, skipping variant deletion');
+      } else {
+        // For other errors, rethrow
+        throw variantError;
+      }
+    }
     
     // Finally delete the product
     const [result] = await transaction.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
