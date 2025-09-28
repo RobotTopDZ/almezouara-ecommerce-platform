@@ -80,6 +80,25 @@ const AdminProducts = () => {
           images: product.images || []
         }));
         setProducts(transformedProducts);
+      } else if (Array.isArray(productsRes.data.products)) {
+        // Handle mock products shape from api/index.js (no success flag)
+        const transformedProducts = productsRes.data.products.map(product => ({
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          price: product.price || 0,
+          // No category_id in mock, keep derived fields minimal
+          category: product.category || 'Non défini',
+          categoryId: product.category_id || null,
+          // Mock may have single image field
+          images: product.images || (product.image ? [product.image] : []),
+          colors: product.colors || [],
+          sizes: product.sizes || [],
+          status: product.status || 'active',
+          stock: product.stock || 0,
+          product_type: product.product_type || 'simple'
+        }));
+        setProducts(transformedProducts);
       }
       
       if (categoriesRes.data.success) {
@@ -179,25 +198,16 @@ const AdminProducts = () => {
         return;
       }
 
-      // Pour les produits simples, créer automatiquement une variante par défaut
-      if (formData.product_type === 'simple' && formData.variants.length === 0) {
-        // Créer une variante par défaut avec le stock spécifié
-        const defaultStock = document.getElementById('simple-product-stock').value;
-        if (!defaultStock || parseInt(defaultStock) <= 0) {
+      // Validation et préparation du stock pour les produits simples
+      let simpleStock;
+      if (formData.product_type === 'simple') {
+        const stockInput = document.getElementById('simple-product-stock');
+        const defaultStock = stockInput ? stockInput.value : '';
+        if (defaultStock === '' || parseInt(defaultStock) < 0) {
           alert('Veuillez spécifier un stock valide pour ce produit');
           return;
         }
-        
-        // Ajouter une variante par défaut
-        formData.variants = [{
-          color_name: 'Default',
-          color_value: '#000000',
-          size: 'Unique',
-          stock: parseInt(defaultStock),
-          sku: '',
-          barcode: '',
-          price_adjustment: 0
-        }];
+        simpleStock = parseInt(defaultStock);
       } else if (formData.product_type === 'variable' && formData.variants.length === 0) {
         alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
         return;
@@ -209,10 +219,12 @@ const AdminProducts = () => {
         price: parseFloat(formData.price),
         description: formData.description,
         status: formData.status,
+        product_type: formData.product_type,
+        stock: simpleStock,
         images: processedImages,
         colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
         sizes: formData.sizes.filter(size => size.trim() !== ''),
-        variants: formData.variants.map(variant => ({
+        variants: formData.product_type === 'variable' ? formData.variants.map(variant => ({
           color_name: variant.color_name,
           color_value: variant.color_value,
           size: variant.size,
@@ -220,7 +232,7 @@ const AdminProducts = () => {
           sku: variant.sku,
           barcode: variant.barcode,
           price_adjustment: parseFloat(variant.price_adjustment) || 0
-        }))
+        })) : []
       };
 
       console.log('Submitting product data:', productData);
@@ -301,28 +313,30 @@ const AdminProducts = () => {
       
       setFormData({
         name: product.name,
-        category_id: product.categoryId.toString(),
+        category_id: product.categoryId?.toString() || product.category_id?.toString() || '',
         price: product.price.toString(),
         description: product.description,
         images: product.images || [],
         colors: colors,
         sizes: product.sizes.length > 0 ? product.sizes : [],
         variants: variants,
-        status: product.status
+        status: product.status,
+        product_type: product.product_type || 'simple'
       });
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
       setFormData({
         name: product.name,
-        category_id: product.categoryId.toString(),
+        category_id: product.categoryId?.toString() || product.category_id?.toString() || '',
         price: product.price.toString(),
         description: product.description,
         images: product.images || [],
         colors: product.colors || [],
         sizes: product.sizes || [],
         variants: [],
-        status: product.status
+        status: product.status,
+        product_type: product.product_type || 'simple'
       });
     }
     setShowModal(true);
@@ -653,12 +667,11 @@ const AdminProducts = () => {
 
                   {/* Colors and Sizes */}
                   <div className="space-y-2">
-                    {product.colors.length > 0 && (
+                    {Array.isArray(product.colors) && product.colors.length > 0 && (
                       <div className="flex items-center space-x-1">
                         <span className="text-xs text-gray-500">Couleurs:</span>
                         <div className="flex space-x-1">
                           {product.colors.slice(0, 4).map((color, index) => {
-                            // Handle both old string format and new object format
                             const colorValue = typeof color === 'string' ? '#000000' : color.value;
                             const colorName = typeof color === 'string' ? color : color.name;
                             return (
@@ -678,7 +691,7 @@ const AdminProducts = () => {
                         </div>
                       </div>
                     )}
-                    {product.sizes.length > 0 && (
+                    {Array.isArray(product.sizes) && product.sizes.length > 0 && (
                       <div className="flex items-center space-x-1">
                         <span className="text-xs text-gray-500">Tailles:</span>
                         <div className="flex space-x-1">
@@ -810,158 +823,171 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                {/* Stock Management by Color and Size */}
-                <div className="border-t pt-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">📦 Gestion du Stock par Couleur et Taille</h3>
-                  
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                    <h4 className="text-sm font-bold text-yellow-800 mb-2">💡 Instructions:</h4>
-                    <p className="text-sm text-yellow-700">
-                      Définissez le stock pour chaque combinaison couleur/taille. 
-                      <strong>Exemple:</strong> Rouge Taille L = 10 pièces, Noir Taille S = 8 pièces, etc.
-                    </p>
+                {/* Conditional Stock/Variant Management */}
+                {formData.product_type === 'simple' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                    <input
+                      type="number"
+                      id="simple-product-stock"
+                      defaultValue={editingProduct?.stock ?? formData.variants[0]?.stock ?? ''}
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Quantité en stock"
+                    />
                   </div>
-
-                  {/* Quick Stock Setup */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Rapide du Stock</h4>
+                ) : (
+                  <div className="border-t pt-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">📦 Gestion du Stock par Couleur et Taille</h3>
                     
-                    {/* Color and Size Inputs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Couleur *
-                        </label>
-                        <input
-                          type="text"
-                          value={currentVariant.color_name}
-                          onChange={(e) => setCurrentVariant({...currentVariant, color_name: e.target.value})}
-                          placeholder="Ex: Rouge, Noir, Bleu, Blanc"
-                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Taille *
-                        </label>
-                        <input
-                          type="text"
-                          value={currentVariant.size}
-                          onChange={(e) => setCurrentVariant({...currentVariant, size: e.target.value})}
-                          placeholder="Ex: S, M, L, XL, XXL"
-                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Stock Quantity */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-red-700 mb-2">
-                        🏷️ Quantité en Stock *
-                      </label>
-                      <input
-                        type="number"
-                        value={currentVariant.stock}
-                        onChange={(e) => setCurrentVariant({...currentVariant, stock: parseInt(e.target.value) || 0})}
-                        min="0"
-                        placeholder="Ex: 10, 5, 0"
-                        className="w-full border-2 border-red-300 rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-red-50"
-                      />
-                      <p className="text-sm text-red-600 mt-1">Nombre de pièces disponibles pour cette combinaison couleur/taille</p>
-                    </div>
-
-                    {/* Color Preview */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Aperçu de la couleur
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        <input
-                          type="color"
-                          value={currentVariant.color_value}
-                          onChange={(e) => setCurrentVariant({...currentVariant, color_value: e.target.value})}
-                          className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer"
-                        />
-                        <div className="text-sm text-gray-600">
-                          Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || 'Non définie'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Add Variant Button */}
-                    <button
-                      type="button"
-                      onClick={saveVariant}
-                      disabled={!currentVariant.color_name || !currentVariant.size || currentVariant.stock < 0}
-                      className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg font-bold flex items-center justify-center"
-                    >
-                      <span className="mr-2">➕</span>
-                      Ajouter cette combinaison (Stock: {currentVariant.stock || 0})
-                    </button>
-                  </div>
-
-                  {/* Current Variants List */}
-                  {formData.variants.length > 0 && (
-                    <div className="mt-8">
-                      <h4 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
-                        <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✓</span>
-                        Variantes configurées ({formData.variants.length}) - Stock total: {totalStock}
-                      </h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {formData.variants.map((variant, index) => (
-                          <div key={variant.id || index} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-3">
-                                <div 
-                                  className="w-8 h-8 rounded-full border-2 border-gray-300"
-                                  style={{ backgroundColor: variant.color_value }}
-                                  title={variant.color_name}
-                                ></div>
-                                <div>
-                                  <div className="font-bold text-gray-900">
-                                    {variant.color_name} - {variant.size}
-                                  </div>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeVariant(variant.id)}
-                                className="text-red-500 hover:text-red-700 text-lg"
-                                title="Supprimer"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            
-                            <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg text-center">
-                              <div className="text-sm font-medium">Stock</div>
-                              <div className="text-xl font-bold">{variant.stock}</div>
-                            </div>
-                            
-                            <button
-                              type="button"
-                              onClick={() => editVariant(variant)}
-                              className="w-full mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                              ✏️ Modifier
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* No Variants Warning */}
-                  {formData.variants.length === 0 && (
-                    <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
-                      <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
-                      <p className="text-red-700">
-                        Vous devez ajouter au moins une combinaison couleur/taille avec stock pour créer ce produit.
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                      <h4 className="text-sm font-bold text-yellow-800 mb-2">💡 Instructions:</h4>
+                      <p className="text-sm text-yellow-700">
+                        Définissez le stock pour chaque combinaison couleur/taille. 
+                        <strong>Exemple:</strong> Rouge Taille L = 10 pièces, Noir Taille S = 8 pièces, etc.
                       </p>
                     </div>
-                  )}
-                </div>
+
+                    {/* Quick Stock Setup */}
+                    <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Rapide du Stock</h4>
+                      
+                      {/* Color and Size Inputs */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Couleur *
+                          </label>
+                          <input
+                            type="text"
+                            value={currentVariant.color_name}
+                            onChange={(e) => setCurrentVariant({...currentVariant, color_name: e.target.value})}
+                            placeholder="Ex: Rouge, Noir, Bleu, Blanc"
+                            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Taille *
+                          </label>
+                          <input
+                            type="text"
+                            value={currentVariant.size}
+                            onChange={(e) => setCurrentVariant({...currentVariant, size: e.target.value})}
+                            placeholder="Ex: S, M, L, XL, XXL"
+                            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Stock Quantity */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-red-700 mb-2">
+                          🏷️ Quantité en Stock *
+                        </label>
+                        <input
+                          type="number"
+                          value={currentVariant.stock}
+                          onChange={(e) => setCurrentVariant({...currentVariant, stock: parseInt(e.target.value) || 0})}
+                          min="0"
+                          placeholder="Ex: 10, 5, 0"
+                          className="w-full border-2 border-red-300 rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-red-50"
+                        />
+                        <p className="text-sm text-red-600 mt-1">Nombre de pièces disponibles pour cette combinaison couleur/taille</p>
+                      </div>
+
+                      {/* Color Preview */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Aperçu de la couleur
+                        </label>
+                        <div className="flex items-center space-x-4">
+                          <input
+                            type="color"
+                            value={currentVariant.color_value}
+                            onChange={(e) => setCurrentVariant({...currentVariant, color_value: e.target.value})}
+                            className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer"
+                          />
+                          <div className="text-sm text-gray-600">
+                            Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || 'Non définie'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Add Variant Button */}
+                      <button
+                        type="button"
+                        onClick={saveVariant}
+                        disabled={!currentVariant.color_name || !currentVariant.size || currentVariant.stock < 0}
+                        className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg font-bold flex items-center justify-center"
+                      >
+                        <span className="mr-2">➕</span>
+                        Ajouter cette combinaison (Stock: {currentVariant.stock || 0})
+                      </button>
+                    </div>
+
+                    {/* Current Variants List */}
+                    {formData.variants.length > 0 && (
+                      <div className="mt-8">
+                        <h4 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
+                          <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✓</span>
+                          Variantes configurées ({formData.variants.length}) - Stock total: {totalStock}
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {formData.variants.map((variant, index) => (
+                            <div key={variant.id || index} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-3">
+                                  <div 
+                                    className="w-8 h-8 rounded-full border-2 border-gray-300"
+                                    style={{ backgroundColor: variant.color_value }}
+                                    title={variant.color_name}
+                                  ></div>
+                                  <div>
+                                    <div className="font-bold text-gray-900">
+                                      {variant.color_name} - {variant.size}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeVariant(variant.id)}
+                                  className="text-red-500 hover:text-red-700 text-lg"
+                                  title="Supprimer"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                              
+                              <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg text-center">
+                                <div className="text-sm font-medium">Stock</div>
+                                <div className="text-xl font-bold">{variant.stock}</div>
+                              </div>
+                              
+                              <button
+                                type="button"
+                                onClick={() => editVariant(variant)}
+                                className="w-full mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
+                                ✏️ Modifier
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No Variants Warning */}
+                    {formData.variants.length === 0 && (
+                      <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
+                        <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
+                        <p className="text-red-700">
+                          Vous devez ajouter au moins une combinaison couleur/taille avec stock pour créer ce produit.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Images URLs */}
                 <div className="mb-4">
@@ -1062,77 +1088,6 @@ const AdminProducts = () => {
                       ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Colors */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Couleurs disponibles</label>
-                  {formData.colors.map((color, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="color"
-                        value={color.value || '#000000'}
-                        onChange={(e) => updateArrayField('colors', index, e.target.value, 'value')}
-                        className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                        title="Choisir la couleur"
-                      />
-                      <input
-                        type="text"
-                        value={color.name || ''}
-                        onChange={(e) => updateArrayField('colors', index, e.target.value, 'name')}
-                        placeholder="Nom de la couleur (ex: Rouge)"
-                        className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
-                      {formData.colors.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('colors', index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          ❌
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addArrayField('colors')}
-                    className="text-purple-600 hover:text-purple-800 text-sm"
-                  >
-                    + Ajouter une couleur
-                  </button>
-                </div>
-
-                {/* Sizes */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tailles disponibles</label>
-                  {formData.sizes.map((size, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="text"
-                        value={size}
-                        onChange={(e) => updateArrayField('sizes', index, e.target.value)}
-                        placeholder="Ex: S, M, L, XL"
-                        className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
-                      {formData.sizes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('sizes', index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          ❌
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addArrayField('sizes')}
-                    className="text-purple-600 hover:text-purple-800 text-sm"
-                  >
-                    + Ajouter une taille
-                  </button>
                 </div>
 
                 {/* Form Actions */}

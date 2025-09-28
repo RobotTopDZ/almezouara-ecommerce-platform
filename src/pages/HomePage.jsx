@@ -27,24 +27,30 @@ const HomePage = () => {
         console.log('Loading products from API...');
         const productsRes = await axios.get('/api/products');
         
-        if (productsRes.data.success && productsRes.data.products) {
-          const transformedProducts = productsRes.data.products
-            .filter(product => product.status === 'active')
+        // Accept both DB mode { success: true, products: [...] } and mock mode { products: [...] }
+        const productsPayload = productsRes.data && (productsRes.data.products ? productsRes.data.products : []);
+        const hasProducts = Array.isArray(productsPayload) && productsPayload.length > 0;
+        
+        if (hasProducts) {
+          const transformedProducts = productsPayload
+            .filter(product => (product.status || 'active') === 'active')
             .map(product => {
-              console.log('Transforming product:', product.id, product.name);
+              const images = Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []);
+              const firstImage = images.length > 0 ? images[0] : '/images/IMG_0630-scaled.jpeg';
               return {
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
-                // Normalize category to a single lowercase field for filtering
-                category: product.category_name ? String(product.category_name).toLowerCase() : 'general'
+                image: firstImage,
+                // Normalize category
+                category: product.category_name
+                  ? String(product.category_name).toLowerCase()
+                  : (product.category ? String(product.category).toLowerCase() : 'general')
               };
             });
-          console.log('Transformed products:', transformedProducts);
           setAllProducts(transformedProducts);
         } else {
-          console.log('Products API failed, using empty array');
+          console.log('Products API returned no products, using empty array');
           setAllProducts([]);
         }
       } catch (error) {

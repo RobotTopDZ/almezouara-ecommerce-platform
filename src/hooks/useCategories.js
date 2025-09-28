@@ -12,12 +12,19 @@ export const useCategories = () => {
         setLoading(true);
         const response = await axios.get('/api/products/categories/list');
         
-        if (response.data.success && response.data.categories) {
-          const transformedCategories = response.data.categories.map(cat => ({
-            id: cat.name.toLowerCase(),
-            name: cat.name.toUpperCase(),
-            originalName: cat.name
-          }));
+        // Accept both DB mode { success: true, categories: [...] } and mock/fallback modes
+        const payload = response.data && response.data.categories ? response.data.categories : [];
+        const hasCategories = Array.isArray(payload) && payload.length > 0;
+
+        if (hasCategories) {
+          const transformedCategories = payload.map(cat => {
+            const name = cat.name || cat.slug || String(cat.id || '').toLowerCase();
+            return {
+              id: (cat.slug || name).toLowerCase(),
+              name: String(name).toUpperCase(),
+              originalName: String(name)
+            };
+          });
           setCategories(transformedCategories);
         } else {
           // Fallback categories
