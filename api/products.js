@@ -509,23 +509,31 @@ router.delete('/:id', async (req, res) => {
   try {
     await transaction.beginTransaction();
     
-    // First delete all variants (foreign key constraint will handle this if CASCADE is set)
-    await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
-    
-    // Then delete the product
-    const [result] = await transaction.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
-    
-    if (result.affectedRows === 0) {
+    // Check if product exists
+    const [productCheck] = await transaction.execute('SELECT id FROM products WHERE id = ?', [req.params.id]);
+    if (productCheck.length === 0) {
       await transaction.rollback();
       return res.status(404).json({ error: 'Product not found' });
     }
     
+    // Delete order items that reference this product (if any)
+    await transaction.execute('DELETE FROM order_items WHERE product_id = ?', [req.params.id]);
+    
+    // Delete all variants
+    await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+    
+    // Finally delete the product
+    const [result] = await transaction.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
+    
     await transaction.commit();
-    res.json({ success: true, message: 'Product and its variants deleted successfully' });
+    res.json({ success: true, message: 'Product and all related data deleted successfully' });
   } catch (error) {
     await transaction.rollback();
     console.error('Delete product error:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    res.status(500).json({ 
+      error: 'Failed to delete product', 
+      details: error.message 
+    });
   } finally {
     if (transaction) await transaction.release();
   }
