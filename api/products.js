@@ -363,6 +363,9 @@ router.post('/', async (req, res) => {
         } = variant;
         
         if (color_name && size) {
+          // Generate a unique SKU if none provided
+          const uniqueSku = sku || `${productId}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
+          
           await transaction.execute(`
             INSERT INTO product_variants (
               product_id, color_name, color_value, size, stock, 
@@ -374,7 +377,7 @@ router.post('/', async (req, res) => {
             color_value,
             size,
             parseInt(variantStock),
-            sku,
+            uniqueSku,
             barcode,
             parseFloat(price_adjustment)
           ]);
@@ -472,6 +475,9 @@ router.put('/:id', async (req, res) => {
             } = variant;
             
             if (color_name && size) {
+              // Generate a unique SKU if none provided
+              const uniqueSku = sku || `${req.params.id}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
+              
               await transaction.execute(`
                 INSERT INTO product_variants (
                   product_id, color_name, color_value, size, stock, 
@@ -483,7 +489,7 @@ router.put('/:id', async (req, res) => {
                 color_value,
                 size,
                 parseInt(variantStock),
-                sku,
+                uniqueSku,
                 barcode,
                 parseFloat(price_adjustment)
               ]);
