@@ -221,26 +221,36 @@ const HomePage = () => {
     {
       id: 1,
       title: t('home.special_offers'),
-      image: '/images/IMG_0630-scaled.jpeg',
+      image: '/images/new%20images/photo_2025-09-28_13-35-21.jpg',
       link: '/category/dresses',
     },
     {
       id: 2,
       title: t('home.new_arrivals'),
-      image: '/images/IMG_6789-scaled.jpeg',
+      image: '/images/new%20images/photo_2025-09-28_13-35-22%20(2).jpg',
       link: '/category/dresses',
     },
     {
       id: 3,
       title: t('home.trending'),
-      image: '/images/IMG_9260-scaled.jpeg',
+      image: '/images/new%20images/photo_2025-09-28_13-35-22.jpg',
+      link: '/category/dresses',
+    },
+    {
+      id: 4,
+      title: t('home.collection'),
+      image: '/images/new%20images/photo_2025-09-28_13-35-23.jpg',
+      link: '/category/dresses',
+    },
+    {
+      id: 5,
+      title: t('home.special_edition'),
+      image: '/images/new%20images/photo_2025-09-28_13-35-24.jpg',
       link: '/category/dresses',
     },
   ];
 
-
-
-  // Format price with DZD
+// ... (rest of the code remains the same)
   const formatPrice = (price) => {
     return `${price.toLocaleString()} DZD`;
   };
