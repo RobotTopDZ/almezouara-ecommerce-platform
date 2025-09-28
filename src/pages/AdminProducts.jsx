@@ -38,9 +38,12 @@ const AdminProducts = () => {
     colors: [],
     sizes: [],
     variants: [],
-    status: 'active'
+    status: 'active',
+    product_type: 'simple' // 'simple' ou 'variable'
   });
   
+  // État pour contrôler l'affichage du modal de choix du type de produit
+  const [showProductTypeModal, setShowProductTypeModal] = useState(false);
   const [currentVariant, setCurrentVariant] = useState({
     id: null,
     color_name: '',
@@ -176,7 +179,26 @@ const AdminProducts = () => {
         return;
       }
 
-      if (formData.variants.length === 0) {
+      // Pour les produits simples, créer automatiquement une variante par défaut
+      if (formData.product_type === 'simple' && formData.variants.length === 0) {
+        // Créer une variante par défaut avec le stock spécifié
+        const defaultStock = document.getElementById('simple-product-stock').value;
+        if (!defaultStock || parseInt(defaultStock) <= 0) {
+          alert('Veuillez spécifier un stock valide pour ce produit');
+          return;
+        }
+        
+        // Ajouter une variante par défaut
+        formData.variants = [{
+          color_name: 'Default',
+          color_value: '#000000',
+          size: 'Unique',
+          stock: parseInt(defaultStock),
+          sku: '',
+          barcode: '',
+          price_adjustment: 0
+        }];
+      } else if (formData.product_type === 'variable' && formData.variants.length === 0) {
         alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
         return;
       }
@@ -230,7 +252,8 @@ const AdminProducts = () => {
       colors: [],
       sizes: [],
       variants: [],
-      status: 'active'
+      status: 'active',
+      product_type: 'simple'
     });
     setCurrentVariant({
       id: null,
@@ -244,6 +267,17 @@ const AdminProducts = () => {
     });
     setEditingProduct(null);
     setShowModal(false);
+    setShowProductTypeModal(false);
+  };
+  
+  // Fonction pour gérer le choix du type de produit
+  const handleProductTypeSelection = (type) => {
+    setFormData(prev => ({
+      ...prev,
+      product_type: type
+    }));
+    setShowProductTypeModal(false);
+    setShowModal(true);
   };
 
   const handleEdit = async (product) => {
@@ -449,6 +483,39 @@ const AdminProducts = () => {
 
   return (
     <AdminLayout>
+      {/* Modal de choix du type de produit */}
+      {showProductTypeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full">
+            <h2 className="text-xl font-semibold mb-4">Choisir le type de produit</h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <button
+                onClick={() => handleProductTypeSelection('simple')}
+                className="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
+              >
+                <div className="text-3xl mb-2">📦</div>
+                <div className="font-medium">Produit Simple</div>
+                <div className="text-sm text-gray-600 text-center mt-1">Un produit sans variations</div>
+              </button>
+              <button
+                onClick={() => handleProductTypeSelection('variable')}
+                className="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
+              >
+                <div className="text-3xl mb-2">🎨</div>
+                <div className="font-medium">Produit Variable</div>
+                <div className="text-sm text-gray-600 text-center mt-1">Avec couleurs, tailles, etc.</div>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowProductTypeModal(false)}
+              className="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -457,7 +524,7 @@ const AdminProducts = () => {
             <p className="text-gray-600">Gérez votre catalogue de produits</p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowProductTypeModal(true)}
             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
           >
             <span>➕</span>

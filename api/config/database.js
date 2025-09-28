@@ -94,10 +94,9 @@ const testConnection = async () => {
 };
 
 // Initialize database tables
-const initializeDatabase = async () => {
+const createTablesIfNotExist = async () => {
+  const connection = await pool.getConnection();
   try {
-    const connection = await pool.getConnection();
-    
     // Create accounts table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS accounts (
@@ -187,8 +186,57 @@ const initializeDatabase = async () => {
       )
     `);
 
-    console.log('✅ Database tables initialized successfully');
+    // Create product_variants table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_variants (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        product_id INT NOT NULL,
+        color VARCHAR(100),
+        size VARCHAR(50),
+        stock INT NOT NULL DEFAULT 0,
+        price_adjustment DECIMAL(10,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('✅ Database tables created successfully');
+  } catch (error) {
+    console.error('❌ Database table creation failed:', error.message);
+    throw error;
+  } finally {
     connection.release();
+  }
+};
+
+// Run database migrations
+const runMigrations = async () => {
+  console.log('🔄 Running database migrations...');
+  // Migration logic will be implemented here
+  return true;
+};
+
+const initializeDatabase = async () => {
+  try {
+    console.log('🔄 Initializing database tables...');
+    
+    // Create tables if they don't exist
+    await createTablesIfNotExist();
+    
+    // Run migrations
+    await runMigrations();
+    
+    // Run product variants migration specifically
+    try {
+      const productVariantsMigration = require('../migrations/002-add-product-variants');
+      await productVariantsMigration.migrate();
+      console.log('✅ Product variants migration completed');
+    } catch (err) {
+      console.error('❌ Product variants migration failed:', err);
+    }
+    
+    console.log('✅ Database initialization completed');
+    return true;
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
     throw error;

@@ -66,6 +66,7 @@ const initializeTables = async () => {
         colors TEXT,
         sizes TEXT,
         status ENUM('active', 'inactive', 'out_of_stock') DEFAULT 'active',
+        product_type ENUM('simple', 'variable') DEFAULT 'variable',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -300,7 +301,8 @@ router.post('/', async (req, res) => {
       colors,
       sizes,
       variants,
-      status
+      status,
+      product_type = 'variable'
     } = req.body;
     
     console.log('Creating product:', { name, category_id, price, stock, status, variantsCount: variants?.length });
@@ -331,8 +333,8 @@ router.post('/', async (req, res) => {
     const [result] = await transaction.execute(`
       INSERT INTO products (
         name, category_id, price, stock, description, 
-        images, colors, sizes, status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        images, colors, sizes, status, product_type, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     `, [
       name,
       category_id,
@@ -342,13 +344,35 @@ router.post('/', async (req, res) => {
       imagesJson,
       colorsJson,
       sizesJson,
-      status || 'active'
+      status || 'active',
+      product_type
     ]);
     
     const productId = result.insertId;
     
-    // Create variants if provided
-    if (variants && Array.isArray(variants) && variants.length > 0) {
+    // Create variants based on product type
+    if (product_type === 'simple') {
+      // For simple products, create a default variant
+      const defaultSku = `${productId}-default-${Date.now().toString().substring(8)}`;
+      
+      await transaction.execute(`
+        INSERT INTO product_variants (
+          product_id, color_name, color_value, size, stock, 
+          sku, barcode, price_adjustment, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      `, [
+        productId,
+        'Default',
+        '#000000',
+        'Unique',
+        parseInt(stock || 0),
+        defaultSku,
+        null,
+        0
+      ]);
+      
+    } else if (variants && Array.isArray(variants) && variants.length > 0) {
+      // For variable products with variants
       console.log('Creating variants:', variants.length);
       
       for (const variant of variants) {
@@ -383,10 +407,10 @@ router.post('/', async (req, res) => {
           ]);
         }
       }
-      
-      // Update product stock to sum of all variants
-      await updateProductStock(transaction, productId);
     }
+    
+    // Update product stock to sum of all variants
+    await updateProductStock(transaction, productId);
     
     await transaction.commit();
     
@@ -418,7 +442,8 @@ router.put('/:id', async (req, res) => {
       colors,
       sizes,
       variants,
-      status
+      status,
+      product_type = 'variable'
     } = req.body;
     
     await transaction.beginTransaction();
@@ -434,7 +459,7 @@ router.put('/:id', async (req, res) => {
     const [result] = await transaction.execute(`
       UPDATE products SET
         name = ?, category_id = ?, price = ?, stock = ?, description = ?,
-        images = ?, colors = ?, sizes = ?, status = ?, updated_at = NOW()
+        images = ?, colors = ?, sizes = ?, status = ?, product_type = ?, updated_at = NOW()
       WHERE id = ?
     `, [
       name,
@@ -446,6 +471,7 @@ router.put('/:id', async (req, res) => {
       JSON.stringify(colors || []),
       JSON.stringify(sizes || []),
       status || 'active',
+      product_type,
       req.params.id
     ]);
     
@@ -454,70 +480,71 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    // Update variants if provided
-    if (variants && Array.isArray(variants)) {
-      try {
-        // Check if product_variants table exists
-        try {
-          // Delete existing variants
-          await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+    // Update variants based on product type
+    try {
+      // Delete existing variants
+      await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+      
+      if (product_type === 'simple') {
+        // For simple products, create a default variant
+        const defaultSku = `${req.params.id}-default-${Date.now().toString().substring(8)}`;
+        
+        await transaction.execute(`
+          INSERT INTO product_variants (
+            product_id, color_name, color_value, size, stock, 
+            sku, barcode, price_adjustment, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        `, [
+          req.params.id,
+          'Default',
+          '#000000',
+          'Unique',
+          parseInt(stock || 0),
+          defaultSku,
+          null,
+          0
+        ]);
+      } else if (variants && Array.isArray(variants)) {
+        // Create new variants for variable products
+        for (const variant of variants) {
+          const {
+            color_name,
+            color_value = '#000000',
+            size,
+            stock: variantStock = 0,
+            sku = null,
+            barcode = null,
+            price_adjustment = 0
+          } = variant;
           
-          // Create new variants
-          for (const variant of variants) {
-            const {
-              color_name,
-              color_value = '#000000',
-              size,
-              stock: variantStock = 0,
-              sku = null,
-              barcode = null,
-              price_adjustment = 0
-            } = variant;
+          if (color_name && size) {
+            // Generate a unique SKU if none provided
+            const uniqueSku = sku || `${req.params.id}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
             
-            if (color_name && size) {
-              // Generate a unique SKU if none provided
-              const uniqueSku = sku || `${req.params.id}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
-              
-              await transaction.execute(`
-                INSERT INTO product_variants (
-                  product_id, color_name, color_value, size, stock, 
-                  sku, barcode, price_adjustment, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-              `, [
-                req.params.id,
-                color_name,
-                color_value,
-                size,
-                parseInt(variantStock),
-                uniqueSku,
-                barcode,
-                parseFloat(price_adjustment)
-              ]);
-            }
-          }
-          
-          // Update product stock to sum of all variants
-          await updateProductStock(transaction, req.params.id);
-        } catch (variantError) {
-          // If table doesn't exist, log and continue without variants
-          if (variantError.code === 'ER_NO_SUCH_TABLE') {
-            console.log('product_variants table does not exist, skipping variant operations');
-            // Update the stock directly from the main product
-            if (typeof stock !== 'undefined') {
-              await transaction.execute('UPDATE products SET stock = ? WHERE id = ?', [
-                parseInt(stock),
-                req.params.id
-              ]);
-            }
-          } else {
-            // For other errors, rethrow
-            throw variantError;
+            await transaction.execute(`
+              INSERT INTO product_variants (
+                product_id, color_name, color_value, size, stock, 
+                sku, barcode, price_adjustment, created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            `, [
+              req.params.id,
+              color_name,
+              color_value,
+              size,
+              parseInt(variantStock),
+              uniqueSku,
+              barcode,
+              parseFloat(price_adjustment)
+            ]);
           }
         }
-      } catch (error) {
-        console.error('Error handling variants:', error);
-        throw error;
       }
+      
+      // Update product stock to sum of all variants
+      await updateProductStock(transaction, req.params.id);
+    } catch (error) {
+      console.error('Error handling variants:', error);
+      throw error;
     }
     
     await transaction.commit();

@@ -152,7 +152,12 @@ const ProductPage = () => {
   const isVariantAvailable = () => {
     if (!product) return false;
     
-    // If we have variants, check the selected variant's stock
+    // For simple products, just check the product stock
+    if (product.product_type === 'simple') {
+      return product.stock > 0;
+    }
+    
+    // For variable products, check the selected variant's stock
     if (product.variants && product.variants.length > 0) {
       if (!selectedColor || !selectedSize) return false;
       const variant = product.variants.find(v => 
@@ -381,7 +386,14 @@ const ProductPage = () => {
       
       // Find the variant ID based on selected color and size
       let variantId = null;
-      if (product.variants && product.variants.length > 0) {
+      if (product.product_type === 'simple') {
+        // For simple products, use the first variant (there should be only one)
+        if (product.variants && product.variants.length > 0) {
+          variantId = product.variants[0].id;
+          console.log('Using default variant for simple product:', product.variants[0]);
+        }
+      } else if (product.variants && product.variants.length > 0) {
+        // For variable products, find the matching variant
         const selectedVariant = product.variants.find(variant => {
           const colorMatch = selectedColor ? 
             (typeof selectedColor === 'object' ? 
@@ -409,8 +421,8 @@ const ProductPage = () => {
           price: discountedPrice, 
           quantity: quantity, 
           image: product.images[0], 
-          color: selectedColor ? (typeof selectedColor === 'object' ? selectedColor.name : selectedColor) : '', 
-          size: selectedSize 
+          color: product.product_type === 'simple' ? '' : (selectedColor ? (typeof selectedColor === 'object' ? selectedColor.name : selectedColor) : ''), 
+          size: product.product_type === 'simple' ? '' : selectedSize 
         }],
         total: totalWithShipping,
         deliveryMethod: formData.deliveryMethod,
@@ -605,8 +617,13 @@ const ProductPage = () => {
 
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">{product.description}</p>
 
-            {/* Color Selection */}
+            {/* Color Selection - Only for variable products */}
             {(() => {
+              // Skip color selection for simple products
+              if (product.product_type === 'simple') {
+                return null;
+              }
+              
               // Get available colors from variants if available, otherwise from product.colors
               let availableColors = [];
               if (product.variants && product.variants.length > 0) {
@@ -653,8 +670,13 @@ const ProductPage = () => {
               ) : null;
             })()}
 
-            {/* Size Selection */}
+            {/* Size Selection - Only for variable products */}
             {(() => {
+              // Skip size selection for simple products
+              if (product.product_type === 'simple') {
+                return null;
+              }
+              
               // Get available sizes from variants if available, otherwise from product.sizes
               let availableSizes = [];
               if (product.variants && product.variants.length > 0) {
@@ -742,15 +764,22 @@ const ProductPage = () => {
                 resetCheckout();
                 setShowCheckout(true);
               }}
-              disabled={!selectedColor || !selectedSize || !isVariantAvailable()}
+              disabled={
+                product.product_type === 'simple' 
+                  ? !isVariantAvailable() 
+                  : !selectedColor || !selectedSize || !isVariantAvailable()
+              }
               className={`w-full py-4 px-8 rounded-xl font-semibold text-white text-lg transition-all duration-300 ${
-                selectedColor && selectedSize && isVariantAvailable()
+                (product.product_type === 'simple' && isVariantAvailable()) || 
+                (product.product_type !== 'simple' && selectedColor && selectedSize && isVariantAvailable())
                   ? 'bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              {!selectedColor || !selectedSize ? t('product.buy_now') : 
-               !isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now')}
+              {product.product_type === 'simple' 
+                ? (!isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now'))
+                : (!selectedColor || !selectedSize ? t('product.buy_now') : 
+                   !isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now'))}
             </button>
           </div>
         </div>
@@ -791,9 +820,11 @@ const ProductPage = () => {
                 <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded" />
                 <div className="ml-3">
                   <h3 className="font-medium text-text">{product.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {selectedColor && (typeof selectedColor === 'object' ? selectedColor.name : selectedColor)} - {selectedSize}
-                  </p>
+                  {product.product_type !== 'simple' && (
+                    <p className="text-sm text-gray-500">
+                      {selectedColor && (typeof selectedColor === 'object' ? selectedColor.name : selectedColor)} - {selectedSize}
+                    </p>
+                  )}
                   <p className="text-sm text-gray-500">Quantité: {quantity}</p>
                   {discountPercentage > 0 ? (
                     <div>
