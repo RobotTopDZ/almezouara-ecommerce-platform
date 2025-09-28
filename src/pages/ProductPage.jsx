@@ -86,11 +86,11 @@ const ProductPage = () => {
             setSelectedSize(firstVariant.size);
           } else {
             // Fallback to old logic for products without variants
-            if (productData.colors && productData.colors.length > 0) {
-              setSelectedColor(productData.colors[0]);
-            }
-            if (productData.sizes && productData.sizes.length > 0) {
-              setSelectedSize(productData.sizes[0]);
+          if (productData.colors && productData.colors.length > 0) {
+            setSelectedColor(productData.colors[0]);
+          }
+          if (productData.sizes && productData.sizes.length > 0) {
+            setSelectedSize(productData.sizes[0]);
             }
           }
         } else {
@@ -551,6 +551,23 @@ const ProductPage = () => {
             <p className="text-2xl lg:text-3xl font-bold text-primary mb-6">{formatPrice(product.price)}</p>
             )}
             
+            // Check if the selected variant is available (has stock)
+            const isVariantAvailable = () => {
+              if (!product) return false;
+              
+              // If we have variants, check the selected variant's stock
+              if (product.variants && product.variants.length > 0) {
+                if (!selectedColor || !selectedSize) return false;
+                const variant = product.variants.find(v => 
+                  v.color_name === selectedColor && v.size === selectedSize
+                );
+                return variant && variant.stock > 0;
+              }
+              
+              // Fallback to product stock if no variants
+              return product.stock > 0;
+            };
+            
 {(() => {
               // Show stock based on selected variant or total product stock
               let stockDisplay = null;
@@ -571,15 +588,15 @@ const ProductPage = () => {
               
               if (isInStock) {
                 stockDisplay = (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
                     ✓ En stock ({currentStock} disponible{currentStock > 1 ? 's' : ''})
-                  </div>
+              </div>
                 );
               } else {
                 stockDisplay = (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-6">
-                    ✗ Rupture de stock
-                  </div>
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-6">
+                ✗ Rupture de stock
+              </div>
                 );
               }
               
@@ -611,28 +628,28 @@ const ProductPage = () => {
               }
               
               return availableColors.length > 0 ? (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-text mb-3">Choisir une couleur</h3>
-                  <div className="flex space-x-3">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-text mb-3">Choisir une couleur</h3>
+                <div className="flex space-x-3">
                     {availableColors.map((color) => {
                       const isSelected = selectedColor === color.name;
-                      
-                      return (
-                        <button
+                    
+                    return (
+                      <button
                           key={color.name}
                           onClick={() => setSelectedColor(color.name)}
-                          className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
-                            isSelected
-                              ? 'border-primary shadow-lg scale-110' 
-                              : 'border-gray-300 hover:border-gray-400'
-                          }`}
+                        className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
+                          isSelected
+                            ? 'border-primary shadow-lg scale-110' 
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
                           style={{ backgroundColor: color.value }}
                           title={color.name}
-                        />
-                      );
-                    })}
-                  </div>
+                      />
+                    );
+                  })}
                 </div>
+              </div>
               ) : null;
             })()}
 
@@ -654,13 +671,12 @@ const ProductPage = () => {
               }
               
               return availableSizes.length > 0 ? (
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-text mb-3">Choisir une taille</h3>
-                  <div className="flex flex-wrap gap-3">
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-text mb-3">Choisir une taille</h3>
+                <div className="flex flex-wrap gap-3">
                     {availableSizes.map((size) => {
                       // Check if this size is available for the selected color
                       let isAvailable = true;
-                      let stockInfo = '';
                       
                       if (product.variants && product.variants.length > 0) {
                         const variant = product.variants.find(v => 
@@ -668,32 +684,31 @@ const ProductPage = () => {
                         );
                         if (variant) {
                           isAvailable = variant.stock > 0;
-                          stockInfo = ` (${variant.stock} en stock)`;
                         } else {
                           isAvailable = false;
                         }
                       }
                       
                       return (
-                        <button
-                          key={size}
+                    <button
+                      key={size}
                           onClick={() => isAvailable ? setSelectedSize(size) : null}
                           disabled={!isAvailable}
-                          className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
-                            selectedSize === size
-                              ? 'border-primary bg-primary text-white shadow-lg scale-105'
+                      className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
+                        selectedSize === size
+                          ? 'border-primary bg-primary text-white shadow-lg scale-105'
                               : isAvailable
                               ? 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
                               : 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
-                          }`}
-                          title={isAvailable ? `${size}${stockInfo}` : 'Non disponible'}
-                        >
-                          {size}
-                        </button>
+                      }`}
+                          title={isAvailable ? size : 'Non disponible'}
+                    >
+                      {size}
+                    </button>
                       );
                     })}
-                  </div>
                 </div>
+              </div>
               ) : null;
             })()}
 
@@ -727,14 +742,15 @@ const ProductPage = () => {
                 resetCheckout();
                 setShowCheckout(true);
               }}
-              disabled={product.stock <= 0 || !selectedColor || !selectedSize}
+              disabled={!selectedColor || !selectedSize || !isVariantAvailable()}
               className={`w-full py-4 px-8 rounded-xl font-semibold text-white text-lg transition-all duration-300 ${
-                product.stock > 0 && selectedColor && selectedSize 
+                selectedColor && selectedSize && isVariantAvailable()
                   ? 'bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              {t('product.buy_now')}
+              {!selectedColor || !selectedSize ? t('product.buy_now') : 
+               !isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now')}
             </button>
           </div>
         </div>
