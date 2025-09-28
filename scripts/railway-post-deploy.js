@@ -118,6 +118,77 @@ async function postDeploy() {
       console.warn('⚠️ Could not create admin account:', error.message);
     }
     
+    // Fix product_variants table
+    console.log('\n🔧 Fixing product_variants table...');
+    try {
+      // Check if product_variants table exists with correct structure
+      const [variantsTable] = await pool.execute(
+        "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'product_variants'",
+        [process.env.DATABASE_NAME || 'railway']
+      );
+      
+      if (variantsTable.length === 0) {
+        console.log('⚠️ product_variants table does not exist, creating it...');
+        
+        // Create product_variants table
+        await pool.execute(`
+          CREATE TABLE IF NOT EXISTS product_variants (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            product_id INT NOT NULL,
+            color_name VARCHAR(100) NOT NULL,
+            color_value VARCHAR(7) NOT NULL DEFAULT '#000000',
+            size VARCHAR(50) NOT NULL,
+            stock INT NOT NULL DEFAULT 0,
+            sku VARCHAR(100) UNIQUE,
+            barcode VARCHAR(100),
+            price_adjustment DECIMAL(10,2) DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_variant (product_id, color_name, size)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        
+        // Add indexes for better performance
+        await pool.execute('CREATE INDEX idx_variant_product ON product_variants(product_id)');
+        await pool.execute('CREATE INDEX idx_variant_sku ON product_variants(sku)');
+        
+        console.log('✅ product_variants table created successfully');
+      } else {
+        console.log('✅ product_variants table already exists');
+      }
+      
+      // Check if order_items table has variant_id column
+      const [orderItemsColumns] = await pool.execute(
+        "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'",
+        [process.env.DATABASE_NAME || 'railway']
+      );
+      
+      if (orderItemsColumns.length === 0) {
+        console.log('⚠️ variant_id column missing from order_items, adding it...');
+        await pool.execute(`
+          ALTER TABLE order_items 
+          ADD COLUMN variant_id INT NULL AFTER product_id
+        `);
+        
+        // Add foreign key
+        try {
+          await pool.execute(`
+            ALTER TABLE order_items
+            ADD FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE SET NULL
+          `);
+        } catch (err) {
+          console.log('⚠️ Could not add foreign key to order_items:', err.message);
+        }
+        
+        console.log('✅ variant_id column added to order_items');
+      } else {
+        console.log('✅ variant_id column already exists in order_items');
+      }
+    } catch (error) {
+      console.error('❌ Error fixing product_variants table:', error.message);
+    }
+    
     // Final verification
     console.log('\n🔍 Final verification...');
     const [finalDomicile] = await pool.execute('SELECT COUNT(*) as count FROM domicile_fees');
@@ -126,12 +197,21 @@ async function postDeploy() {
     const [finalPromotions] = await pool.execute('SELECT COUNT(*) as count FROM promotions');
     const [finalAccounts] = await pool.execute('SELECT COUNT(*) as count FROM accounts');
     
+    // Check product_variants count
+    let finalVariants = [{count: 0}];
+    try {
+      [finalVariants] = await pool.execute('SELECT COUNT(*) as count FROM product_variants');
+    } catch (err) {
+      console.log('⚠️ Could not count product_variants:', err.message);
+    }
+    
     console.log('📊 Database Summary:');
     console.log(`   - Domicile fees: ${finalDomicile[0].count}`);
     console.log(`   - Stopdesk fees: ${finalStopdesk[0].count}`);
     console.log(`   - Orders: ${finalOrders[0].count}`);
     console.log(`   - Promotions: ${finalPromotions[0].count}`);
     console.log(`   - Accounts: ${finalAccounts[0].count}`);
+    console.log(`   - Product variants: ${finalVariants[0].count}`);
     
     console.log('\n🎉 Post-deploy completed successfully!');
     console.log('🚀 Your e-commerce is ready for production!');
