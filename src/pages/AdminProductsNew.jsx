@@ -78,23 +78,14 @@ const AdminProducts = () => {
     }
   };
 
-  // Handle image file selection
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageUrl = event.target.result;
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, imageUrl]
-          }));
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+  // Add image URL
+  const addImageUrl = (url) => {
+    if (url.trim() !== '') {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, url.trim()]
+      }));
+    }
   };
 
   // Remove image
@@ -103,6 +94,24 @@ const AdminProducts = () => {
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
+  };
+
+  // Handle URL input key press
+  const handleImageUrlKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addImageUrl(e.target.value);
+      e.target.value = '';
+    }
+  };
+
+  // Handle add image button click
+  const handleAddImageClick = (e) => {
+    e.preventDefault();
+    const input = document.getElementById('imageUrlInput');
+    addImageUrl(input.value);
+    input.value = '';
+    input.focus();
   };
 
   // Add color
@@ -461,36 +470,60 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                {/* Images Upload */}
+                {/* Images URLs */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Images du produit
+                    Images du produit (URLs)
                   </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      id="imageUrlInput"
+                      placeholder="https://example.com/image.jpg"
+                      onKeyPress={handleImageUrlKeyPress}
+                      className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddImageClick}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded"
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Entrez l'URL de l'image et appuyez sur Entrée ou cliquez sur Ajouter
+                  </p>
+                  
                   {formData.images.length > 0 && (
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      {formData.images.map((image, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={image}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-20 object-cover rounded border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                    <div className="mt-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Images ajoutées:</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {formData.images.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={image}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-24 object-cover rounded border group-hover:opacity-75 transition-opacity"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://via.placeholder.com/150?text=Image+non+disponible';
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                removeImage(index);
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                              title="Supprimer cette image"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
