@@ -147,6 +147,23 @@ const ProductPage = () => {
     }
     return digits;
   };
+  
+  // Check if the selected variant is available (has stock)
+  const isVariantAvailable = () => {
+    if (!product) return false;
+    
+    // If we have variants, check the selected variant's stock
+    if (product.variants && product.variants.length > 0) {
+      if (!selectedColor || !selectedSize) return false;
+      const variant = product.variants.find(v => 
+        v.color_name === selectedColor && v.size === selectedSize
+      );
+      return variant && variant.stock > 0;
+    }
+    
+    // Fallback to product stock if no variants
+    return product.stock > 0;
+  };
 
   useEffect(() => {
     const fetchPromotions = async () => {
@@ -550,23 +567,6 @@ const ProductPage = () => {
             ) : (
             <p className="text-2xl lg:text-3xl font-bold text-primary mb-6">{formatPrice(product.price)}</p>
             )}
-            
-            // Check if the selected variant is available (has stock)
-            const isVariantAvailable = () => {
-              if (!product) return false;
-              
-              // If we have variants, check the selected variant's stock
-              if (product.variants && product.variants.length > 0) {
-                if (!selectedColor || !selectedSize) return false;
-                const variant = product.variants.find(v => 
-                  v.color_name === selectedColor && v.size === selectedSize
-                );
-                return variant && variant.stock > 0;
-              }
-              
-              // Fallback to product stock if no variants
-              return product.stock > 0;
-            };
             
 {(() => {
               // Show stock based on selected variant or total product stock
