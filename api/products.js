@@ -381,19 +381,119 @@ router.put('/:id', async (req, res) => {
 
 // Delete product
 router.delete('/:id', async (req, res) => {
+  const transaction = await pool.getConnection();
   try {
-    const [result] = await pool.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
+    await transaction.beginTransaction();
+    
+    // First delete all variants (foreign key constraint will handle this if CASCADE is set)
+    await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+    
+    // Then delete the product
+    const [result] = await transaction.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
     
     if (result.affectedRows === 0) {
+      await transaction.rollback();
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    res.json({ success: true, message: 'Product deleted successfully' });
+    await transaction.commit();
+    res.json({ success: true, message: 'Product and its variants deleted successfully' });
   } catch (error) {
+    await transaction.rollback();
     console.error('Delete product error:', error);
     res.status(500).json({ error: 'Failed to delete product' });
+  } finally {
+    if (transaction) await transaction.release();
   }
 });
+
+// Helper function to update product stock based on variants
+async function updateProductStock(transaction, productId) {
+  // Get sum of all variant stocks
+  const [result] = await transaction.execute(
+    'SELECT COALESCE(SUM(stock), 0) as total_stock FROM product_variants WHERE product_id = ?',
+    [productId]
+  );
+  
+  const totalStock = result[0].total_stock;
+  
+  // Update product stock and status
+  await transaction.execute(
+    `UPDATE products 
+     SET stock = ?, 
+         status = CASE WHEN ? > 0 THEN 'active' ELSE 'out_of_stock' END,
+         updated_at = NOW() 
+     WHERE id = ?`,
+    [totalStock, totalStock, productId]
+  );
+  
+  return totalStock;
+}
+
+// Helper function to format product with variants
+async function formatProductWithVariants(product) {
+  // Parse JSON fields
+  let images = [];
+  let colors = [];
+  let sizes = [];
+  
+  // Handle images
+  if (product.images) {
+    if (typeof product.images === 'string') {
+      try {
+        images = JSON.parse(product.images);
+      } catch (e) {
+        images = [product.images];
+      }
+    } else if (Array.isArray(product.images)) {
+      images = product.images;
+    }
+  }
+  
+  // Handle colors
+  if (product.colors) {
+    if (typeof product.colors === 'string') {
+      try {
+        colors = JSON.parse(product.colors);
+      } catch (e) {
+        colors = [{ name: product.colors, value: '#000000' }];
+      }
+    } else if (Array.isArray(product.colors)) {
+      colors = product.colors;
+    }
+  }
+  
+  // Handle sizes
+  if (product.sizes) {
+    if (typeof product.sizes === 'string') {
+      try {
+        sizes = JSON.parse(product.sizes);
+      } catch (e) {
+        sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+      }
+    } else if (Array.isArray(product.sizes)) {
+      sizes = product.sizes;
+    }
+  }
+  
+  // Get variants for this product
+  const [variants] = await pool.execute(
+    'SELECT * FROM product_variants WHERE product_id = ?',
+    [product.id]
+  );
+  
+  return {
+    ...product,
+    images,
+    colors,
+    sizes,
+    variants: variants || []
+  };
+}
+
+// Add variant routes
+const productVariantsRouter = require('./productVariants');
+router.use('/', productVariantsRouter);
 
 // Get categories for dropdown
 router.get('/categories/list', async (req, res) => {

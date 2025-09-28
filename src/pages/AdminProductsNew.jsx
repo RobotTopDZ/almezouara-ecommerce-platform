@@ -32,12 +32,23 @@ const AdminProducts = () => {
     name: '',
     category_id: '',
     price: '',
-    stock: '',
     description: '',
     images: [''], // Start with one empty URL field
     colors: [],
     sizes: [],
+    variants: [],
     status: 'active'
+  });
+  
+  const [currentVariant, setCurrentVariant] = useState({
+    id: null,
+    color_name: '',
+    color_value: '#000000',
+    size: '',
+    stock: 0,
+    sku: '',
+    barcode: '',
+    price_adjustment: 0
   });
   const [imageURL, setImageURL] = useState('');
 
@@ -164,6 +175,77 @@ const AdminProducts = () => {
       sizes: [...prev.sizes, '']
     }));
   };
+  
+  // Add or update variant
+  const saveVariant = () => {
+    if (!currentVariant.color_name || !currentVariant.size) {
+      alert('Veuillez remplir la couleur et la taille');
+      return;
+    }
+    
+    setFormData(prev => {
+      const existingIndex = prev.variants.findIndex(
+        v => v.id === currentVariant.id || 
+             (v.color === currentVariant.color && v.size === currentVariant.size)
+      );
+      
+      const newVariant = {
+        ...currentVariant,
+        stock: parseInt(currentVariant.stock) || 0,
+        price_adjustment: parseFloat(currentVariant.price_adjustment) || 0
+      };
+      
+      if (existingIndex >= 0) {
+        // Update existing variant
+        const newVariants = [...prev.variants];
+        newVariants[existingIndex] = newVariant;
+        return { ...prev, variants: newVariants };
+      } else {
+        // Add new variant
+        return { 
+          ...prev, 
+          variants: [...prev.variants, { ...newVariant, id: Date.now() }] 
+        };
+      }
+    });
+    
+    // Reset the form
+    setCurrentVariant({
+      color: '',
+      size: '',
+      stock: 0,
+      sku: '',
+      price_adjustment: 0,
+      id: null
+    });
+  };
+  
+  // Edit variant
+  const editVariant = (variant) => {
+    setCurrentVariant({
+      id: variant.id,
+      color_name: variant.color_name || '',
+      color_value: variant.color_value || '#000000',
+      size: variant.size,
+      stock: variant.stock,
+      sku: variant.sku || '',
+      barcode: variant.barcode || '',
+      price_adjustment: variant.price_adjustment || 0
+    });
+  };
+  
+  // Remove variant
+  const removeVariant = (variantId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette variante ?')) {
+      setFormData(prev => ({
+        ...prev,
+        variants: prev.variants.filter(v => v.id !== variantId)
+      }));
+    }
+  };
+  
+  // Calculate total stock
+  const totalStock = formData.variants.reduce((sum, variant) => sum + (parseInt(variant.stock) || 0), 0);
 
   // Update size
   const updateSize = (index, value) => {
@@ -194,30 +276,38 @@ const AdminProducts = () => {
         alert('Veuillez ajouter au moins une image');
         return;
       }
+      
+      if (formData.variants.length === 0) {
+        alert('Veuillez ajouter au moins une variante (couleur et taille)');
+        return;
+      }
 
       const productData = {
         name: formData.name,
         category_id: parseInt(formData.category_id),
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
+        price: parseFloat(formData.price) || 0,
         description: formData.description,
         status: formData.status,
         images: processedImages,
         colors: formData.colors.filter(color => color.trim() !== ''),
-        sizes: formData.sizes.filter(size => size.trim() !== '')
+        sizes: formData.sizes.filter(size => size.trim() !== ''),
+        variants: formData.variants.map(variant => ({
+          ...variant,
+          stock: parseInt(variant.stock) || 0,
+          price_adjustment: parseFloat(variant.price_adjustment) || 0
+        }))
       };
 
       console.log('Submitting product data:', productData);
 
-      if (editingProduct) {
-        await axios.put(`/api/products/${editingProduct.id}`, productData);
-      } else {
-        await axios.post('/api/products', productData);
-      }
+      const response = editingProduct 
+        ? await axios.put(`/api/products/${editingProduct.id}`, productData)
+        : await axios.post('/api/products', productData);
       
       // Reload data and close modal
       await loadData();
       resetForm();
+      setShowModal(false);
       alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
     } catch (error) {
       console.error('Error saving product:', error);
@@ -225,19 +315,34 @@ const AdminProducts = () => {
     }
   };
 
-  const handleEdit = (product) => {
+  const editProduct = (product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      category_id: product.category_id.toString(),
-      price: product.price.toString(),
-      stock: product.stock.toString(),
+      category_id: product.category_id,
+      price: product.price,
       description: product.description || '',
-      images: product.images || [],
+      images: product.images && product.images.length > 0 ? [...product.images] : [''],
       colors: product.colors || [],
       sizes: product.sizes || [],
-      status: product.status
+      variants: product.variants || [],
+      status: product.status || 'active'
     });
+    
+    // Set the first variant as default if exists
+    if (product.variants && product.variants.length > 0) {
+      setCurrentVariant({
+        ...product.variants[0],
+        color_name: product.variants[0].color_name || '',
+        color_value: product.variants[0].color_value || '#000000',
+        size: product.variants[0].size || '',
+        stock: product.variants[0].stock || 0,
+        sku: product.variants[0].sku || '',
+        barcode: product.variants[0].barcode || '',
+        price_adjustment: product.variants[0].price_adjustment || 0
+      });
+    }
+    
     setShowModal(true);
   };
 
@@ -259,12 +364,22 @@ const AdminProducts = () => {
       name: '',
       category_id: '',
       price: '',
-      stock: '',
       description: '',
-      images: [],
+      images: [''],
       colors: [],
       sizes: [],
+      variants: [],
       status: 'active'
+    });
+    setCurrentVariant({
+      color_name: '',
+      color_value: '#000000',
+      size: '',
+      stock: 0,
+      sku: '',
+      barcode: '',
+      price_adjustment: 0,
+      id: null
     });
     setEditingProduct(null);
     setShowModal(false);
@@ -377,7 +492,7 @@ const AdminProducts = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => handleEdit(product)}
+                      onClick={() => editProduct(product)}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
                       Modifier
@@ -475,16 +590,9 @@ const AdminProducts = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Stock *
+                      Stock Total: {totalStock}
                     </label>
-                    <input
-                      type="number"
-                      value={formData.stock}
-                      onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      required
-                      min="0"
-                    />
+                    <div className="text-xs text-gray-500">Géré par les variantes ci-dessous</div>
                   </div>
                 </div>
 
