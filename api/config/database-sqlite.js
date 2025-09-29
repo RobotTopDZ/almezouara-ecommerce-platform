@@ -95,6 +95,7 @@ const createTables = async () => {
         city VARCHAR(100),
         address TEXT,
         delivery_method VARCHAR(50),
+        items TEXT,
         total DECIMAL(10,2),
         discount_percentage INT DEFAULT 0,
         status VARCHAR(50) DEFAULT 'pending',
@@ -130,6 +131,43 @@ const createTables = async () => {
     `);
 
     console.log('✅ SQLite tables created successfully');
+    
+    // Create shipping tables
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS domicile_fees (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        commune TEXT NOT NULL,
+        wilaya TEXT NOT NULL,
+        prix DECIMAL(10,2) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS stopdesk_fees (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom_desk TEXT NOT NULL,
+        commune TEXT NOT NULL,
+        wilaya TEXT NOT NULL,
+        prix DECIMAL(10,2) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create accounts table
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        full_name TEXT,
+        role TEXT DEFAULT 'customer',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     // Insert some default data
     await insertDefaultData();

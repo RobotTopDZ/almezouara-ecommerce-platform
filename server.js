@@ -134,16 +134,19 @@ const autoRepairDatabase = async () => {
     
     // Check if orders table exists and has correct structure
     try {
-      const [columns] = await connection.execute(`SHOW COLUMNS FROM orders LIKE 'items'`);
-      if (columns.length === 0) {
+      // SQLite compatible query to check if column exists
+      const columns = await connection.execute(`PRAGMA table_info(orders)`);
+      const itemsColumnExists = columns[0].some(col => col.name === 'items');
+      
+      if (!itemsColumnExists) {
         console.log('⚠️ Orders table missing items column, adding it...');
-        await connection.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
+        await connection.execute('ALTER TABLE orders ADD COLUMN items TEXT');
         console.log('✅ Added items column to orders table');
       } else {
         console.log('✅ Orders table structure is correct');
       }
     } catch (error) {
-      if (error.code === '42S02') { // Table doesn't exist
+      if (error.code === '42S02' || error.message.includes('no such table')) { // Table doesn't exist
         console.log('⚠️ Orders table does not exist, creating it...');
         await connection.execute(`
           CREATE TABLE IF NOT EXISTS orders (
