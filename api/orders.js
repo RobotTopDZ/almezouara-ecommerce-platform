@@ -17,7 +17,16 @@ const ensureDBConnection = async () => {
     return true;
   } catch (error) {
     console.error('❌ Database connection failed for orders:', error.message);
-    return false;
+    // Retry connection once
+    try {
+      console.log('🔄 Retrying database connection...');
+      await pool.execute('SELECT 1');
+      console.log('✅ Database connection successful on retry');
+      return true;
+    } catch (retryError) {
+      console.error('❌ Database connection retry failed:', retryError.message);
+      return false;
+    }
   }
 };
 
