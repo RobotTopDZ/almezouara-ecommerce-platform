@@ -410,9 +410,28 @@ const AdminProducts = () => {
     
     // Vérifier si la couleur existe déjà
     if (!bulkColors.some(c => c.name.toLowerCase() === bulkColorInput.trim().toLowerCase())) {
+      // Utiliser une couleur aléatoire ou une couleur basée sur le nom
+      const colorMap = {
+        'rouge': '#FF0000',
+        'noir': '#000000',
+        'bleu': '#0000FF',
+        'blanc': '#FFFFFF',
+        'marron': '#8B4513',
+        'gris': '#808080',
+        'vert': '#008000',
+        'jaune': '#FFFF00',
+        'rose': '#FFC0CB',
+        'violet': '#800080',
+        'orange': '#FFA500',
+        'beige': '#F5F5DC'
+      };
+      
+      const colorName = bulkColorInput.trim().toLowerCase();
+      const colorValue = colorMap[colorName] || `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+      
       setBulkColors([...bulkColors, { 
         name: bulkColorInput.trim(), 
-        value: '#000000' 
+        value: colorValue 
       }]);
     }
     setBulkColorInput('');
