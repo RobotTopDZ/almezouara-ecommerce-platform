@@ -280,6 +280,12 @@ router.post('/', async (req, res) => {
           price_adjustment = 0.00
         } = variant;
 
+        // Générer un SKU unique si null ou vide
+        const variantSku = sku || '';
+        const finalSku = variantSku.trim() === '' ? 
+          `${slug}-${color_name.toLowerCase().replace(/\s+/g, '-')}-${size.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}` : 
+          variantSku;
+
         // Insert variant
         await transaction.execute(
           `INSERT INTO product_variants 
@@ -291,7 +297,7 @@ router.post('/', async (req, res) => {
             color_value,
             size,
             variantStock,
-            sku,
+            finalSku,
             barcode,
             price_adjustment
           ]
