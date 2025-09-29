@@ -212,34 +212,138 @@ const createTablesIfNotExist = async () => {
 // Run database migrations
 const runMigrations = async () => {
   console.log('🔄 Running database migrations...');
-  // Migration logic will be implemented here
-  return true;
+  try {
+    // Check if migrations table exists
+    const [tables] = await pool.query(
+      "SHOW TABLES LIKE 'migrations'"
+    );
+    
+    if (tables.length === 0) {
+      console.log('Creating migrations table...');
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS migrations (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    }
+    
+    // Get completed migrations
+    const [completedMigrations] = await pool.query(
+      'SELECT name FROM migrations'
+    );
+    
+    const completedMigrationNames = new Set(
+      completedMigrations.map(m => m.name)
+    );
+    
+    // Define migrations to run
+    const migrations = [
+      {
+        name: '001_initial_schema',
+        run: async () => {
+          // This is handled by createTablesIfNotExist
+          return true;
+        }
+      },
+      {
+        name: '002_add_product_variants',
+        run: async () => {
+          const { up } = require('../migrations/002-add-product-variants');
+          await up();
+          return true;
+        }
+      }
+    ];
+    
+    // Run pending migrations
+    for (const migration of migrations) {
+      if (!completedMigrationNames.has(migration.name)) {
+        console.log(`Running migration: ${migration.name}`);
+        await migration.run();
+        await pool.query(
+          'INSERT INTO migrations (name) VALUES (?)',
+          [migration.name]
+        );
+        console.log(`✅ Migration ${migration.name} completed`);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Migration error:', error);
+    throw error;
+  }
 };
 
 const initializeDatabase = async () => {
+  const connection = await pool.getConnection();
   try {
     console.log('🔄 Initializing database tables...');
+    await connection.beginTransaction();
     
-    // Create tables if they don't exist
-    await createTablesIfNotExist();
-    
-    // Run migrations
-    await runMigrations();
-    
-    // Run product variants migration specifically
     try {
-      const { up } = require('../migrations/002-add-product-variants');
-      await up();
-      console.log('✅ Product variants migration completed');
-    } catch (err) {
-      console.error('❌ Product variants migration failed:', err);
+      // Create tables if they don't exist
+      await createTablesIfNotExist();
+      
+      // Run migrations
+      await runMigrations();
+      
+      // Check if product_variants table exists
+      const [tables] = await connection.query(
+        "SHOW TABLES LIKE 'product_variants'"
+      );
+      
+      if (tables.length === 0) {
+        console.log('🔄 Creating product_variants table...');
+        await connection.execute(`
+          CREATE TABLE IF NOT EXISTS product_variants (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            product_id INT NOT NULL,
+            color_name VARCHAR(100) NOT NULL,
+            color_value VARCHAR(7) NOT NULL DEFAULT '#000000',
+            size VARCHAR(50) NOT NULL,
+            stock INT NOT NULL DEFAULT 0,
+            sku VARCHAR(100) UNIQUE,
+            barcode VARCHAR(100),
+            price_adjustment DECIMAL(10,2) DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_variant (product_id, color_name, size)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        
+        // Add variant_id to order_items if it doesn't exist
+        const [columns] = await connection.query(
+          "SHOW COLUMNS FROM order_items LIKE 'variant_id'"
+        );
+        
+        if (columns.length === 0) {
+          console.log('🔄 Adding variant_id to order_items...');
+          await connection.execute(`
+            ALTER TABLE order_items 
+            ADD COLUMN variant_id INT NULL AFTER product_id,
+            ADD CONSTRAINT fk_order_items_variant
+            FOREIGN KEY (variant_id) REFERENCES product_variants(id) 
+            ON DELETE SET NULL
+          `);
+        }
+        
+        console.log('✅ Product variants table and columns created');
+      }
+      
+      await connection.commit();
+      console.log('✅ Database initialization completed');
+      return true;
+    } catch (error) {
+      await connection.rollback();
+      console.error('❌ Database initialization failed:', error);
+      throw error;
     }
-    
-    console.log('✅ Database initialization completed');
-    return true;
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error.message);
-    throw error;
+  } finally {
+    connection.release();
   }
 };
 

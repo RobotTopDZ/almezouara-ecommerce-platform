@@ -89,7 +89,6 @@ const initializeTables = async () => {
 };
 
 initializeTables();
-
 // Helper function to format product data
 const formatProduct = async (product) => {
   // Basic product data
@@ -102,36 +101,42 @@ const formatProduct = async (product) => {
     formatted.images = [];
   }
 
-  // If it's a variable product, fetch its variants
-  if (product.product_type === 'variable') {
-    try {
-      const [variants] = await pool.execute(
-        'SELECT * FROM product_variants WHERE product_id = ?',
-        [product.id]
-      );
-      formatted.variants = variants || [];
-    } catch (error) {
-      console.error(`Failed to fetch variants for product ${product.id}:`, error);
-      formatted.variants = [];
-    }
-  }
-
   return formatted;
 };
 
-// Image upload endpoint
-router.post('/upload', upload.array('images', 10), (req, res) => {
+// Helper function to format product with variants
+async function formatProductWithVariants(product) {
+  if (!product) return null;
+  
+  const connection = await pool.getConnection();
   try {
-    const files = req.files;
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
+    const formattedProduct = await formatProduct(product);
+    
+    // Only fetch variants for variable products
+    if (product.product_type === 'variable') {
+      const [variants] = await connection.execute(
+        'SELECT * FROM product_variants WHERE product_id = ?',
+        [product.id]
+      );
+      
+      formattedProduct.variants = variants || [];
+      
+      // Calculate total stock from variants
+      if (variants && variants.length > 0) {
+        formattedProduct.stock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+      }
+    } else {
+      formattedProduct.variants = [];
     }
-    const imagePaths = files.map(file => `/uploads/${file.filename}`);
-    res.json({ success: true, images: imagePaths });
+    
+    return formattedProduct;
   } catch (error) {
-    res.status(500).json({ error: 'Failed to upload images' });
+    console.error('Error formatting product with variants:', error);
+    return formatProduct(product); // Fallback to basic formatting
+  } finally {
+    if (connection) connection.release();
   }
-});
+}
 
 // Get all products
 router.get('/', async (req, res) => {
@@ -347,6 +352,7 @@ router.put('/:id', async (req, res) => {
     );
 
     if (existingProducts.length === 0) {
+      await transaction.rollback();
       return res.status(404).json({
         success: false,
         error: 'Product not found'
@@ -396,6 +402,7 @@ router.put('/:id', async (req, res) => {
       // Process each variant in the request
       for (const variant of variants) {
         const {
+          id: variantId,
           id,
           color_name = 'Default',
           color_value = '#000000',
@@ -508,14 +515,6 @@ router.put('/:id', async (req, res) => {
       error: 'Failed to update product',
       message: error.message
     });
-  } finally {
-    if (transaction) await transaction.release();
-  }
-});
-  } catch (error) {
-    await transaction.rollback();
-    console.error('Update product error:', error);
-    res.status(500).json({ error: 'Failed to update product' });
   } finally {
     if (transaction) await transaction.release();
   }
