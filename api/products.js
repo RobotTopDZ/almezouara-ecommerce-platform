@@ -179,7 +179,8 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    const product = await formatProduct(productRows[0]);
+    // Use formatProductWithVariants instead of formatProduct to include variants
+    const product = await formatProductWithVariants(productRows[0]);
     res.json({ success: true, product });
   } catch (error) {
     console.error('Get single product error:', error);
