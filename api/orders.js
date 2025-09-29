@@ -154,9 +154,9 @@ router.post('/', async (req, res) => {
             
             // Update stock
             if (variantId) {
-              // Update variant stock (SQLite compatible)
+              // Update variant stock (MySQL compatible)
               await connection.execute(
-                'UPDATE product_variants SET stock = MAX(0, stock - ?) WHERE id = ?',
+                'UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?',
                 [quantity, variantId]
               );
               
