@@ -317,9 +317,99 @@ const insertDefaultData = async () => {
         ('Djelfa', 750),
         ('Sétif', 650),
         ('Sidi Bel Abbès', 600),
-        ('Biskra', 800)`);
+        ('Biskra', 800),
+        ('Tlemcen', 800),
+        ('Béjaïa', 700),
+        ('Tizi Ouzou', 600),
+        ('Skikda', 750),
+        ('Chlef', 700),
+        ('Tiaret', 750),
+        ('Médéa', 600),
+        ('Mostaganem', 700),
+        ('Tébessa', 850),
+        ('El Oued', 900),
+        ('Jijel', 700),
+        ('Ouargla', 950),
+        ('Bordj Bou Arreridj', 700),
+        ('Boumerdès', 500),
+        ('Mascara', 750),
+        ('Souk Ahras', 800),
+        ('M\'Sila', 750),
+        ('Guelma', 750),
+        ('Relizane', 700),
+        ('Khenchela', 800),
+        ('Ghardaïa', 900),
+        ('El Bayadh', 850),
+        ('Naâma', 900),
+        ('Tissemsilt', 750),
+        ('Mila', 700),
+        ('Aïn Defla', 650),
+        ('Aïn Témouchent', 750),
+        ('Laghouat', 850),
+        ('Adrar', 1000),
+        ('Béchar', 950),
+        ('Tamanrasset', 1200),
+        ('Illizi', 1200),
+        ('Tindouf', 1100),
+        ('El Tarf', 750),
+        ('Tipaza', 500),
+        ('Saïda', 750)`);
       
       console.log('✅ Default shipping fees inserted');
+    }
+
+    // Check if domicile fees exist
+    const domicileCount = await db.get('SELECT COUNT(*) as count FROM domicile_fees');
+    
+    if (domicileCount.count === 0) {
+      // Insert default domicile fees for major communes
+      await db.run(`INSERT INTO domicile_fees (commune, wilaya, prix) VALUES 
+        ('Alger Centre', 'Alger', 400),
+        ('Bab Ezzouar', 'Alger', 450),
+        ('Hydra', 'Alger', 400),
+        ('Bir Mourad Raïs', 'Alger', 400),
+        ('El Biar', 'Alger', 400),
+        ('Kouba', 'Alger', 450),
+        ('Oran', 'Oran', 600),
+        ('Es Senia', 'Oran', 650),
+        ('Bir El Djir', 'Oran', 600),
+        ('Constantine', 'Constantine', 700),
+        ('El Khroub', 'Constantine', 750),
+        ('Annaba', 'Annaba', 800),
+        ('El Bouni', 'Annaba', 850),
+        ('Sétif', 'Sétif', 650),
+        ('Batna', 'Batna', 750),
+        ('Blida', 'Blida', 450),
+        ('Ouled Yaich', 'Blida', 500),
+        ('Tizi Ouzou', 'Tizi Ouzou', 600),
+        ('Béjaïa', 'Béjaïa', 700),
+        ('Tlemcen', 'Tlemcen', 800)`);
+      
+      console.log('✅ Default domicile fees inserted');
+    }
+
+    // Check if stopdesk fees exist
+    const stopdeskCount = await db.get('SELECT COUNT(*) as count FROM stopdesk_fees');
+    
+    if (stopdeskCount.count === 0) {
+      // Insert default stopdesk fees
+      await db.run(`INSERT INTO stopdesk_fees (nom_desk, commune, wilaya, prix) VALUES 
+        ('Alger Centre', 'Alger Centre', 'Alger', 300),
+        ('Bab Ezzouar', 'Bab Ezzouar', 'Alger', 350),
+        ('Hydra', 'Hydra', 'Alger', 300),
+        ('Bir Mourad Raïs', 'Bir Mourad Raïs', 'Alger', 300),
+        ('Oran Centre', 'Oran', 'Oran', 500),
+        ('Es Senia', 'Es Senia', 'Oran', 550),
+        ('Constantine Centre', 'Constantine', 'Constantine', 600),
+        ('Annaba Centre', 'Annaba', 'Annaba', 700),
+        ('Sétif Centre', 'Sétif', 'Sétif', 550),
+        ('Batna Centre', 'Batna', 'Batna', 650),
+        ('Blida Centre', 'Blida', 'Blida', 350),
+        ('Tizi Ouzou Centre', 'Tizi Ouzou', 'Tizi Ouzou', 500),
+        ('Béjaïa Centre', 'Béjaïa', 'Béjaïa', 600),
+        ('Tlemcen Centre', 'Tlemcen', 'Tlemcen', 700)`);
+      
+      console.log('✅ Default stopdesk fees inserted');
     }
     
   } catch (error) {
