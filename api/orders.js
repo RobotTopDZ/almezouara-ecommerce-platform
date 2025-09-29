@@ -111,11 +111,12 @@ router.post('/', async (req, res) => {
 
         console.log('🔧 Creating order with data:', { orderId, phoneNumber, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum });
 
-        // Insert order with fixed schema
+        // Insert order with fixed schema and current date
+        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:MM:SS
         await pool.execute(`
-          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum, 'pending']);
+          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status, date)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum, 'pending', currentDate]);
         
         console.log('✅ Order inserted successfully');
         
