@@ -1,27 +1,28 @@
 // Migration to add product_variants table
-const mysql = require('mysql2/promise');
-const config = require('../config/config');
+const { createPool } = require('mysql2/promise');
 
-async function migrate() {
+async function getPool() {
+  return createPool({
+    host: process.env.DATABASE_HOST || process.env.MYSQLHOST || 'localhost',
+    user: process.env.DATABASE_USERNAME || process.env.MYSQLUSER || 'root',
+    password: process.env.DATABASE_PASSWORD || process.env.MYSQLPASSWORD || '',
+    database: process.env.DATABASE_NAME || process.env.MYSQLDATABASE || 'railway',
+    port: process.env.DATABASE_PORT || process.env.MYSQLPORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+}
+
+async function up() {
   console.log('Running migration: Add product_variants table');
+  const pool = await getPool();
+  const connection = await pool.getConnection();
   
   try {
-    // Create connection
-    const connection = await mysql.createConnection(config.db);
+    await connection.beginTransaction();
     
-    // Check if table exists
-    const [tables] = await connection.execute(
-      "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'product_variants'",
-      [config.db.database]
-    );
-    
-    if (tables.length > 0) {
-      console.log('Table product_variants already exists, skipping migration');
-      await connection.end();
-      return;
-    }
-    
-    // Create product_variants table
+    // Create product_variants table if it doesn't exist
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS product_variants (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -41,34 +42,36 @@ async function migrate() {
     `);
     
     // Add variant_id to order_items if it doesn't exist
-    const [orderItemsColumns] = await connection.execute(
-      "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'",
-      [config.db.database]
+    const [orderItemsTable] = await connection.execute(
+      "SHOW TABLES LIKE 'order_items'"
     );
     
-    if (orderItemsColumns.length === 0) {
-      await connection.execute(`
-        ALTER TABLE order_items 
-        ADD COLUMN variant_id INT NULL AFTER product_id
-      `);
+    if (orderItemsTable.length > 0) {
+      const [orderItemsColumns] = await connection.execute(
+        "SHOW COLUMNS FROM order_items LIKE 'variant_id'"
+      );
       
-      // Add foreign key if order_items table exists
-      try {
+      if (orderItemsColumns.length === 0) {
         await connection.execute(`
-          ALTER TABLE order_items
-          ADD FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE SET NULL
+          ALTER TABLE order_items 
+          ADD COLUMN variant_id INT NULL AFTER product_id
         `);
-      } catch (err) {
-        console.log('Warning: Could not add foreign key to order_items. This is normal if the table does not exist yet.');
+        
+        // Add foreign key constraint
+        try {
+          await connection.execute(`
+            ALTER TABLE order_items
+            ADD CONSTRAINT fk_order_items_variant
+            FOREIGN KEY (variant_id) REFERENCES product_variants(id) 
+            ON DELETE SET NULL
+          `);
+        } catch (err) {
+          console.log('Warning: Could not add foreign key to order_items. This is normal if the table does not exist yet.');
+        }
       }
     }
-    
-    // Add indexes for better performance
-    await connection.execute(`CREATE INDEX idx_variant_product ON product_variants(product_id)`);
-    await connection.execute(`CREATE INDEX idx_variant_sku ON product_variants(sku)`);
-    
     // Migrate existing data if any
-    await connection.execute(`
+    await pool.execute(`
       INSERT IGNORE INTO product_variants (product_id, color_name, color_value, size, stock)
       SELECT 
         p.id as product_id,
@@ -89,13 +92,37 @@ async function migrate() {
       LEFT JOIN product_variants pv ON p.id = pv.product_id
       WHERE pv.id IS NULL AND JSON_VALID(p.colors) AND JSON_VALID(p.sizes)
     `);
-    
     console.log('Migration completed successfully');
-    await connection.end();
   } catch (error) {
     console.error('Migration failed:', error);
     throw error;
   }
 }
 
-module.exports = { migrate };
+async function down(db) {
+  try {
+    // Drop foreign key from order_items first
+    await pool.execute(`
+      ALTER TABLE order_items
+      DROP FOREIGN KEY IF EXISTS order_items_ibfk_2
+    `);
+    
+    // Drop variant_id column from order_items
+    await pool.execute(`
+      ALTER TABLE order_items
+      DROP COLUMN IF EXISTS variant_id
+    `);
+    
+    // Drop product_variants table
+    await pool.execute(`
+      DROP TABLE IF EXISTS product_variants
+    `);
+    
+    console.log('Migration reverted successfully');
+  } catch (error) {
+    console.error('Error reverting migration:', error);
+    throw error;
+  }
+}
+
+module.exports = { up, down };

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('./config/database');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const pool = require('../config/database').pool; // Correctly import pool
+const { initializeDatabase } = require('../config/database');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -40,77 +41,94 @@ const upload = multer({
 // Initialize tables if they don't exist
 const initializeTables = async () => {
   try {
+    if (!pool) {
+      console.log("Waiting for database connection...");
+      // If you have a function to wait for the pool, call it here.
+      // For now, we'll just log and return.
+      return;
+    }
+    
     // Create categories table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS categories (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(100) NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
         description TEXT,
-        color VARCHAR(7) DEFAULT '#6B7280',
-        icon VARCHAR(50) DEFAULT 'category',
+        image_url VARCHAR(255),
+        color VARCHAR(50),
+        icon VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-    
-    // Create products table with proper JSON columns
+
+    // Create products table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS products (
-        id INT PRIMARY KEY AUTO_INCREMENT,
+        id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        category_id INT,
-        price DECIMAL(10,2) NOT NULL,
-        stock INT DEFAULT 0,
         description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        category_id INT,
         images TEXT,
-        colors TEXT,
-        sizes TEXT,
+        stock INT DEFAULT 0,
+        sku VARCHAR(100) UNIQUE,
+        barcode VARCHAR(100),
         status ENUM('active', 'inactive', 'out_of_stock') DEFAULT 'active',
-        product_type ENUM('simple', 'variable') DEFAULT 'variable',
+        product_type ENUM('simple', 'variable') DEFAULT 'simple',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
       )
     `);
     
-    // Insert default categories if they don't exist
-    await pool.execute(`
-      INSERT IGNORE INTO categories (id, name, description, color, icon) VALUES
-      (1, 'Robes', 'Robes élégantes pour toutes les occasions', '#FF6B6B', 'dress'),
-      (2, 'Hijabs', 'Hijabs modernes et confortables', '#4ECDC4', 'hijab'),
-      (3, 'Abayas', 'Abayas traditionnelles et modernes', '#45B7D1', 'abaya'),
-      (4, 'Accessoires', 'Accessoires pour compléter votre look', '#96CEB4', 'accessories'),
-      (5, 'Chaussures', 'Chaussures confortables et stylées', '#FFEAA7', 'shoes')
-    `);
-    
-    console.log('✅ Products and categories tables initialized');
+    console.log('Product and category tables are initialized.');
   } catch (error) {
-    console.error('❌ Error initializing tables:', error.message);
+    console.error("Error initializing tables:", error);
   }
 };
 
-// Initialize tables on first load
 initializeTables();
 
-// Image upload endpoint
-router.post('/upload-images', upload.array('images', 5), (req, res) => {
+// Helper function to format product data
+const formatProduct = async (product) => {
+  // Basic product data
+  const formatted = { ...product };
+
+  // Parse JSON fields safely
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No images uploaded' });
+    formatted.images = product.images ? JSON.parse(product.images) : [];
+  } catch (e) {
+    formatted.images = [];
+  }
+
+  // If it's a variable product, fetch its variants
+  if (product.product_type === 'variable') {
+    try {
+      const [variants] = await pool.execute(
+        'SELECT * FROM product_variants WHERE product_id = ?',
+        [product.id]
+      );
+      formatted.variants = variants || [];
+    } catch (error) {
+      console.error(`Failed to fetch variants for product ${product.id}:`, error);
+      formatted.variants = [];
     }
-    
-    // Generate URLs for uploaded images
-    const imageUrls = req.files.map(file => `/images/products/${file.filename}`);
-    
-    console.log('Images uploaded:', imageUrls);
-    
-    res.json({ 
-      success: true, 
-      images: imageUrls,
-      message: `${req.files.length} image(s) uploaded successfully`
-    });
+  }
+
+  return formatted;
+};
+
+// Image upload endpoint
+router.post('/upload', upload.array('images', 10), (req, res) => {
+  try {
+    const files = req.files;
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+    const imagePaths = files.map(file => `/uploads/${file.filename}`);
+    res.json({ success: true, images: imagePaths });
   } catch (error) {
-    console.error('Image upload error:', error);
     res.status(500).json({ error: 'Failed to upload images' });
   }
 });
@@ -119,480 +137,381 @@ router.post('/upload-images', upload.array('images', 5), (req, res) => {
 router.get('/', async (req, res) => {
   try {
     if (!pool) {
-      // Fallback mock products when database is not connected
-      const products = [
-        {
-          id: 1,
-          name: 'Robe Élégante',
-          price: 2500,
-          status: 'active',
-          stock: 10,
-          category_name: 'Robes',
-          images: ['/images/IMG_0630-scaled.jpeg'],
-          colors: [{ name: 'Noir', value: '#000000' }, { name: 'Blanc', value: '#FFFFFF' }],
-          sizes: ['S', 'M', 'L'],
-          product_type: 'simple'
-        },
-        {
-          id: 2,
-          name: 'Ensemble Moderne',
-          price: 3200,
-          status: 'active',
-          stock: 8,
-          category_name: 'Ensembles',
-          images: ['/images/IMG_6710-scaled.jpeg'],
-          colors: [{ name: 'Rouge', value: '#FF0000' }, { name: 'Bleu', value: '#0000FF' }],
-          sizes: ['M', 'L', 'XL'],
-          product_type: 'simple'
-        },
-        {
-          id: 3,
-          name: 'Tenue Traditionnelle',
-          price: 4500,
-          status: 'active',
-          stock: 5,
-          category_name: 'Traditionnel',
-          images: ['/images/IMG_6789-scaled.jpeg'],
-          colors: [{ name: 'Vert', value: '#00FF00' }],
-          sizes: ['S', 'M', 'L', 'XL'],
-          product_type: 'variable',
-          variants: [
-            { id: 101, color: 'Vert', size: 'M', stock: 2 },
-            { id: 102, color: 'Vert', size: 'L', stock: 3 }
-          ]
-        }
+      // Fallback mock data when database is not connected
+      const mockProducts = [
+        { id: 1, name: 'Elegant Abaya', price: '79.99', images: ['/uploads/mock-abaya.jpg'], product_type: 'simple', category_id: 3 },
+        { id: 2, name: 'Chiffon Hijab', price: '19.99', images: ['/uploads/mock-hijab.jpg'], product_type: 'variable', category_id: 2, variants: [{ color: 'Black', size: 'Standard', stock: 10 }] },
       ];
-      return res.json({ success: true, products });
+      return res.json({ success: true, products: mockProducts });
     }
-    
-    const [products] = await pool.execute(`
-      SELECT p.*, c.name as category_name, c.color as category_color
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      ORDER BY p.created_at DESC
-    `);
-    
-    // Parse JSON fields safely
-    const formattedProducts = products.map(product => {
-      let images = [];
-      let colors = [];
-      let sizes = [];
-      
-      // Handle images
-      if (product.images) {
-        if (typeof product.images === 'string') {
-          try {
-            images = JSON.parse(product.images);
-          } catch (e) {
-            // If it's not valid JSON, treat as single URL
-            images = [product.images];
-          }
-        } else if (Array.isArray(product.images)) {
-          images = product.images;
-        }
-      }
-      
-      // Handle colors
-      if (product.colors) {
-        if (typeof product.colors === 'string') {
-          try {
-            colors = JSON.parse(product.colors);
-          } catch (e) {
-            // If it's not valid JSON, treat as single color name
-            colors = [{ name: product.colors, value: '#000000' }];
-          }
-        } else if (Array.isArray(product.colors)) {
-          colors = product.colors;
-        }
-      }
-      
-      // Handle sizes
-      if (product.sizes) {
-        if (typeof product.sizes === 'string') {
-          try {
-            sizes = JSON.parse(product.sizes);
-          } catch (e) {
-            // If it's not valid JSON, split by comma
-            sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
-          }
-        } else if (Array.isArray(product.sizes)) {
-          sizes = product.sizes;
-        }
-      }
-      
-      return {
-        ...product,
-        images,
-        colors,
-        sizes
-      };
-    });
+
+    const [products] = await pool.execute('SELECT * FROM products ORDER BY created_at DESC');
+    const formattedProducts = await Promise.all(products.map(formatProduct));
     
     res.json({ success: true, products: formattedProducts });
   } catch (error) {
-    console.error('Get products error:', error);
-    res.status(500).json({ error: 'Failed to get products' });
+    console.error('Get all products error:', error);
+    res.status(500).json({ error: 'Failed to retrieve products' });
   }
 });
 
-// Get single product
+// Get a single product by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [products] = await pool.execute(`
-      SELECT p.*, c.name as category_name, c.color as category_color
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.id = ?
-    `, [req.params.id]);
-    
-    if (products.length === 0) {
+    if (!pool) {
+      // Fallback mock data
+      const mockProduct = { id: req.params.id, name: 'Sample Product', price: '49.99', images: ['/uploads/mock-product.jpg'], product_type: 'simple' };
+      return res.json({ success: true, product: mockProduct });
+    }
+
+    const [productRows] = await pool.execute('SELECT * FROM products WHERE id = ?', [req.params.id]);
+    if (productRows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    // Parse JSON fields safely (same logic as list products)
-    let images = [];
-    let colors = [];
-    let sizes = [];
-    
-    // Handle images
-    if (products[0].images) {
-      if (typeof products[0].images === 'string') {
-        try {
-          images = JSON.parse(products[0].images);
-        } catch (e) {
-          // If it's not valid JSON, treat as single URL
-          images = [products[0].images];
-        }
-      } else if (Array.isArray(products[0].images)) {
-        images = products[0].images;
-      }
-    }
-    
-    // Handle colors
-    if (products[0].colors) {
-      if (typeof products[0].colors === 'string') {
-        try {
-          colors = JSON.parse(products[0].colors);
-        } catch (e) {
-          // If it's not valid JSON, treat as single color name
-          colors = [{ name: products[0].colors, value: '#000000' }];
-        }
-      } else if (Array.isArray(products[0].colors)) {
-        colors = products[0].colors;
-      }
-    }
-    
-    // Handle sizes
-    if (products[0].sizes) {
-      if (typeof products[0].sizes === 'string') {
-        try {
-          sizes = JSON.parse(products[0].sizes);
-        } catch (e) {
-          // If it's not valid JSON, split by comma
-          sizes = products[0].sizes.split(',').map(s => s.trim()).filter(s => s);
-        }
-      } else if (Array.isArray(products[0].sizes)) {
-        sizes = products[0].sizes;
-      }
-    }
-    
-    // Get variants for this product
-    const [variants] = await pool.execute(
-      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY color_name, size',
-      [req.params.id]
-    );
-    
-    console.log('Single product parsed data:', {
-      id: products[0].id,
-      name: products[0].name,
-      images: images,
-      colors: colors,
-      sizes: sizes,
-      variants: variants.length
-    });
-    
-    const product = {
-      ...products[0],
-      images,
-      colors,
-      sizes,
-      variants: variants || []
-    };
-    
+    const product = await formatProduct(productRows[0]);
     res.json({ success: true, product });
   } catch (error) {
-    console.error('Get product error:', error);
-    res.status(500).json({ error: 'Failed to get product' });
+    console.error('Get single product error:', error);
+    res.status(500).json({ error: 'Failed to retrieve product' });
   }
 });
 
-// Create product
+// Create a new product with variants support
 router.post('/', async (req, res) => {
+  const {
+    name, 
+    description, 
+    price, 
+    category_id, 
+    images = [], 
+    product_type = 'simple', 
+    variants = [],
+    stock = 0
+  } = req.body;
+
+  // Input validation
+  if (!name || !price) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Product name and price are required' 
+    });
+  }
+
+  // For variable products, ensure variants are provided
+  if (product_type === 'variable' && (!Array.isArray(variants) || variants.length === 0)) {
+    return res.status(400).json({
+      success: false,
+      error: 'At least one variant is required for variable products'
+    });
+  }
+
   const transaction = await pool.getConnection();
   try {
-    if (!pool) {
-      return res.status(500).json({ error: 'Database not connected' });
-    }
-    
-    const {
-      name,
-      category_id,
-      price,
-      stock,
-      description,
-      images,
-      colors,
-      sizes,
-      variants,
-      status,
-      product_type = 'variable'
-    } = req.body;
-    
-    console.log('Creating product:', { name, category_id, price, stock, status, variantsCount: variants?.length });
-    
-    // Validate required fields
-    if (!name || !category_id || !price) {
-      await transaction.rollback();
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    
     await transaction.beginTransaction();
+
+    // Calculate initial stock (will be updated for variable products)
+    let initialStock = product_type === 'simple' ? parseInt(stock) || 0 : 0;
     
-    // Ensure proper JSON stringification
-    const imagesJson = JSON.stringify(Array.isArray(images) ? images : []);
-    const colorsJson = JSON.stringify(Array.isArray(colors) ? colors : []);
-    const sizesJson = JSON.stringify(Array.isArray(sizes) ? sizes : []);
-    
-    console.log('Saving JSON data:', { imagesJson, colorsJson, sizesJson });
-    
-    // Calculate total stock from variants if provided
-    let totalStock = 0;
-    if (variants && Array.isArray(variants) && variants.length > 0) {
-      totalStock = variants.reduce((sum, variant) => sum + (parseInt(variant.stock) || 0), 0);
-    } else if (stock !== undefined) {
-      totalStock = parseInt(stock);
-    }
-    
-    const [result] = await transaction.execute(`
-      INSERT INTO products (
-        name, category_id, price, stock, description, 
-        images, colors, sizes, status, product_type, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-    `, [
-      name,
-      category_id,
-      parseFloat(price),
-      totalStock,
-      description || '',
-      imagesJson,
-      colorsJson,
-      sizesJson,
-      status || 'active',
-      product_type
-    ]);
+    // Insert into products table
+    const [result] = await transaction.execute(
+      `INSERT INTO products 
+       (name, description, price, category_id, images, product_type, stock, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name, 
+        description, 
+        price, 
+        category_id, 
+        JSON.stringify(images), 
+        product_type, 
+        initialStock,
+        'active' // Default status
+      ]
+    );
     
     const productId = result.insertId;
-    
-    // Create variants based on product type
-    if (product_type === 'simple') {
-      // For simple products, create a default variant
-      const defaultSku = `${productId}-default-${Date.now().toString().substring(8)}`;
-      
-      await transaction.execute(`
-        INSERT INTO product_variants (
-          product_id, color_name, color_value, size, stock, 
-          sku, barcode, price_adjustment, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-      `, [
-        productId,
-        'Default',
-        '#000000',
-        'Unique',
-        parseInt(stock || 0),
-        defaultSku,
-        null,
-        0
-      ]);
-      
-    } else if (variants && Array.isArray(variants) && variants.length > 0) {
-      // For variable products with variants
-      console.log('Creating variants:', variants.length);
-      
+    let totalStock = 0;
+
+    // Handle variants for variable products
+    if (product_type === 'variable' && variants.length > 0) {
       for (const variant of variants) {
         const {
-          color_name,
+          color_name = 'Default',
           color_value = '#000000',
-          size,
+          size = 'One Size',
           stock: variantStock = 0,
           sku = null,
           barcode = null,
-          price_adjustment = 0
+          price_adjustment = 0.00
         } = variant;
-        
-        if (color_name && size) {
-          // Generate a unique SKU if none provided
-          const uniqueSku = sku || `${productId}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
-          
-          await transaction.execute(`
-            INSERT INTO product_variants (
-              product_id, color_name, color_value, size, stock, 
-              sku, barcode, price_adjustment, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-          `, [
+
+        // Insert variant
+        await transaction.execute(
+          `INSERT INTO product_variants 
+           (product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
             productId,
             color_name,
             color_value,
             size,
-            parseInt(variantStock),
-            uniqueSku,
+            variantStock,
+            sku,
             barcode,
-            parseFloat(price_adjustment)
-          ]);
-        }
+            price_adjustment
+          ]
+        );
+        
+        totalStock += parseInt(variantStock) || 0;
       }
+
+      // Update the main product stock to be the sum of all variants
+      await transaction.execute(
+        'UPDATE products SET stock = ? WHERE id = ?',
+        [totalStock, productId]
+      );
     }
-    
-    // Update product stock to sum of all variants
-    await updateProductStock(transaction, productId);
-    
+
     await transaction.commit();
     
-    res.json({ 
+    // Fetch the newly created product with variants
+    const [newProductRows] = await pool.execute(
+      'SELECT * FROM products WHERE id = ?', 
+      [productId]
+    );
+    
+    if (newProductRows.length === 0) {
+      throw new Error('Failed to retrieve created product');
+    }
+    
+    const newProduct = await formatProductWithVariants(newProductRows[0]);
+    
+    res.status(201).json({ 
       success: true, 
-      message: 'Product created successfully',
-      productId: productId 
+      product: newProduct,
+      message: 'Product created successfully'
     });
+    
   } catch (error) {
     await transaction.rollback();
     console.error('Create product error:', error);
-    res.status(500).json({ error: 'Failed to create product' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to create product',
+      message: error.message
+    });
   } finally {
     if (transaction) await transaction.release();
   }
 });
 
-// Update product
+// Update a product with variants support
 router.put('/:id', async (req, res) => {
+  const productId = req.params.id;
+  const {
+    name, 
+    description, 
+    price, 
+    category_id, 
+    images = [], 
+    product_type = 'simple', 
+    variants = [],
+    stock = 0
+  } = req.body;
+
+  // Input validation
+  if (!name || !price) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Product name and price are required' 
+    });
+  }
+
+  // For variable products, ensure variants are provided
+  if (product_type === 'variable' && (!Array.isArray(variants) || variants.length === 0)) {
+    return res.status(400).json({
+      success: false,
+      error: 'At least one variant is required for variable products'
+    });
+  }
+
   const transaction = await pool.getConnection();
   try {
-    const {
-      name,
-      category_id,
-      price,
-      stock,
-      description,
-      images,
-      colors,
-      sizes,
-      variants,
-      status,
-      product_type = 'variable'
-    } = req.body;
-    
     await transaction.beginTransaction();
+
+    // Verify product exists
+    const [existingProducts] = await transaction.execute(
+      'SELECT id FROM products WHERE id = ? FOR UPDATE',
+      [productId]
+    );
+
+    if (existingProducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    // Calculate initial stock (will be updated for variable products)
+    let updatedStock = product_type === 'simple' ? parseInt(stock) || 0 : 0;
     
-    // Calculate total stock from variants if provided
+    // Update products table
+    await transaction.execute(
+      `UPDATE products SET
+        name = ?, 
+        description = ?, 
+        price = ?, 
+        category_id = ?,
+        images = ?, 
+        product_type = ?, 
+        stock = ?, 
+        updated_at = NOW()
+      WHERE id = ?`,
+      [
+        name, 
+        description, 
+        price, 
+        category_id, 
+        JSON.stringify(images), 
+        product_type, 
+        updatedStock,
+        productId
+      ]
+    );
+
     let totalStock = 0;
-    if (variants && Array.isArray(variants) && variants.length > 0) {
-      totalStock = variants.reduce((sum, variant) => sum + (parseInt(variant.stock) || 0), 0);
-    } else if (stock !== undefined) {
-      totalStock = parseInt(stock);
-    }
-    
-    const [result] = await transaction.execute(`
-      UPDATE products SET
-        name = ?, category_id = ?, price = ?, stock = ?, description = ?,
-        images = ?, colors = ?, sizes = ?, status = ?, product_type = ?, updated_at = NOW()
-      WHERE id = ?
-    `, [
-      name,
-      category_id,
-      parseFloat(price),
-      totalStock,
-      description || '',
-      JSON.stringify(images || []),
-      JSON.stringify(colors || []),
-      JSON.stringify(sizes || []),
-      status || 'active',
-      product_type,
-      req.params.id
-    ]);
-    
-    if (result.affectedRows === 0) {
-      await transaction.rollback();
-      return res.status(404).json({ error: 'Product not found' });
-    }
-    
-    // Update variants based on product type
-    try {
-      // Delete existing variants
-      await transaction.execute('DELETE FROM product_variants WHERE product_id = ?', [req.params.id]);
+
+    // Handle variants for variable products
+    if (product_type === 'variable' && variants.length > 0) {
+      // Get existing variants to compare
+      const [existingVariants] = await transaction.execute(
+        'SELECT id FROM product_variants WHERE product_id = ?',
+        [productId]
+      );
       
-      if (product_type === 'simple') {
-        // For simple products, create a default variant
-        const defaultSku = `${req.params.id}-default-${Date.now().toString().substring(8)}`;
-        
-        await transaction.execute(`
-          INSERT INTO product_variants (
-            product_id, color_name, color_value, size, stock, 
-            sku, barcode, price_adjustment, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-        `, [
-          req.params.id,
-          'Default',
-          '#000000',
-          'Unique',
-          parseInt(stock || 0),
-          defaultSku,
-          null,
-          0
-        ]);
-      } else if (variants && Array.isArray(variants)) {
-        // Create new variants for variable products
-        for (const variant of variants) {
-          const {
-            color_name,
-            color_value = '#000000',
-            size,
-            stock: variantStock = 0,
-            sku = null,
-            barcode = null,
-            price_adjustment = 0
-          } = variant;
-          
-          if (color_name && size) {
-            // Generate a unique SKU if none provided
-            const uniqueSku = sku || `${req.params.id}-${color_name.substring(0, 3)}-${size}-${Date.now().toString().substring(8)}`;
-            
-            await transaction.execute(`
-              INSERT INTO product_variants (
-                product_id, color_name, color_value, size, stock, 
-                sku, barcode, price_adjustment, created_at, updated_at
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-            `, [
-              req.params.id,
+      const existingVariantIds = existingVariants.map(v => v.id);
+      const updatedVariantIds = [];
+
+      // Process each variant in the request
+      for (const variant of variants) {
+        const {
+          id,
+          color_name = 'Default',
+          color_value = '#000000',
+          size = 'One Size',
+          stock: variantStock = 0,
+          sku = null,
+          barcode = null,
+          price_adjustment = 0.00
+        } = variant;
+
+        if (id) {
+          // Update existing variant
+          await transaction.execute(
+            `UPDATE product_variants SET
+              color_name = ?,
+              color_value = ?,
+              size = ?,
+              stock = ?,
+              sku = ?,
+              barcode = ?,
+              price_adjustment = ?,
+              updated_at = NOW()
+            WHERE id = ? AND product_id = ?`,
+            [
               color_name,
               color_value,
               size,
-              parseInt(variantStock),
-              uniqueSku,
+              variantStock,
+              sku,
               barcode,
-              parseFloat(price_adjustment)
-            ]);
-          }
+              price_adjustment,
+              id,
+              productId
+            ]
+          );
+          updatedVariantIds.push(id);
+        } else {
+          // Insert new variant
+          const [result] = await transaction.execute(
+            `INSERT INTO product_variants 
+             (product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              productId,
+              color_name,
+              color_value,
+              size,
+              variantStock,
+              sku,
+              barcode,
+              price_adjustment
+            ]
+          );
+          updatedVariantIds.push(result.insertId);
         }
+        
+        totalStock += parseInt(variantStock) || 0;
       }
-      
-      // Update product stock to sum of all variants
-      await updateProductStock(transaction, req.params.id);
-    } catch (error) {
-      console.error('Error handling variants:', error);
-      throw error;
+
+      // Delete variants that were removed
+      const variantsToDelete = existingVariantIds.filter(id => !updatedVariantIds.includes(id));
+      if (variantsToDelete.length > 0) {
+        await transaction.query(
+          'DELETE FROM product_variants WHERE id IN (?)',
+          [variantsToDelete]
+        );
+      }
+
+      // Update the main product stock to be the sum of all variants
+      if (product_type === 'variable') {
+        await transaction.execute(
+          'UPDATE products SET stock = ? WHERE id = ?',
+          [totalStock, productId]
+        );
+      }
+    } else if (product_type === 'simple') {
+      // For simple products, remove any existing variants
+      await transaction.execute(
+        'DELETE FROM product_variants WHERE product_id = ?',
+        [productId]
+      );
     }
-    
+
+    // Commit the transaction
     await transaction.commit();
     
-    res.json({ success: true, message: 'Product updated successfully' });
+    // Fetch the updated product with variants
+    const [updatedProductRows] = await pool.execute(
+      'SELECT * FROM products WHERE id = ?',
+      [productId]
+    );
+    
+    if (updatedProductRows.length === 0) {
+      throw new Error('Failed to retrieve updated product');
+    }
+    
+    const updatedProduct = await formatProductWithVariants(updatedProductRows[0]);
+    
+    res.json({
+      success: true,
+      product: updatedProduct,
+      message: 'Product updated successfully'
+    });
+    
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Update product error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update product',
+      message: error.message
+    });
+  } finally {
+    if (transaction) await transaction.release();
+  }
+});
   } catch (error) {
     await transaction.rollback();
     console.error('Update product error:', error);

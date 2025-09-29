@@ -54,8 +54,8 @@ const HomePage = () => {
           setAllProducts([]);
         }
       } catch (error) {
-        console.error('Error loading products:', error);
-        setAllProducts([]);
+        console.error('Error loading products, falling back to sample data:', error);
+        setAllProducts(sampleProducts); // Fallback to sample data
       } finally {
         setLoading(false);
       }

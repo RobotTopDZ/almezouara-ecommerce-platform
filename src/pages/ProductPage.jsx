@@ -68,11 +68,14 @@ const ProductPage = () => {
             price: productData.price,
             description: productData.description || 'Description non disponible',
             images: productData.images || ['/images/IMG_0630-scaled.jpeg'],
+            // Keep colors and sizes as they are from the API
             colors: productData.colors || [],
             sizes: productData.sizes || [],
             stock: productData.stock || 0,
             category: productData.category_name || 'Général',
-            status: productData.status || 'active'
+            status: productData.status || 'active',
+            product_type: productData.product_type || 'simple',
+            variants: productData.variants || [],
           };
           
           console.log('Transformed product:', transformedProduct);
@@ -148,6 +151,25 @@ const ProductPage = () => {
     return digits;
   };
   
+  // Get available sizes for the selected color
+  const getAvailableSizes = () => {
+    if (!product || product.product_type !== 'variable' || !selectedColor) {
+      return product ? product.sizes : [];
+    }
+    return product.variants
+      .filter(v => v.color_name === selectedColor && v.stock > 0)
+      .map(v => v.size);
+  };
+
+  // Check if a specific size is available for the selected color
+  const isSizeAvailable = (size) => {
+    if (!product || product.product_type !== 'variable' || !selectedColor) {
+      return true; // Assume available if not a variable product
+    }
+    const availableSizes = getAvailableSizes();
+    return availableSizes.includes(size);
+  };
+
   // Check if the selected variant is available (has stock)
   const isVariantAvailable = () => {
     if (!product) return false;
@@ -208,22 +230,14 @@ const ProductPage = () => {
 
   // Reset selected size when color changes
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0 && selectedColor) {
-      // Check if current selected size is available for the new color
-      const availableSizes = product.variants
-        .filter(variant => variant.color_name === selectedColor)
-        .map(variant => variant.size);
-      
+    if (product && product.product_type === 'variable' && selectedColor) {
+      const availableSizes = getAvailableSizes();
+      // If the current size is not in the new list of available sizes, reset it
       if (!availableSizes.includes(selectedSize)) {
-        // Reset to first available size for this color
-        if (availableSizes.length > 0) {
-          setSelectedSize(availableSizes[0]);
-        } else {
-          setSelectedSize(null);
-        }
+        setSelectedSize(availableSizes[0] || null);
       }
     }
-  }, [selectedColor, product, selectedSize]);
+  }, [selectedColor, product]);
 
   // Customer search function
   const searchCustomer = async (phone) => {
