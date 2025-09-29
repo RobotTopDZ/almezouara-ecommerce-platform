@@ -238,6 +238,7 @@ router.get('/', async (req, res) => {
       return res.json({ orders: [] });
     }
     
+    // Récupérer les commandes
     const [orders] = await pool.execute(`
       SELECT o.*
       FROM orders o
@@ -245,8 +246,34 @@ router.get('/', async (req, res) => {
       LIMIT 100
     `);
 
-    console.log('📋 Found orders:', orders.length);
-    res.json({ orders });
+    // Pour chaque commande, récupérer les détails des produits
+    const ordersWithItems = [];
+    for (const order of orders) {
+      try {
+        // Récupérer les articles de la commande
+        const [items] = await pool.execute(`
+          SELECT product_id, variant_id, product_name, price, quantity, image, color, size
+          FROM order_items
+          WHERE order_id = ?
+        `, [order.id]);
+        
+        // Ajouter les articles à la commande
+        ordersWithItems.push({
+          ...order,
+          items: items
+        });
+      } catch (itemError) {
+        console.error(`Error fetching items for order ${order.id}:`, itemError);
+        // Ajouter la commande sans articles en cas d'erreur
+        ordersWithItems.push({
+          ...order,
+          items: []
+        });
+      }
+    }
+
+    console.log('📋 Found orders:', ordersWithItems.length);
+    res.json({ orders: ordersWithItems });
   } catch (error) {
     console.error('Get orders error:', error);
     res.json({ orders: [] });

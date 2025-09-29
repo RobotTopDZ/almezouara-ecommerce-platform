@@ -442,18 +442,32 @@ const AdminOrders = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {(() => {
                           const items = formatOrderItems(order.items);
                           const stats = calculateOrderStats(order);
                           return (
                             <>
-                              {stats.totalItems} article(s) ({stats.totalProducts} produit(s))
+                              <div className="font-medium">{stats.totalItems} article(s) ({stats.totalProducts} produit(s))</div>
                               {items.length > 0 && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {items[0].name}
-                                  {items.length > 1 && ` +${items.length - 1} autres`}
+                                <div className="space-y-1 mt-1 max-h-20 overflow-y-auto">
+                                  {items.slice(0, 3).map((item, idx) => (
+                                    <div key={idx} className="text-xs border-l-2 border-gray-300 pl-2">
+                                      <div className="font-medium">{item.product_name || item.name}</div>
+                                      <div className="flex flex-wrap gap-x-3 text-gray-500">
+                                        <span>{formatPrice(item.price)} DA</span>
+                                        <span>x{item.quantity || 1}</span>
+                                        {item.color && <span>🎨 {item.color}</span>}
+                                        {item.size && <span>📏 {item.size}</span>}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {items.length > 3 && (
+                                    <div className="text-xs text-blue-500 italic">
+                                      +{items.length - 3} autres produits...
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </>
