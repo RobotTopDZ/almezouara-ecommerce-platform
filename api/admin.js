@@ -50,18 +50,34 @@ router.post('/login', async (req, res) => {
 // Get all orders (admin)
 router.get('/orders', async (req, res) => {
   try {
-    // Utiliser une syntaxe compatible avec SQLite
+    // Récupérer toutes les commandes
     const [orders] = await pool.execute(`
       SELECT o.*, 
              o.full_name as fullName,
-             o.phone as phoneNumber,
-             GROUP_CONCAT(oi.product_name || ' (' || oi.quantity || 'x)') as items_summary
+             o.phone as phoneNumber
       FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      GROUP BY o.id
       ORDER BY o.created_at DESC
       LIMIT 100
     `);
+    
+    // Pour chaque commande, récupérer les détails des produits
+    for (const order of orders) {
+      const [items] = await pool.execute(`
+        SELECT 
+          product_id,
+          product_name as name,
+          price,
+          quantity,
+          image,
+          color,
+          size
+        FROM order_items
+        WHERE order_id = ?
+      `, [order.id]);
+      
+      // Ajouter les items à la commande
+      order.items = items;
+    }
 
     res.json({ orders });
   } catch (error) {
