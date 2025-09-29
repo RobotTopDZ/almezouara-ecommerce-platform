@@ -122,9 +122,13 @@ async function postDeploy() {
     console.log('\n🔧 Fixing product_variants table...');
     try {
       // Check if product_variants table exists with correct structure
+      // Use SQLite compatible query if using SQLite
+      const isSQLite = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('sqlite');
       const [variantsTable] = await pool.execute(
-        "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'product_variants'",
-        [process.env.DATABASE_NAME || 'railway']
+        isSQLite 
+          ? "SELECT name FROM sqlite_master WHERE type='table' AND name='product_variants'"
+          : "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'product_variants'",
+        isSQLite ? [] : [process.env.DATABASE_NAME || 'railway']
       );
       
       if (variantsTable.length === 0) {
@@ -160,11 +164,14 @@ async function postDeploy() {
       
       // Check if order_items table has variant_id column
       const [orderItemsColumns] = await pool.execute(
-        "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'",
-        [process.env.DATABASE_NAME || 'railway']
+        isSQLite
+          ? "PRAGMA table_info(order_items)"
+          : "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'",
+        isSQLite ? [] : [process.env.DATABASE_NAME || 'railway']
       );
       
-      if (orderItemsColumns.length === 0) {
+      if ((isSQLite && !orderItemsColumns.some(col => col.name === 'variant_id')) || 
+          (!isSQLite && orderItemsColumns.length === 0)) {
         console.log('⚠️ variant_id column missing from order_items, adding it...');
         await pool.execute(`
           ALTER TABLE order_items 
@@ -191,11 +198,44 @@ async function postDeploy() {
     
     // Final verification
     console.log('\n🔍 Final verification...');
-    const [finalDomicile] = await pool.execute('SELECT COUNT(*) as count FROM domicile_fees');
-    const [finalStopdesk] = await pool.execute('SELECT COUNT(*) as count FROM stopdesk_fees');
-    const [finalOrders] = await pool.execute('SELECT COUNT(*) as count FROM orders');
-    const [finalPromotions] = await pool.execute('SELECT COUNT(*) as count FROM promotions');
-    const [finalAccounts] = await pool.execute('SELECT COUNT(*) as count FROM accounts');
+    try {
+      const isSQLite = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('sqlite');
+      
+      // Use try/catch for each table check to avoid stopping on first error
+      try {
+        const [finalDomicile] = await pool.execute('SELECT COUNT(*) as count FROM domicile_fees');
+        console.log(`✅ domicile_fees table: ${finalDomicile[0].count} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not verify domicile_fees table: ${err.message}`);
+      }
+      
+      try {
+        const [finalStopdesk] = await pool.execute('SELECT COUNT(*) as count FROM stopdesk_fees');
+        console.log(`✅ stopdesk_fees table: ${finalStopdesk[0].count} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not verify stopdesk_fees table: ${err.message}`);
+      }
+      
+      try {
+        const [finalOrders] = await pool.execute('SELECT COUNT(*) as count FROM orders');
+        console.log(`✅ orders table: ${finalOrders[0].count} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not verify orders table: ${err.message}`);
+      }
+      
+      try {
+        const [finalPromotions] = await pool.execute('SELECT COUNT(*) as count FROM promotions');
+        console.log(`✅ promotions table: ${finalPromotions[0].count} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not verify promotions table: ${err.message}`);
+      }
+      
+      try {
+        const [finalAccounts] = await pool.execute('SELECT COUNT(*) as count FROM accounts');
+        console.log(`✅ accounts table: ${finalAccounts[0].count} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not verify accounts table: ${err.message}`);
+      }
     
     // Check product_variants count
     let finalVariants = [{count: 0}];

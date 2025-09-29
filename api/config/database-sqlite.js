@@ -156,11 +156,29 @@ const createTables = async () => {
       )
     `);
     
+    // Create promotions table
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS promotions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL UNIQUE,
+        discount_percentage INTEGER NOT NULL,
+        start_date DATETIME,
+        end_date DATETIME,
+        is_active INTEGER DEFAULT 1,
+        usage_limit INTEGER DEFAULT NULL,
+        usage_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     // Create accounts table
     await db.exec(`
       CREATE TABLE IF NOT EXISTS accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
+        phone TEXT UNIQUE,
+        name TEXT,
         password TEXT,
         full_name TEXT,
         role TEXT DEFAULT 'customer',
