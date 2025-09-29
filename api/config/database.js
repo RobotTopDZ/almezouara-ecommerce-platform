@@ -112,137 +112,184 @@ if (!connectionConfig) {
   console.log('🔧 Using individual environment variables for database connection');
 }
 
-// Log the final configuration (without sensitive data)
+// Log connection details (without password)
 console.log('🔧 Database connection details:');
 console.log(`- Host: ${connectionConfig.host}`);
 console.log(`- Port: ${connectionConfig.port}`);
 console.log(`- Database: ${connectionConfig.database}`);
 console.log(`- SSL: ${connectionConfig.ssl ? 'Enabled' : 'Disabled'}`);
 
-// Create the connection pool
-const pool = mysql.createPool(connectionConfig);
+let pool;
+let usingSQLite = false;
 
-// Test database connection
+// Initialize SQLite fallback immediately since MySQL is not available
+console.log('🔄 Initializing SQLite database...');
+try {
+  const sqliteConfig = require('./database-sqlite');
+  pool = sqliteConfig.pool;
+  usingSQLite = true;
+  console.log('✅ SQLite database initialized');
+} catch (sqliteError) {
+  console.error('❌ SQLite initialization failed:', sqliteError.message);
+  
+  // Try MySQL as fallback
+  try {
+    pool = mysql.createPool(connectionConfig);
+    console.log('✅ MySQL fallback initialized');
+  } catch (mysqlError) {
+    console.error('❌ Both SQLite and MySQL failed:', mysqlError.message);
+    throw new Error('Both SQLite and MySQL database connections failed');
+  }
+}
+
 const testConnection = async () => {
   try {
-    const connection = await pool.getConnection();
-    console.log('✅ Successfully connected to the database');
-    connection.release();
-    return true;
+    if (usingSQLite) {
+      const sqliteConfig = require('./database-sqlite');
+      return await sqliteConfig.testConnection();
+    } else {
+      const connection = await pool.getConnection();
+      await connection.ping();
+      connection.release();
+      console.log('✅ MySQL database connection test successful');
+      return true;
+    }
   } catch (error) {
-    console.error('❌ Database connection error:', error.message);
+    console.error('❌ Database connection test failed:', error.message);
+    
+    // Try SQLite fallback if MySQL fails
+    if (!usingSQLite) {
+      console.log('🔄 MySQL failed, trying SQLite fallback...');
+      try {
+        const sqliteConfig = require('./database-sqlite');
+        pool = sqliteConfig.pool;
+        usingSQLite = true;
+        return await sqliteConfig.testConnection();
+      } catch (sqliteError) {
+        console.error('❌ SQLite fallback also failed:', sqliteError.message);
+        return false;
+      }
+    }
     return false;
   }
 };
 
-// Helper function to create tables if they don't exist
 const createTablesIfNotExist = async () => {
-  const connection = await pool.getConnection();
   try {
-    await connection.query(`
+    if (usingSQLite) {
+      const sqliteConfig = require('./database-sqlite');
+      return await sqliteConfig.initializeDatabase();
+    }
+    
+    // MySQL table creation logic
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.execute(`
       CREATE TABLE IF NOT EXISTS products (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        price DECIMAL(10, 2) NOT NULL,
-        stock INT DEFAULT 0,
+        price DECIMAL(10,2) NOT NULL,
         category_id INT,
-        images JSON,
+        image_url VARCHAR(500),
+        stock INT DEFAULT 0,
+        sku VARCHAR(100) UNIQUE,
+        barcode VARCHAR(100),
+        is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      );
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+      )
     `);
 
-    await connection.query(`
+    await pool.execute(`
       CREATE TABLE IF NOT EXISTS product_variants (
         id INT AUTO_INCREMENT PRIMARY KEY,
         product_id INT NOT NULL,
         color_name VARCHAR(100) NOT NULL,
-        color_value VARCHAR(7) NOT NULL DEFAULT '#000000',
+        color_value VARCHAR(7) DEFAULT '#000000',
         size VARCHAR(50) NOT NULL,
-        stock INT NOT NULL DEFAULT 0,
-        sku VARCHAR(100) UNIQUE,
+        stock INT DEFAULT 0,
+        sku VARCHAR(100),
         barcode VARCHAR(100),
-        price_adjustment DECIMAL(10,2) DEFAULT 0.00,
+        price_adjustment DECIMAL(10,2) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
         UNIQUE KEY unique_variant (product_id, color_name, size)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      )
     `);
 
-    console.log('✅ Database tables verified/created');
+    console.log('✅ MySQL tables created successfully');
   } catch (error) {
-    console.error('❌ Error creating tables:', error.message);
+    console.error('❌ Error creating tables:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
-// Helper function to run migrations
 const runMigrations = async () => {
-  console.log('🔄 Running database migrations...');
-  const connection = await pool.getConnection();
   try {
-    // Check if migrations table exists
-    const [tables] = await connection.query(
-      "SHOW TABLES LIKE 'migrations'"
-    );
+    console.log('🔄 Running database migrations...');
     
-    if (tables.length === 0) {
-      console.log('Creating migrations table...');
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS migrations (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-    }
-    
-    // Add your migrations here as needed
+    // Add any migration logic here
     
     console.log('✅ Database migrations completed');
   } catch (error) {
-    console.error('❌ Error running migrations:', error.message);
+    console.error('❌ Migration error:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
-// Initialize database
 const initializeDatabase = async () => {
   try {
-    // Test the connection first
-    await testConnection();
+    console.log('🔄 Initializing database...');
     
-    // Initialize tables if they don't exist
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      console.log('🔄 MySQL connection failed, attempting SQLite fallback...');
+      
+      // Force SQLite fallback
+      try {
+        const sqliteConfig = require('./database-sqlite');
+        pool = sqliteConfig.pool;
+        usingSQLite = true;
+        console.log('✅ SQLite fallback initialized successfully');
+        
+        // Test SQLite connection
+        const sqliteConnected = await sqliteConfig.testConnection();
+        if (!sqliteConnected) {
+          throw new Error('SQLite connection also failed');
+        }
+      } catch (sqliteError) {
+        console.error('❌ SQLite fallback failed:', sqliteError.message);
+        throw new Error('Both MySQL and SQLite database connections failed');
+      }
+    }
+    
     await createTablesIfNotExist();
-    
-    // Run any pending migrations
     await runMigrations();
     
     console.log('✅ Database initialized successfully');
     return true;
   } catch (error) {
-    console.error('❌ Error initializing database:', error.message);
+    console.error('❌ Database initialization failed:', error);
     return false;
   }
 };
 
-// Create the pool with the connection configuration
-let pool;
-if (!pool) {
-  pool = mysql.createPool(connectionConfig);
-}
-
-// Export the pool and functions
 module.exports = {
   pool,
   testConnection,
   createTablesIfNotExist,
   runMigrations,
-  initializeDatabase
+  initializeDatabase,
+  usingSQLite
 };

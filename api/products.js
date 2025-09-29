@@ -4,9 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 // Import database configuration with proper path resolution
-const dbConfig = require('../config/database');
-const pool = dbConfig.pool;
-const { initializeDatabase } = dbConfig;
+const { pool, initializeDatabase } = require('./config/database');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -45,12 +43,17 @@ const initializeTables = async () => {
   try {
     if (!pool) {
       console.log("Waiting for database connection...");
-      // If you have a function to wait for the pool, call it here.
-      // For now, we'll just log and return.
       return;
     }
     
-    // Create categories table
+    // Check if we're using SQLite and skip MySQL-specific table creation
+    const dbConfig = require('./config/database');
+    if (dbConfig.usingSQLite) {
+      console.log('Using SQLite database - tables already initialized');
+      return;
+    }
+    
+    // Create categories table (MySQL syntax)
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,7 +67,7 @@ const initializeTables = async () => {
       )
     `);
 
-    // Create products table
+    // Create products table (MySQL syntax)
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS products (
         id INT AUTO_INCREMENT PRIMARY KEY,

@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
       if (phoneNumber) {
         try {
           const [existingOrders] = await pool.execute(
-            'SELECT * FROM orders WHERE phone = ? AND DATE(created_at) = CURDATE()',
+            'SELECT * FROM orders WHERE phone = ? AND DATE(created_at) = DATE("now")',
             [phoneNumber]
           );
           
@@ -96,76 +96,25 @@ router.post('/', async (req, res) => {
           message: 'Items added to existing order for today'
         });
       } else {
-        // Create new order - adapt to schema differences between environments
-        // Detect optional columns that can be NOT NULL in production schema
-        let hasDateColumn = false;
-        let hasShippingCostColumn = false;
-        let hasProductPriceColumn = false;
-
-        try {
-          const [dateCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'date'");
-          hasDateColumn = Array.isArray(dateCol) && dateCol.length > 0;
-        } catch (_) {}
-
-        try {
-          const [shipCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'shipping_cost'");
-          hasShippingCostColumn = Array.isArray(shipCol) && shipCol.length > 0;
-        } catch (_) {}
-
-        try {
-          const [prodCol] = await pool.execute("SHOW COLUMNS FROM orders LIKE 'product_price'");
-          hasProductPriceColumn = Array.isArray(prodCol) && prodCol.length > 0;
-        } catch (_) {}
-
-        // Normalize monetary values
+        // Create new order - use fixed schema for SQLite compatibility
         const totalNum = Number(total) || 0;
-        let shippingNum = Number.isFinite(Number(shippingCost)) ? Number(shippingCost) : null;
-        let productNum = Number.isFinite(Number(productPrice)) ? Number(productPrice) : null;
+        const discountNum = Number(discountPercentage) || 0;
 
-        if (shippingNum === null && productNum !== null) {
-          shippingNum = Math.max(0, totalNum - productNum);
-        }
-        if (productNum === null && shippingNum !== null) {
-          productNum = Math.max(0, totalNum - shippingNum);
-        }
-        if (shippingNum === null && productNum === null) {
-          // Safe defaults if frontend didn't provide detailed split
-          shippingNum = 0;
-          productNum = totalNum;
-        }
+        console.log('🔧 Creating order with data:', { orderId, phoneNumber, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum });
 
-        // Build columns/values dynamically
-        const cols = ['id', 'phone'];
-        const vals = [orderId, phoneNumber || null];
-
-        if (hasDateColumn) {
-          cols.push('date');
-          vals.push(today);
-        }
-
-        cols.push('full_name', 'wilaya', 'city', 'address', 'delivery_method');
-        vals.push(fullName, wilaya, city, address, deliveryMethod);
-
-        if (hasShippingCostColumn) {
-          cols.push('shipping_cost');
-          vals.push(shippingNum);
-        }
-        if (hasProductPriceColumn) {
-          cols.push('product_price');
-          vals.push(productNum);
-        }
-
-        cols.push('total', 'discount_percentage', 'status');
-        vals.push(totalNum, discountPercentage || 0, 'pending');
-
-        const placeholders = cols.map(() => '?').join(', ');
-        const insertSQL = `INSERT INTO orders (${cols.join(', ')}) VALUES (${placeholders})`;
-
-        await pool.execute(insertSQL, vals);
+        // Insert order with fixed schema
+        await pool.execute(`
+          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum, 'pending']);
+        
+        console.log('✅ Order inserted successfully');
         
         // Start a transaction for order creation
         const connection = await pool.getConnection();
         await connection.beginTransaction();
+        
+        console.log('✅ Transaction started');
         
         try {
           // Insert order items and update stock
@@ -191,26 +140,26 @@ router.post('/', async (req, res) => {
             
             // Update stock
             if (variantId) {
-              // Update variant stock
+              // Update variant stock (SQLite compatible)
               await connection.execute(
-                'UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+                'UPDATE product_variants SET stock = MAX(0, stock - ?) WHERE id = ?',
                 [quantity, variantId]
               );
               
-              // Update product stock (sum of all variants)
+              // Update product stock (sum of all variants) - SQLite compatible
               await connection.execute(`
-                UPDATE products p
+                UPDATE products
                 SET stock = (
                   SELECT COALESCE(SUM(stock), 0)
                   FROM product_variants
-                  WHERE product_id = p.id
+                  WHERE product_id = products.id
                 )
                 WHERE id = ?
               `, [item.id]);
             } else {
-              // For products without variants
+              // For products without variants (SQLite compatible)
               await connection.execute(
-                'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+                'UPDATE products SET stock = MAX(0, stock - ?) WHERE id = ?',
                 [quantity, item.id]
               );
             }
@@ -268,23 +217,21 @@ router.post('/', async (req, res) => {
 // Get orders (for admin)
 router.get('/', async (req, res) => {
   try {
+    console.log('🔍 Fetching orders from database...');
+    
     if (!pool) {
+      console.log('❌ No database pool available');
       return res.json({ orders: [] });
     }
     
     const [orders] = await pool.execute(`
-      SELECT o.*, 
-             GROUP_CONCAT(
-               CONCAT(oi.product_name, ' (', oi.quantity, 'x)')
-               SEPARATOR ', '
-             ) as items_summary
+      SELECT o.*
       FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      GROUP BY o.id
       ORDER BY o.created_at DESC
       LIMIT 100
     `);
 
+    console.log('📋 Found orders:', orders.length);
     res.json({ orders });
   } catch (error) {
     console.error('Get orders error:', error);

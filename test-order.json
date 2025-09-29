@@ -1,0 +1,24 @@
+{
+  "phoneNumber": "0666789012",
+  "items": [
+    {
+      "id": 2,
+      "variantId": 3,
+      "name": "Robe Élégante",
+      "price": 8500,
+      "quantity": 1,
+      "image": "/images/robe-elegante.jpg",
+      "color": "Rouge",
+      "size": "M"
+    }
+  ],
+  "total": 9500,
+  "deliveryMethod": "domicile",
+  "address": "456 Avenue Mohammed V",
+  "fullName": "Sarah Benali",
+  "wilaya": "Casablanca",
+  "city": "Casablanca Centre",
+  "shippingCost": 1000,
+  "productPrice": 8500,
+  "discountPercentage": 0
+}

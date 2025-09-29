@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const dbConfig = require('./config/database');
-const pool = dbConfig.pool;
+const { pool } = require('./config/database');
 
 // Get all variants for a product
 router.get('/product/:productId/variants', async (req, res) => {
