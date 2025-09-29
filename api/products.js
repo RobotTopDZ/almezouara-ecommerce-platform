@@ -3,8 +3,10 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const pool = require('../config/database').pool; // Correctly import pool
-const { initializeDatabase } = require('../config/database');
+// Import database configuration with proper path resolution
+const dbConfig = require('../config/database');
+const pool = dbConfig.pool;
+const { initializeDatabase } = dbConfig;
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
