@@ -113,13 +113,14 @@ router.post('/', async (req, res) => {
 
         // Insert order with fixed schema and current date
         const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:MM:SS
-        // Récupérer le coût d'expédition à partir des données de la commande
+        // Récupérer le coût d'expédition et le prix des produits à partir des données de la commande
         const shippingCost = req.body.shippingCost || 0;
+        const productPrice = totalNum; // Le prix total des produits sans les frais de livraison
         
         await pool.execute(`
-          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status, date, shipping_cost)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum, 'pending', currentDate, shippingCost]);
+          INSERT INTO orders (id, phone, full_name, wilaya, city, address, delivery_method, total, discount_percentage, status, date, shipping_cost, product_price)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [orderId, phoneNumber || null, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum, 'pending', currentDate, shippingCost, productPrice]);
         
         console.log('✅ Order inserted successfully');
         
