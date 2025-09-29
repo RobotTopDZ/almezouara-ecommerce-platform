@@ -164,14 +164,10 @@ async function postDeploy() {
       
       // Check if order_items table has variant_id column
       const [orderItemsColumns] = await pool.execute(
-        isSQLite
-          ? "PRAGMA table_info(order_items)"
-          : "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'",
-        isSQLite ? [] : [process.env.DATABASE_NAME || 'railway']
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'variant_id'"
       );
       
-      if ((isSQLite && !orderItemsColumns.some(col => col.name === 'variant_id')) || 
-          (!isSQLite && orderItemsColumns.length === 0)) {
+      if (orderItemsColumns.length === 0) {
         console.log('⚠️ variant_id column missing from order_items, adding it...');
         await pool.execute(`
           ALTER TABLE order_items 

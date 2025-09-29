@@ -134,9 +134,15 @@ const autoRepairDatabase = async () => {
     
     // Check if orders table exists and has correct structure
     try {
-      // SQLite compatible query to check if column exists
-      const columns = await connection.execute(`PRAGMA table_info(orders)`);
-      const itemsColumnExists = columns[0].some(col => col.name === 'items');
+      // MySQL compatible query to check if column exists
+      const [columns] = await connection.execute(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'orders' 
+        AND COLUMN_NAME = 'items'
+      `);
+      const itemsColumnExists = columns.length > 0;
       
       if (!itemsColumnExists) {
         console.log('⚠️ Orders table missing items column, adding it...');
