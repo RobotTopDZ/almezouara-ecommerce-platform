@@ -116,39 +116,28 @@ if (fs.existsSync(publicPath)) {
 
 // Auto-repair database on startup
 const autoRepairDatabase = async () => {
+  let connection;
   try {
     console.log('🔧 Auto-repairing database...');
     
-    const mysql = require('mysql2/promise');
+    // Use the centralized database configuration
+    const { pool, testConnection } = require('./api/config/database');
     
-    const dbConfig = {
-      host: process.env.DATABASE_HOST,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false
-    };
-
-    if (process.env.DATABASE_URL) {
-      const url = new URL(process.env.DATABASE_URL);
-      Object.assign(dbConfig, {
-        host: url.hostname,
-        port: url.port || 3306,
-        user: url.username,
-        password: url.password,
-        database: url.pathname.replace(/^\//, '')
-      });
-      dbConfig.ssl = { rejectUnauthorized: false };
+    // Test the database connection first
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('Failed to connect to database');
     }
-
-    const pool = mysql.createPool(dbConfig);
+    
+    // Get a connection from the pool
+    connection = await pool.getConnection();
     
     // Check if orders table exists and has correct structure
     try {
-      const [columns] = await pool.execute(`SHOW COLUMNS FROM orders LIKE 'items'`);
+      const [columns] = await connection.execute(`SHOW COLUMNS FROM orders LIKE 'items'`);
       if (columns.length === 0) {
         console.log('⚠️ Orders table missing items column, adding it...');
-        await pool.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
+        await connection.execute('ALTER TABLE orders ADD COLUMN items TEXT AFTER delivery_method');
         console.log('✅ Added items column to orders table');
       } else {
         console.log('✅ Orders table structure is correct');
@@ -156,8 +145,8 @@ const autoRepairDatabase = async () => {
     } catch (error) {
       if (error.code === '42S02') { // Table doesn't exist
         console.log('⚠️ Orders table does not exist, creating it...');
-        await pool.execute(`
-          CREATE TABLE orders (
+        await connection.execute(`
+          CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(50) PRIMARY KEY,
             phone VARCHAR(20),
             full_name VARCHAR(255),
@@ -176,22 +165,23 @@ const autoRepairDatabase = async () => {
         console.log('✅ Created orders table with correct structure');
       } else {
         console.error('❌ Database repair error:', error.message);
+        throw error; // Re-throw to be caught by the outer try-catch
       }
     }
     
     // Check and fix promotions table structure
     try {
       console.log('🔍 Checking promotions table structure...');
-      const [promotionsColumns] = await pool.execute('DESCRIBE promotions');
-      const idColumn = promotionsColumns.find(c => c.Field === 'id');
       
-      if (idColumn && idColumn.Type.includes('int')) {
-        console.log('⚠️  Promotions table has INT id, fixing to VARCHAR...');
-        
-        // Drop and recreate with correct schema
-        await pool.execute('DROP TABLE IF EXISTS promotions');
-        await pool.execute(`
-          CREATE TABLE promotions (
+      // First, check if promotions table exists
+      const [tables] = await connection.execute(
+        "SHOW TABLES LIKE 'promotions'"
+      );
+      
+      if (tables.length === 0) {
+        console.log('⚠️  Promotions table does not exist, creating it...');
+        await connection.execute(`
+          CREATE TABLE IF NOT EXISTS promotions (
             id VARCHAR(50) PRIMARY KEY,
             phone VARCHAR(20) NOT NULL,
             percentage DECIMAL(5,2) NOT NULL,
@@ -200,27 +190,78 @@ const autoRepairDatabase = async () => {
             usage_count INT DEFAULT 0,
             is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_phone (phone)
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
-        
-        console.log('✅ Promotions table fixed with VARCHAR id');
+        console.log('✅ Created promotions table with correct structure');
       } else {
-        console.log('✅ Promotions table structure is correct');
+        // Table exists, check its structure
+        const [columns] = await connection.execute('DESCRIBE promotions');
+        const idColumn = columns.find(c => c.Field === 'id');
+        
+        if (idColumn && idColumn.Type.includes('int')) {
+          console.log('⚠️  Promotions table has INT id, fixing to VARCHAR...');
+          
+          // Create a backup of the existing data
+          const [promotions] = await connection.query('SELECT * FROM promotions');
+          
+          // Drop and recreate with correct schema
+          await connection.execute('DROP TABLE IF EXISTS promotions_backup');
+          await connection.execute('RENAME TABLE promotions TO promotions_backup');
+          
+          await connection.execute(`
+            CREATE TABLE promotions (
+              id VARCHAR(50) PRIMARY KEY,
+              phone VARCHAR(20) NOT NULL,
+              percentage DECIMAL(5,2) NOT NULL,
+              description TEXT,
+              usage_limit INT DEFAULT 1,
+              usage_count INT DEFAULT 0,
+              is_active BOOLEAN DEFAULT TRUE,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              INDEX idx_phone (phone)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          `);
+          
+          // Migrate data if there was any
+          if (promotions.length > 0) {
+            console.log(`Migrating ${promotions.length} promotions...`);
+            for (const promo of promotions) {
+              await connection.execute(
+                'INSERT INTO promotions SET ?',
+                [{
+                  ...promo,
+                  id: String(promo.id) // Convert ID to string
+                }]
+              );
+            }
+          }
+          
+          console.log('✅ Promotions table fixed with VARCHAR id');
+        } else {
+          console.log('✅ Promotions table structure is correct');
+        }
       }
     } catch (error) {
-      if (error.code === '42S02') {
-        console.log('⚠️  Promotions table does not exist, will be created by API initialization');
-      } else {
-        console.error('❌ Promotions table repair error:', error.message);
-      }
+      console.error('❌ Error checking/fixing promotions table:', error.message);
+      throw error; // Re-throw to be caught by the outer try-catch
     }
     
-    await pool.end();
     console.log('✅ Database auto-repair completed');
     
   } catch (error) {
     console.error('❌ Failed to auto-repair database:', error.message);
+  } finally {
+    // Always release the connection back to the pool
+    if (connection) {
+      try {
+        await connection.release();
+      } catch (releaseError) {
+        console.error('❌ Error releasing database connection:', releaseError.message);
+      }
+    }
   }
 };
 
