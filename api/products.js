@@ -297,6 +297,8 @@ router.post('/', async (req, res) => {
 
         // Générer un SKU unique si null ou vide
         const variantSku = sku || '';
+        // Utiliser le nom du produit pour générer un slug local si nécessaire pour le SKU
+        const localSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const finalSku = variantSku.trim() === '' ? 
           `${slug}-${color_name.toLowerCase().replace(/\s+/g, '-')}-${size.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}` : 
           variantSku;
