@@ -237,25 +237,27 @@ async function postDeploy() {
         console.warn(`⚠️ Could not verify accounts table: ${err.message}`);
       }
     
-    // Check product_variants count
-    let finalVariants = [{count: 0}];
-    try {
-      [finalVariants] = await pool.execute('SELECT COUNT(*) as count FROM product_variants');
-    } catch (err) {
-      console.log('⚠️ Could not count product_variants:', err.message);
+      // Check product_variants count
+      let finalVariants = [{count: 0}];
+      try {
+        [finalVariants] = await pool.execute('SELECT COUNT(*) as count FROM product_variants');
+      } catch (err) {
+        console.log('⚠️ Could not count product_variants:', err.message);
+      }
+      
+      console.log('📊 Database Summary:');
+      console.log(`   - Domicile fees: ${finalDomicile[0].count}`);
+      console.log(`   - Stopdesk fees: ${finalStopdesk[0].count}`);
+      console.log(`   - Orders: ${finalOrders[0].count}`);
+      console.log(`   - Promotions: ${finalPromotions[0].count}`);
+      console.log(`   - Accounts: ${finalAccounts[0].count}`);
+      console.log(`   - Product variants: ${finalVariants[0].count}`);
+      
+      console.log('\n🎉 Post-deploy completed successfully!');
+      console.log('🚀 Your e-commerce is ready for production!');
+    } catch (error) {
+      console.error('❌ Final verification failed:', error.message);
     }
-    
-    console.log('📊 Database Summary:');
-    console.log(`   - Domicile fees: ${finalDomicile[0].count}`);
-    console.log(`   - Stopdesk fees: ${finalStopdesk[0].count}`);
-    console.log(`   - Orders: ${finalOrders[0].count}`);
-    console.log(`   - Promotions: ${finalPromotions[0].count}`);
-    console.log(`   - Accounts: ${finalAccounts[0].count}`);
-    console.log(`   - Product variants: ${finalVariants[0].count}`);
-    
-    console.log('\n🎉 Post-deploy completed successfully!');
-    console.log('🚀 Your e-commerce is ready for production!');
-    
   } catch (error) {
     console.error('❌ Post-deploy failed:', error.message);
     console.error('Stack trace:', error.stack);

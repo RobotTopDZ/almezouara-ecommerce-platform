@@ -10,7 +10,8 @@ const runMigration = async (pool) => {
     const [columns] = await pool.execute(`
       SELECT COLUMN_NAME 
       FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_NAME = 'products' 
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'products' 
       AND COLUMN_NAME = 'product_type'
     `);
     
