@@ -101,7 +101,19 @@ const formatProduct = async (product) => {
 
   // Parse JSON fields safely
   try {
-    formatted.images = product.images ? JSON.parse(product.images) : [];
+    if (typeof product.images === 'string') {
+      if (product.images.startsWith('http') || product.images.startsWith('/images/')) {
+        // Si c'est une URL directe, la convertir en tableau
+        formatted.images = [product.images];
+      } else {
+        // Essayer de parser comme JSON
+        formatted.images = JSON.parse(product.images);
+      }
+    } else if (Array.isArray(product.images)) {
+      formatted.images = product.images;
+    } else {
+      formatted.images = [];
+    }
   } catch (e) {
     formatted.images = [];
   }
@@ -200,6 +212,9 @@ router.post('/', async (req, res) => {
     variants = [],
     stock = 0
   } = req.body;
+
+  // Générer un slug à partir du nom du produit
+  const slug = name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 
   // Input validation
   if (!name || !price) {
