@@ -224,20 +224,44 @@ router.post('/', async (req, res) => {
     // Calculate initial stock (will be updated for variable products)
     let initialStock = product_type === 'simple' ? parseInt(stock) || 0 : 0;
     
-    // Insert into products table
+    // Vérifier si la colonne product_type existe
+    let hasProductTypeColumn = true;
+    try {
+      const [columns] = await transaction.execute(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'products' 
+        AND COLUMN_NAME = 'product_type'
+      `);
+      hasProductTypeColumn = columns.length > 0;
+      
+      // Si la colonne n'existe pas, l'ajouter
+      if (!hasProductTypeColumn) {
+        console.log('⚠️ Colonne product_type manquante, tentative d\'ajout...');
+        await transaction.execute(`
+          ALTER TABLE products 
+          ADD COLUMN product_type VARCHAR(50) DEFAULT 'simple' NOT NULL
+        `);
+        console.log('✅ Colonne product_type ajoutée avec succès');
+        hasProductTypeColumn = true;
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification/ajout de la colonne:', error);
+    }
+    
+    // Insert into products table avec ou sans product_type selon sa présence
     const [result] = await transaction.execute(
-      `INSERT INTO products 
-       (name, description, price, category_id, images, product_type, stock, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        name, 
-        description, 
-        price, 
-        category_id, 
-        JSON.stringify(images), 
-        product_type, 
-        initialStock,
-        'active' // Default status
+      hasProductTypeColumn 
+        ? `INSERT INTO products 
+           (name, description, price, category_id, images, product_type, stock, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        : `INSERT INTO products 
+           (name, description, price, category_id, images, stock, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      hasProductTypeColumn
+        ? [name, description, price, category_id, JSON.stringify(images), product_type, initialStock, 'active']
+        : [name, description, price, category_id, JSON.stringify(images), initialStock, 'active']
       ]
     );
     
