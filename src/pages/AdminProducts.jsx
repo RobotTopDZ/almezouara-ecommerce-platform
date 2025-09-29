@@ -54,6 +54,13 @@ const AdminProducts = () => {
     barcode: '',
     price_adjustment: 0
   });
+  
+  // États pour la génération automatique des variations
+  const [bulkColors, setBulkColors] = useState([]);
+  const [bulkSizes, setBulkSizes] = useState([]);
+  const [bulkColorInput, setBulkColorInput] = useState('');
+  const [bulkSizeInput, setBulkSizeInput] = useState('');
+  const [generatedVariants, setGeneratedVariants] = useState([]);
 
   // Load data on component mount
   useEffect(() => {
@@ -395,6 +402,96 @@ const AdminProducts = () => {
         [field]: newArray
       });
     }
+  };
+
+  // Ajouter une couleur à la liste des couleurs en masse
+  const addBulkColor = () => {
+    if (!bulkColorInput.trim()) return;
+    
+    // Vérifier si la couleur existe déjà
+    if (!bulkColors.some(c => c.name.toLowerCase() === bulkColorInput.trim().toLowerCase())) {
+      setBulkColors([...bulkColors, { 
+        name: bulkColorInput.trim(), 
+        value: '#000000' 
+      }]);
+    }
+    setBulkColorInput('');
+  };
+
+  // Ajouter une taille à la liste des tailles en masse
+  const addBulkSize = () => {
+    if (!bulkSizeInput.trim()) return;
+    
+    // Vérifier si la taille existe déjà
+    if (!bulkSizes.includes(bulkSizeInput.trim())) {
+      setBulkSizes([...bulkSizes, bulkSizeInput.trim()]);
+    }
+    setBulkSizeInput('');
+  };
+
+  // Supprimer une couleur de la liste
+  const removeBulkColor = (index) => {
+    setBulkColors(bulkColors.filter((_, i) => i !== index));
+  };
+
+  // Supprimer une taille de la liste
+  const removeBulkSize = (index) => {
+    setBulkSizes(bulkSizes.filter((_, i) => i !== index));
+  };
+
+  // Mettre à jour la valeur de couleur
+  const updateColorValue = (index, value) => {
+    const newColors = [...bulkColors];
+    newColors[index].value = value;
+    setBulkColors(newColors);
+  };
+
+  // Générer toutes les combinaisons possibles de couleurs et tailles
+  const generateVariantCombinations = () => {
+    if (bulkColors.length === 0 || bulkSizes.length === 0) {
+      alert('Veuillez ajouter au moins une couleur et une taille');
+      return;
+    }
+
+    const combinations = [];
+    
+    // Créer toutes les combinaisons possibles
+    bulkColors.forEach(color => {
+      bulkSizes.forEach(size => {
+        combinations.push({
+          id: null,
+          color_name: color.name,
+          color_value: color.value,
+          size: size,
+          stock: 0,
+          sku: '',
+          barcode: '',
+          price_adjustment: 0
+        });
+      });
+    });
+    
+    setGeneratedVariants(combinations);
+  };
+
+  // Mettre à jour le stock d'une variation générée
+  const updateGeneratedVariantStock = (index, stock) => {
+    const newVariants = [...generatedVariants];
+    newVariants[index].stock = parseInt(stock) || 0;
+    setGeneratedVariants(newVariants);
+  };
+
+  // Sauvegarder toutes les variations générées
+  const saveGeneratedVariants = () => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, ...generatedVariants]
+    }));
+    
+    // Réinitialiser après sauvegarde
+    setGeneratedVariants([]);
+    setBulkColors([]);
+    setBulkSizes([]);
   };
 
   // Add or update variant
@@ -847,9 +944,181 @@ const AdminProducts = () => {
                       </p>
                     </div>
 
+                    {/* Génération Automatique des Variations */}
+                    <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">
+                      <h4 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                        <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✨</span>
+                        Génération Automatique des Variations
+                      </h4>
+                      
+                      {/* Bulk Colors Input */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Ajouter des Couleurs
+                        </label>
+                        <div className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={bulkColorInput}
+                            onChange={(e) => setBulkColorInput(e.target.value)}
+                            placeholder="Ex: Rouge, Noir, Bleu..."
+                            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBulkColor())}
+                          />
+                          <button
+                            type="button"
+                            onClick={addBulkColor}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        
+                        {/* Color Tags */}
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {bulkColors.map((color, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center bg-gray-100 rounded-full pl-1 pr-2 py-1"
+                            >
+                              <input 
+                                type="color"
+                                value={color.value}
+                                onChange={(e) => updateColorValue(index, e.target.value)}
+                                className="w-5 h-5 rounded-full mr-1 cursor-pointer"
+                              />
+                              <span className="text-sm">{color.name}</span>
+                              <button 
+                                onClick={() => removeBulkColor(index)}
+                                className="ml-1 text-gray-500 hover:text-red-500"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Bulk Sizes Input */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Ajouter des Tailles
+                        </label>
+                        <div className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={bulkSizeInput}
+                            onChange={(e) => setBulkSizeInput(e.target.value)}
+                            placeholder="Ex: S, M, L, XL..."
+                            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBulkSize())}
+                          />
+                          <button
+                            type="button"
+                            onClick={addBulkSize}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        
+                        {/* Size Tags */}
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {bulkSizes.map((size, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center bg-gray-100 rounded-full px-3 py-1"
+                            >
+                              <span className="text-sm">{size}</span>
+                              <button 
+                                onClick={() => removeBulkSize(index)}
+                                className="ml-1 text-gray-500 hover:text-red-500"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Generate Button */}
+                      <button
+                        type="button"
+                        onClick={generateVariantCombinations}
+                        disabled={bulkColors.length === 0 || bulkSizes.length === 0}
+                        className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-bold flex items-center justify-center"
+                      >
+                        <span className="mr-2">✨</span>
+                        Générer {bulkColors.length * bulkSizes.length} Variations
+                      </button>
+                    </div>
+                    
+                    {/* Generated Variants */}
+                    {generatedVariants.length > 0 && (
+                      <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">
+                        <h4 className="text-lg font-semibold text-purple-800 mb-4">
+                          Variations Générées ({generatedVariants.length})
+                        </h4>
+                        
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-gray-50">
+                                <th className="px-4 py-2 text-left">Couleur</th>
+                                <th className="px-4 py-2 text-left">Taille</th>
+                                <th className="px-4 py-2 text-right">Stock</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {generatedVariants.map((variant, index) => (
+                                <tr key={index} className="border-t border-gray-100">
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center">
+                                      <div 
+                                        className="w-5 h-5 rounded-full mr-2"
+                                        style={{ backgroundColor: variant.color_value }}
+                                      ></div>
+                                      {variant.color_name}
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3">{variant.size}</td>
+                                  <td className="px-4 py-3">
+                                    <input
+                                      type="number"
+                                      value={variant.stock}
+                                      onChange={(e) => updateGeneratedVariantStock(index, e.target.value)}
+                                      min="0"
+                                      className="w-20 text-right border border-gray-300 rounded px-2 py-1"
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        <div className="mt-4 flex justify-between">
+                          <button
+                            type="button"
+                            onClick={() => setGeneratedVariants([])}
+                            className="text-gray-600 hover:text-gray-800"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            onClick={saveGeneratedVariants}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            Ajouter toutes les variations
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Quick Stock Setup */}
                     <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Rapide du Stock</h4>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Manuelle</h4>
                       
                       {/* Color and Size Inputs */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
