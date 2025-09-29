@@ -228,8 +228,8 @@ const initializeDatabase = async () => {
     
     // Run product variants migration specifically
     try {
-      const productVariantsMigration = require('../migrations/002-add-product-variants');
-      await productVariantsMigration.migrate();
+      const { up } = require('../migrations/002-add-product-variants');
+      await up();
       console.log('✅ Product variants migration completed');
     } catch (err) {
       console.error('❌ Product variants migration failed:', err);

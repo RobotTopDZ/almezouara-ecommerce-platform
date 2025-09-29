@@ -1,22 +1,8 @@
 // Migration to add product_variants table
-const { createPool } = require('mysql2/promise');
-
-async function getPool() {
-  return createPool({
-    host: process.env.DATABASE_HOST || process.env.MYSQLHOST || 'localhost',
-    user: process.env.DATABASE_USERNAME || process.env.MYSQLUSER || 'root',
-    password: process.env.DATABASE_PASSWORD || process.env.MYSQLPASSWORD || '',
-    database: process.env.DATABASE_NAME || process.env.MYSQLDATABASE || 'railway',
-    port: process.env.DATABASE_PORT || process.env.MYSQLPORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-  });
-}
+const { pool } = require('../config/database');
 
 async function up() {
   console.log('Running migration: Add product_variants table');
-  const pool = await getPool();
   const connection = await pool.getConnection();
   
   try {
