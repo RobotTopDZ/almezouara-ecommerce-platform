@@ -262,7 +262,6 @@ router.post('/', async (req, res) => {
       hasProductTypeColumn
         ? [name, description, price, category_id, JSON.stringify(images), product_type, initialStock, 'active']
         : [name, description, price, category_id, JSON.stringify(images), initialStock, 'active']
-      ]
     );
     
     const productId = result.insertId;
