@@ -120,67 +120,32 @@ console.log(`- Database: ${connectionConfig.database}`);
 console.log(`- SSL: ${connectionConfig.ssl ? 'Enabled' : 'Disabled'}`);
 
 let pool;
-let usingSQLite = false;
 
-// Initialize SQLite fallback immediately since MySQL is not available
-console.log('🔄 Initializing SQLite database...');
+// Initialize MySQL connection
+console.log('🔄 Initializing MySQL database...');
 try {
-  const sqliteConfig = require('./database-sqlite');
-  pool = sqliteConfig.pool;
-  usingSQLite = true;
-  console.log('✅ SQLite database initialized');
-} catch (sqliteError) {
-  console.error('❌ SQLite initialization failed:', sqliteError.message);
-  
-  // Try MySQL as fallback
-  try {
-    pool = mysql.createPool(connectionConfig);
-    console.log('✅ MySQL fallback initialized');
-  } catch (mysqlError) {
-    console.error('❌ Both SQLite and MySQL failed:', mysqlError.message);
-    throw new Error('Both SQLite and MySQL database connections failed');
-  }
+  pool = mysql.createPool(connectionConfig);
+  console.log('✅ MySQL database initialized');
+} catch (mysqlError) {
+  console.error('❌ MySQL initialization failed:', mysqlError.message);
+  throw new Error('MySQL database connection failed');
 }
 
 const testConnection = async () => {
   try {
-    if (usingSQLite) {
-      const sqliteConfig = require('./database-sqlite');
-      return await sqliteConfig.testConnection();
-    } else {
-      const connection = await pool.getConnection();
-      await connection.ping();
-      connection.release();
-      console.log('✅ MySQL database connection test successful');
-      return true;
-    }
+    const connection = await pool.getConnection();
+    await connection.ping();
+    connection.release();
+    console.log('✅ MySQL database connection test successful');
+    return true;
   } catch (error) {
-    console.error('❌ Database connection test failed:', error.message);
-    
-    // Try SQLite fallback if MySQL fails
-    if (!usingSQLite) {
-      console.log('🔄 MySQL failed, trying SQLite fallback...');
-      try {
-        const sqliteConfig = require('./database-sqlite');
-        pool = sqliteConfig.pool;
-        usingSQLite = true;
-        return await sqliteConfig.testConnection();
-      } catch (sqliteError) {
-        console.error('❌ SQLite fallback also failed:', sqliteError.message);
-        return false;
-      }
-    }
+    console.error('❌ MySQL database connection test failed:', error.message);
     return false;
   }
 };
 
 const createTablesIfNotExist = async () => {
   try {
-    if (usingSQLite) {
-      const sqliteConfig = require('./database-sqlite');
-      return await sqliteConfig.initializeDatabase();
-    }
-    
     // MySQL table creation logic
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS categories (
@@ -290,6 +255,5 @@ module.exports = {
   testConnection,
   createTablesIfNotExist,
   runMigrations,
-  initializeDatabase,
-  usingSQLite
+  initializeDatabase
 };

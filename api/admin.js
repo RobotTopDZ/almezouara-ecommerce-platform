@@ -50,14 +50,12 @@ router.post('/login', async (req, res) => {
 // Get all orders (admin)
 router.get('/orders', async (req, res) => {
   try {
+    // Utiliser une syntaxe compatible avec SQLite
     const [orders] = await pool.execute(`
       SELECT o.*, 
              o.full_name as fullName,
              o.phone as phoneNumber,
-             GROUP_CONCAT(
-               CONCAT(oi.product_name, ' (', oi.quantity, 'x)')
-               SEPARATOR ', '
-             ) as items_summary
+             GROUP_CONCAT(oi.product_name || ' (' || oi.quantity || 'x)') as items_summary
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       GROUP BY o.id
