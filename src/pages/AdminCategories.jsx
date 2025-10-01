@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { categories as initialCategories } from '../data/categories';
+import axios from 'axios';
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -23,7 +23,8 @@ const AdminLayout = ({ children }) => (
 );
 
 const AdminCategories = () => {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -36,6 +37,33 @@ const AdminCategories = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
+
+  // Fetch categories from API
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/admin/categories');
+      if (response.data.categories) {
+        setCategories(response.data.categories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      // Fallback to default categories if API fails
+      setCategories([
+        { id: 1, name: 'Robes', description: 'Robes élégantes pour toutes les occasions', productCount: 15, color: '#FF6B6B', icon: 'dress' },
+        { id: 2, name: 'Hijabs', description: 'Hijabs modernes et confortables', productCount: 8, color: '#4ECDC4', icon: 'hijab' },
+        { id: 3, name: 'Abayas', description: 'Abayas traditionnelles et modernes', productCount: 12, color: '#45B7D1', icon: 'abaya' },
+        { id: 4, name: 'Accessoires', description: 'Accessoires pour compléter votre look', productCount: 6, color: '#96CEB4', icon: 'accessories' },
+        { id: 5, name: 'Chaussures', description: 'Chaussures confortables et stylées', productCount: 4, color: '#FFEAA7', icon: 'shoes' }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCategories = categories
     .filter(category => 
@@ -55,30 +83,38 @@ const AdminCategories = () => {
       }
     });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    if (editingCategory) {
-      // Update existing category
-      setCategories(prev => prev.map(cat => 
-        cat.id === editingCategory.id 
-          ? { ...cat, ...formData }
-          : cat
-      ));
-    } else {
-      // Add new category
-      const newCategory = {
-        id: Date.now(),
-        ...formData,
-        productCount: 0
-      };
-      setCategories(prev => [...prev, newCategory]);
-    }
+    try {
+      if (editingCategory) {
+        // Update existing category
+        await axios.put(`/api/admin/categories/${editingCategory.id}`, {
+          name: formData.name,
+          description: formData.description,
+          image: '',
+          isActive: true
+        });
+      } else {
+        // Add new category
+        await axios.post('/api/admin/categories', {
+          name: formData.name,
+          description: formData.description,
+          image: ''
+        });
+      }
 
-    setShowModal(false);
-    setEditingCategory(null);
-    setFormData({ name: '', description: '', color: '#FF6B6B', icon: 'dress' });
+      // Refresh categories list
+      await fetchCategories();
+      
+      setShowModal(false);
+      setEditingCategory(null);
+      setFormData({ name: '', description: '', color: '#FF6B6B', icon: 'dress' });
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Erreur lors de la sauvegarde de la catégorie');
+    }
   };
 
   const handleEdit = (category) => {
@@ -92,9 +128,16 @@ const AdminCategories = () => {
     setShowModal(true);
   };
 
-  const handleDelete = (categoryId) => {
+  const handleDelete = async (categoryId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+      try {
+        await axios.delete(`/api/admin/categories/${categoryId}`);
+        // Refresh categories list
+        await fetchCategories();
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        alert('Erreur lors de la suppression de la catégorie');
+      }
     }
   };
 
