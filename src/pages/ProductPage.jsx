@@ -762,14 +762,79 @@ const ProductPage = () => {
                 </button>
                 <span className="text-xl font-semibold text-text min-w-[3rem] text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 rounded-lg border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-300 flex items-center justify-center"
+                  onClick={() => {
+                    // Get current available stock
+                    let maxStock = product.stock;
+                    
+                    if (product.variants && product.variants.length > 0 && selectedColor && selectedSize) {
+                      const selectedVariant = product.variants.find(variant => 
+                        variant.color_name === selectedColor && variant.size === selectedSize
+                      );
+                      if (selectedVariant) {
+                        maxStock = selectedVariant.stock;
+                      }
+                    }
+                    
+                    // Only increase if we haven't reached the maximum stock
+                    if (quantity < maxStock) {
+                      setQuantity(quantity + 1);
+                    }
+                  }}
+                  className={`w-10 h-10 rounded-lg border-2 transition-colors duration-300 flex items-center justify-center ${
+                    (() => {
+                      let maxStock = product.stock;
+                      if (product.variants && product.variants.length > 0 && selectedColor && selectedSize) {
+                        const selectedVariant = product.variants.find(variant => 
+                          variant.color_name === selectedColor && variant.size === selectedSize
+                        );
+                        if (selectedVariant) {
+                          maxStock = selectedVariant.stock;
+                        }
+                      }
+                      return quantity >= maxStock 
+                        ? 'border-gray-200 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50';
+                    })()
+                  }`}
+                  disabled={(() => {
+                    let maxStock = product.stock;
+                    if (product.variants && product.variants.length > 0 && selectedColor && selectedSize) {
+                      const selectedVariant = product.variants.find(variant => 
+                        variant.color_name === selectedColor && variant.size === selectedSize
+                      );
+                      if (selectedVariant) {
+                        maxStock = selectedVariant.stock;
+                      }
+                    }
+                    return quantity >= maxStock;
+                  })()}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
               </div>
+              {/* Stock limit indicator */}
+              {(() => {
+                let maxStock = product.stock;
+                if (product.variants && product.variants.length > 0 && selectedColor && selectedSize) {
+                  const selectedVariant = product.variants.find(variant => 
+                    variant.color_name === selectedColor && variant.size === selectedSize
+                  );
+                  if (selectedVariant) {
+                    maxStock = selectedVariant.stock;
+                  }
+                }
+                
+                if (quantity >= maxStock && maxStock > 0) {
+                  return (
+                    <p className="text-sm text-orange-600 mt-2">
+                      ⚠️ Quantité maximale disponible: {maxStock}
+                    </p>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Buy Button */}

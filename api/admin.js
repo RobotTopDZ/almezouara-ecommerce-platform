@@ -227,15 +227,15 @@ router.get('/categories', async (req, res) => {
 // Create category
 router.post('/categories', async (req, res) => {
   try {
-    const { name, description, image } = req.body;
+    const { name, description } = req.body;
     
     if (!name) {
       return res.status(400).json({ error: 'Category name is required' });
     }
     
     const [result] = await pool.execute(
-      'INSERT INTO categories (name, description, image) VALUES (?, ?, ?)',
-      [name, description || '', image || '']
+      'INSERT INTO categories (name, description) VALUES (?, ?)',
+      [name, description || '']
     );
     
     res.json({
@@ -254,11 +254,11 @@ router.post('/categories', async (req, res) => {
 router.put('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, image, isActive } = req.body;
+    const { name, description } = req.body;
     
     await pool.execute(
-      'UPDATE categories SET name = ?, description = ?, image = ?, is_active = ? WHERE id = ?',
-      [name, description || '', image || '', isActive, id]
+      'UPDATE categories SET name = ?, description = ? WHERE id = ?',
+      [name, description || '', id]
     );
     
     res.json({

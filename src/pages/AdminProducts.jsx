@@ -60,6 +60,7 @@ const AdminProducts = () => {
   const [bulkSizes, setBulkSizes] = useState([]);
   const [bulkColorInput, setBulkColorInput] = useState('');
   const [bulkSizeInput, setBulkSizeInput] = useState('');
+  const [bulkColorValue, setBulkColorValue] = useState('#FF0000');
   const [generatedVariants, setGeneratedVariants] = useState([]);
 
   // Load data on component mount
@@ -410,28 +411,9 @@ const AdminProducts = () => {
     
     // Vérifier si la couleur existe déjà
     if (!bulkColors.some(c => c.name.toLowerCase() === bulkColorInput.trim().toLowerCase())) {
-      // Utiliser une couleur aléatoire ou une couleur basée sur le nom
-      const colorMap = {
-        'rouge': '#FF0000',
-        'noir': '#000000',
-        'bleu': '#0000FF',
-        'blanc': '#FFFFFF',
-        'marron': '#8B4513',
-        'gris': '#808080',
-        'vert': '#008000',
-        'jaune': '#FFFF00',
-        'rose': '#FFC0CB',
-        'violet': '#800080',
-        'orange': '#FFA500',
-        'beige': '#F5F5DC'
-      };
-      
-      const colorName = bulkColorInput.trim().toLowerCase();
-      const colorValue = colorMap[colorName] || `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
-      
       setBulkColors([...bulkColors, { 
         name: bulkColorInput.trim(), 
-        value: colorValue 
+        value: bulkColorValue 
       }]);
     }
     setBulkColorInput('');
@@ -975,15 +957,33 @@ const AdminProducts = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Ajouter des Couleurs
                         </label>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 mb-3">
                           <input
                             type="text"
                             value={bulkColorInput}
                             onChange={(e) => setBulkColorInput(e.target.value)}
-                            placeholder="Ex: Rouge, Noir, Bleu..."
+                            placeholder="Nom de la couleur (ex: Rouge, Bleu...)"
                             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBulkColor())}
                           />
+                          <div className="flex flex-col space-y-1">
+                            <input
+                              type="color"
+                              value={bulkColorValue}
+                              onChange={(e) => setBulkColorValue(e.target.value)}
+                              className="w-12 h-6 border-2 border-gray-300 rounded cursor-pointer"
+                              title="Sélectionner la couleur"
+                            />
+                            <input
+                              type="text"
+                              value={bulkColorValue}
+                              onChange={(e) => setBulkColorValue(e.target.value)}
+                              placeholder="#FF0000"
+                              className="w-20 text-xs border border-gray-300 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                              pattern="^#[0-9A-Fa-f]{6}$"
+                              title="Code couleur hexadécimal (ex: #FF0000)"
+                            />
+                          </div>
                           <button
                             type="button"
                             onClick={addBulkColor}
