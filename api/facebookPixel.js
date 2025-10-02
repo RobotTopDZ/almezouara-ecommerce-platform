@@ -60,18 +60,16 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Configuration manquante' });
   }
 
-  const { enabled, pixelId, accessToken, testEventCode, trackPageView, trackAddToCart, trackInitiateCheckout, trackPurchase } = config;
+  const { enabled, pixelId, trackPageView, trackAddToCart, trackInitiateCheckout, trackPurchase } = config;
 
   db.run(`
     INSERT INTO facebook_pixel_config 
     (enabled, pixel_id, access_token, test_event_code, track_page_view, track_add_to_cart, track_initiate_checkout, track_purchase)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, '', '', ?, ?, ?, ?)
   `, 
   [
     enabled ? 1 : 0, 
     pixelId || '', 
-    accessToken || '', 
-    testEventCode || '', 
     trackPageView ? 1 : 0, 
     trackAddToCart ? 1 : 0, 
     trackInitiateCheckout ? 1 : 0, 

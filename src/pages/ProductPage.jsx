@@ -615,7 +615,7 @@ const ProductPage = () => {
               if (isInStock) {
                 stockDisplay = (
               <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6">
-                    ✓ En stock ({currentStock} disponible{currentStock > 1 ? 's' : ''})
+                    ✓ En stock
               </div>
                 );
               } else {

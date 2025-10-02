@@ -30,8 +30,6 @@ const AdminFacebookPixel = () => {
   const [pixelConfig, setPixelConfig] = useState({
     enabled: false,
     pixelId: '',
-    accessToken: '',
-    testEventCode: '',
     trackPageView: true,
     trackAddToCart: true,
     trackInitiateCheckout: true,
