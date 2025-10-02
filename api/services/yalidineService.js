@@ -1,10 +1,11 @@
 const axios = require('axios');
+const config = require('../config/config');
 
 class YalidineService {
   constructor() {
     this.baseURL = 'https://api.yalidine.app/v1';
-    this.apiId = process.env.YALIDINE_API_ID;
-    this.apiToken = process.env.YALIDINE_API_TOKEN;
+    this.apiId = process.env.YALIDINE_API_ID || config.yalidine.apiId;
+    this.apiToken = process.env.YALIDINE_API_TOKEN || config.yalidine.apiToken;
   }
 
   // Test API connection
@@ -124,6 +125,8 @@ class YalidineService {
         product_to_collect: null
       };
 
+      console.log('Sending parcel data to Yalidine:', JSON.stringify(parcelData));
+
       const response = await axios.post(`${this.baseURL}/parcels/`, [parcelData], {
         headers: {
           'X-API-ID': this.apiId,
@@ -132,11 +135,14 @@ class YalidineService {
         }
       });
 
+      console.log('Yalidine API response:', JSON.stringify(response.data));
+
       return { 
         success: true, 
         data: response.data[orderData.id] 
       };
     } catch (error) {
+      console.error('Error creating parcel in Yalidine:', error.response?.data || error.message);
       return { 
         success: false, 
         error: error.response?.data || error.message 
@@ -198,6 +204,44 @@ class YalidineService {
       'Tlemcen': 13,
       'Tiaret': 14,
       'Tizi Ouzou': 15,
+      'Alger': 16,
+      'Djelfa': 17,
+      'Jijel': 18,
+      'Sétif': 19,
+      'Saïda': 20,
+      'Skikda': 21,
+      'Sidi Bel Abbès': 22,
+      'Annaba': 23,
+      'Guelma': 24,
+      'Constantine': 25,
+      'Médéa': 26,
+      'Mostaganem': 27,
+      'M\'Sila': 28,
+      'Mascara': 29,
+      'Ouargla': 30,
+      'Oran': 31,
+      'El Bayadh': 32,
+      'Illizi': 33,
+      'Bordj Bou Arreridj': 34,
+      'Boumerdès': 35,
+      'El Tarf': 36,
+      'Tindouf': 37,
+      'Tissemsilt': 38,
+      'El Oued': 39,
+      'Khenchela': 40,
+      'Souk Ahras': 41,
+      'Tipaza': 42,
+      'Mila': 43,
+      'Aïn Defla': 44,
+      'Naâma': 45,
+      'Aïn Témouchent': 46,
+      'Ghardaïa': 47,
+      'Relizane': 48
+    };
+  }
+}
+
+module.exports = YalidineService;
       'Alger': 16,
       'Djelfa': 17,
       'Jijel': 18,

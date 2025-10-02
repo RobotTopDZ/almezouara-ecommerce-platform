@@ -49,6 +49,15 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Yalidine API routes
+try {
+  const yalidineRoutes = require('./api/routes/yalidine');
+  app.use('/api/yalidine', yalidineRoutes);
+  console.log('✅ Yalidine API routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading Yalidine API routes:', error);
+}
+
 // Check if dist folder exists (non-blocking)
 const distPath = path.join(__dirname, 'dist');
 const distExists = fs.existsSync(distPath);
