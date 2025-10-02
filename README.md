@@ -1,8 +1,8 @@
-# 🛍️ Almezouara E-commerce Platform
+# Almezouara E-commerce Platform
 
 A modern, mobile-first e-commerce platform for women's clothing inspired by Made-in-China, built with React and featuring bilingual support (French/Arabic).
 
-## 🌟 Features
+## Features
 
 - **Mobile-First Design**: Optimized for mobile shopping experience
 - **Bilingual Support**: French and Arabic with RTL support
@@ -12,7 +12,7 @@ A modern, mobile-first e-commerce platform for women's clothing inspired by Made
 - **Real-time Updates**: Dynamic content management
 - **Responsive Design**: Works seamlessly across all devices
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React 18** - Modern React with hooks
@@ -36,7 +36,7 @@ A modern, mobile-first e-commerce platform for women's clothing inspired by Made
 - **PostCSS** - CSS processing
 - **Autoprefixer** - CSS vendor prefixes
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -87,7 +87,7 @@ A modern, mobile-first e-commerce platform for women's clothing inspired by Made
 
 The application will be available at `http://localhost:5173`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 almezouara-ecommerce/

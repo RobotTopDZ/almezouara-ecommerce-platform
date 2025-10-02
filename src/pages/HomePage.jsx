@@ -222,36 +222,30 @@ const HomePage = () => {
   // The infinite scroll hook now receives the correctly filtered list of products.
   const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore } = useInfiniteScroll(filteredProducts, 10);
 
-  // Sample slider data
+  // Slider data with latest images
   const sliderItems = [
     {
       id: 1,
       title: t('home.special_offers'),
-      image: '/images/new images/photo_2025-09-28_13-35-21.jpg',
+      image: '/images/latest images/photo_2025-10-01_18-46-30.jpg',
       link: '/category/dresses',
     },
     {
       id: 2,
       title: t('home.new_arrivals'),
-      image: '/images/new images/photo_2025-09-28_13-35-22.jpg',
+      image: '/images/latest images/photo_2025-10-01_18-46-31.jpg',
       link: '/category/dresses',
     },
     {
       id: 3,
       title: t('home.trending'),
-      image: '/images/new images/photo_2025-09-28_13-35-23.jpg',
+      image: '/images/latest images/photo_2025-10-01_18-46-37.jpg',
       link: '/category/dresses',
     },
     {
       id: 4,
       title: t('home.collection'),
-      image: '/images/new images/photo_2025-09-28_13-35-24.jpg',
-      link: '/category/dresses',
-    },
-    {
-      id: 5,
-      title: t('home.special_edition'),
-      image: '/images/new images/photo_2025-09-28_13-35-22 (2).jpg',
+      image: '/images/latest images/photo_2025-10-01_18-46-31 (2).jpg',
       link: '/category/dresses',
     },
   ];
