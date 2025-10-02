@@ -392,6 +392,23 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔌 API routes: ${apiLoaded ? 'loaded' : 'failed'}`);
   console.log('=' .repeat(50));
   
+  // Gérer les signaux de terminaison pour Docker
+  process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM signal reçu: arrêt gracieux du serveur...');
+    server.close(() => {
+      console.log('✅ Serveur arrêté avec succès');
+      process.exit(0);
+    });
+  });
+  
+  process.on('SIGINT', () => {
+    console.log('🛑 SIGINT signal reçu: arrêt gracieux du serveur...');
+    server.close(() => {
+      console.log('✅ Serveur arrêté avec succès');
+      process.exit(0);
+    });
+  });
+  
   // Auto-populate shipping data if enabled
   if (process.env.AUTO_POPULATE_SHIPPING === 'true' && apiLoaded) {
     console.log('🔄 Auto-population enabled, starting post-deploy tasks...');
