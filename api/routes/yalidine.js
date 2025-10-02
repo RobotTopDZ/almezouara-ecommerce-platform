@@ -60,7 +60,17 @@ router.get('/fees/:fromWilayaId/:toWilayaId', async (req, res) => {
 // Send order to Yalidine
 router.post('/send-order', async (req, res) => {
   try {
+    // Vérifier si req.body existe et n'est pas vide
+    if (!req.body) {
+      return res.status(400).json({ success: false, error: 'Corps de la requête manquant' });
+    }
+    
     const { orderId, stopdeskId } = req.body;
+    
+    // Vérifier si orderId existe
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId est requis' });
+    }
     
     // Get order details from database
     const order = await new Promise((resolve, reject) => {
