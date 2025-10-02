@@ -239,44 +239,6 @@ class YalidineService {
       'Relizane': 48
     };
   }
-}
-
-module.exports = YalidineService;
-      'Alger': 16,
-      'Djelfa': 17,
-      'Jijel': 18,
-      'Sétif': 19,
-      'Saïda': 20,
-      'Skikda': 21,
-      'Sidi Bel Abbès': 22,
-      'Annaba': 23,
-      'Guelma': 24,
-      'Constantine': 25,
-      'Médéa': 26,
-      'Mostaganem': 27,
-      'M\'Sila': 28,
-      'Mascara': 29,
-      'Ouargla': 30,
-      'Oran': 31,
-      'El Bayadh': 32,
-      'Illizi': 33,
-      'Bordj Bou Arreridj': 34,
-      'Boumerdès': 35,
-      'El Tarf': 36,
-      'Tindouf': 37,
-      'Tissemsilt': 38,
-      'El Oued': 39,
-      'Khenchela': 40,
-      'Souk Ahras': 41,
-      'Tipaza': 42,
-      'Mila': 43,
-      'Aïn Defla': 44,
-      'Naâma': 45,
-      'Aïn Témouchent': 46,
-      'Ghardaïa': 47,
-      'Relizane': 48
-    };
-  }
 
   // Get wilaya ID by name
   getWilayaId(wilayaName) {
