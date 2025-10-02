@@ -22,8 +22,8 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
-// Importation avec extension .jsx pour assurer la compatibilité
-import AdminFacebookPixel from './pages/AdminFacebookPixel.jsx';
+// Importation sans extension pour assurer la compatibilité avec Vite
+import AdminFacebookPixel from './pages/AdminFacebookPixel';
 import AdminConfiguration from './pages/AdminConfiguration';
 import FacebookPixel from './components/FacebookPixel';
 
