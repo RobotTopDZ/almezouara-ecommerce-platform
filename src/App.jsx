@@ -22,8 +22,8 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
-// Importation sans extension pour compatibilité avec l'environnement de build
-import AdminFacebookPixel from './pages/AdminFacebookPixel';
+// Importation avec extension .js pour compatibilité avec l'environnement de build Docker
+import AdminFacebookPixel from './pages/AdminFacebookPixel.js';
 import FacebookPixel from './components/FacebookPixel';
 
 // Components
