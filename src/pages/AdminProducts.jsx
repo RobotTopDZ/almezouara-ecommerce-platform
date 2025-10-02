@@ -302,11 +302,23 @@ const AdminProducts = () => {
 
   const handleEdit = async (product) => {
     setEditingProduct(product);
+    console.log("Editing product:", product);
     
     // Load variants for this product
     try {
       const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
+      console.log("Variants response:", variantsRes.data);
       const variants = variantsRes.data.success ? variantsRes.data.variants : [];
+      
+      // Ensure each variant has an id property for proper tracking
+      const processedVariants = variants.map(variant => ({
+        ...variant,
+        id: variant.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        stock: parseInt(variant.stock) || 0,
+        price_adjustment: parseFloat(variant.price_adjustment) || 0
+      }));
+      
+      console.log("Processed variants:", processedVariants);
       
       // Transform colors to new format if they're strings
       let colors = [];
@@ -326,8 +338,8 @@ const AdminProducts = () => {
         description: product.description,
         images: product.images || [],
         colors: colors,
-        sizes: product.sizes.length > 0 ? product.sizes : [],
-        variants: variants,
+        sizes: product.sizes && product.sizes.length > 0 ? product.sizes : [],
+        variants: processedVariants,
         status: product.status,
         product_type: product.product_type || 'simple'
       });
