@@ -22,8 +22,8 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
-// Importation sans extension pour compatibilité avec l'environnement de développement
-import AdminFacebookPixel from './pages/AdminFacebookPixel';
+// Importation avec extension .jsx pour assurer la compatibilité
+import AdminFacebookPixel from './pages/AdminFacebookPixel.jsx';
 import AdminConfiguration from './pages/AdminConfiguration';
 import FacebookPixel from './components/FacebookPixel';
 
@@ -88,7 +88,7 @@ const App = () => {
             <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
             <Route path="/admin/accounts" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
             <Route path="/admin/promotions" element={<RequireAdmin><AdminPromotions /></RequireAdmin>} />
-            <Route path="/admin/facebook-pixel" element={<RequireAdmin><AdminFacebookPixel /></RequireAdmin>} />
+            <Route path="/admin/facebook-pixel" element={<AdminFacebookPixel />} />
             <Route path="/admin/debug" element={<AdminDebug />} />
           </Routes>
         </main>
