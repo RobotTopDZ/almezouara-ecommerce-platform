@@ -22,7 +22,8 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
-import AdminFacebookPixel from './pages/AdminFacebookPixel.jsx';
+// Importation sans extension pour compatibilité avec l'environnement de build
+import AdminFacebookPixel from './pages/AdminFacebookPixel';
 import FacebookPixel from './components/FacebookPixel';
 
 // Components
