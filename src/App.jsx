@@ -22,7 +22,7 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
-import AdminFacebookPixel from './pages/AdminFacebookPixel';
+import AdminFacebookPixel from './pages/AdminFacebookPixel.jsx';
 import FacebookPixel from './components/FacebookPixel';
 
 // Components
