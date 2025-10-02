@@ -52,7 +52,11 @@ app.get('/api/status', (req, res) => {
 // Yalidine API routes
 try {
   const yalidineRoutes = require('./api/routes/yalidine');
-  app.use('/api/yalidine', yalidineRoutes);
+app.use('/api/yalidine', yalidineRoutes);
+
+// Routes pour Facebook Pixel
+const facebookPixelRoutes = require('./api/facebookPixel');
+app.use('/api/facebook-pixel', facebookPixelRoutes);
   console.log('✅ Yalidine API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading Yalidine API routes:', error);

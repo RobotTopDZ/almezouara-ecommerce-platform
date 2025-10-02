@@ -50,14 +50,13 @@ router.post('/login', async (req, res) => {
 // Get all orders (admin)
 router.get('/orders', async (req, res) => {
   try {
-    // Récupérer toutes les commandes
+    // Récupérer toutes les commandes sans limite
     const [orders] = await pool.execute(`
       SELECT o.*, 
              o.full_name as fullName,
              o.phone as phoneNumber
       FROM orders o
       ORDER BY o.created_at DESC
-      LIMIT 100
     `);
     
     // Pour chaque commande, récupérer les détails des produits

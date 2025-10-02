@@ -22,6 +22,8 @@ import AdminAccounts from './pages/AdminAccounts';
 import AdminPromotions from './pages/AdminPromotions';
 import AdminYalidineConfig from './pages/AdminYalidineConfig';
 import AdminDebug from './pages/AdminDebug';
+import AdminFacebookPixel from './pages/AdminFacebookPixel';
+import FacebookPixel from './components/FacebookPixel';
 
 // Components
 import Navbar from './components/layout/Navbar';
@@ -32,11 +34,17 @@ const App = () => {
   const location = useLocation();
   const [direction, setDirection] = useState('ltr');
   const initAuth = useAdminStore(s => s.initAuth);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   // Initialize admin auth on app start
   useEffect(() => {
     initAuth();
   }, [initAuth]);
+  
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   // Set document direction based on language
   useEffect(() => {
@@ -52,35 +60,39 @@ const App = () => {
   };
 
   return (
-    <div className={`app min-h-screen flex flex-col ${direction === 'rtl' ? 'font-arabic' : 'font-sans'}`}>
-      <Navbar toggleLanguage={toggleLanguage} currentLang={i18n.language} />
-      
-      <main className="flex-grow pb-16">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/category/:id" element={<CategoryPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/refund-policy" element={<RefundPolicyPage />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<RequireAdmin><AdminOverview /></RequireAdmin>} />
-          <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
-          <Route path="/admin/yalidine-config" element={<RequireAdmin><AdminYalidineConfig /></RequireAdmin>} />
-          <Route path="/admin/fees" element={<RequireAdmin><AdminFees /></RequireAdmin>} />
-          <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
-          <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
-          <Route path="/admin/accounts" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
-          <Route path="/admin/promotions" element={<RequireAdmin><AdminPromotions /></RequireAdmin>} />
-          <Route path="/admin/debug" element={<AdminDebug />} />
-        </Routes>
-      </main>
-      
-      <BottomNavigation />
+    <>
+      <FacebookPixel />
+      <div className={`app min-h-screen flex flex-col ${direction === 'rtl' ? 'font-arabic' : 'font-sans'}`}>
+        <Navbar toggleLanguage={toggleLanguage} currentLang={i18n.language} />
+        
+        <main className="flex-grow pb-16">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/category/:id" element={<CategoryPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<RequireAdmin><AdminOverview /></RequireAdmin>} />
+            <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
+            <Route path="/admin/yalidine-config" element={<RequireAdmin><AdminYalidineConfig /></RequireAdmin>} />
+            <Route path="/admin/fees" element={<RequireAdmin><AdminFees /></RequireAdmin>} />
+            <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
+            <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
+            <Route path="/admin/accounts" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
+            <Route path="/admin/promotions" element={<RequireAdmin><AdminPromotions /></RequireAdmin>} />
+            <Route path="/admin/facebook-pixel" element={<RequireAdmin><AdminFacebookPixel /></RequireAdmin>} />
+            <Route path="/admin/debug" element={<AdminDebug />} />
+          </Routes>
+        </main>
+        
+        <BottomNavigation />
     </div>
+    </>
   );
 };
 
