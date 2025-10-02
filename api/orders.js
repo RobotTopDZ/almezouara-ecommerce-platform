@@ -66,12 +66,12 @@ router.post('/', async (req, res) => {
       const today = new Date().toISOString().slice(0,10);
       const orderId = `ORD-${Math.floor(Math.random() * 100000)}`;
       
-      // Check if customer has orders today (simplified)
+      // Check if customer has orders in the last 12 hours
       let existingOrder = null;
       if (phoneNumber) {
         try {
           const [existingOrders] = await pool.execute(
-            'SELECT * FROM orders WHERE phone = ? AND DATE(created_at) = DATE("now")',
+            'SELECT * FROM orders WHERE phone = ? AND datetime(created_at) >= datetime("now", "-12 hours")',
             [phoneNumber]
           );
           
@@ -131,6 +131,62 @@ router.post('/', async (req, res) => {
         console.log('✅ Transaction started');
         
         try {
+          // Validate stock before processing order
+          for (const item of items) {
+            const variantId = item.variantId || null;
+            const quantity = item.quantity || 1;
+            
+            if (variantId) {
+              // Check variant stock
+              const [variantStock] = await connection.execute(
+                'SELECT stock FROM product_variants WHERE id = ?',
+                [variantId]
+              );
+              
+              if (variantStock.length === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({
+                  success: false,
+                  error: `Variant not found for product: ${item.name}`
+                });
+              }
+              
+              if (variantStock[0].stock < quantity) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({
+                  success: false,
+                  error: `Stock insuffisant pour ${item.name}. Stock disponible: ${variantStock[0].stock}, Quantité demandée: ${quantity}`
+                });
+              }
+            } else {
+              // Check product stock
+              const [productStock] = await connection.execute(
+                'SELECT stock FROM products WHERE id = ?',
+                [item.id]
+              );
+              
+              if (productStock.length === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({
+                  success: false,
+                  error: `Product not found: ${item.name}`
+                });
+              }
+              
+              if (productStock[0].stock < quantity) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({
+                  success: false,
+                  error: `Stock insuffisant pour ${item.name}. Stock disponible: ${productStock[0].stock}, Quantité demandée: ${quantity}`
+                });
+              }
+            }
+          }
+          
           // Insert order items and update stock
           for (const item of items) {
             const variantId = item.variantId || null;
