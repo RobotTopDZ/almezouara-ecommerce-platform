@@ -2,27 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const AdminLayout = ({ children }) => (
-  <div className="container mx-auto p-4 pb-16">
-    <div className="grid md:grid-cols-4 gap-4">
-      <aside className="md:col-span-1 bg-white rounded shadow p-4 space-y-2">
-        <Link className="block hover:underline" to="/admin">Overview</Link>
-        <Link className="block hover:underline" to="/admin/orders">Commandes</Link>
-        <Link className="block hover:underline" to="/admin/fees">Shipping Fees</Link>
-        <Link className="block hover:underline" to="/admin/categories">Categories</Link>
-        <Link className="block hover:underline" to="/admin/products">Products</Link>
-        <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
-        <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
-        <Link className="block hover:underline" to="/admin/facebook-pixel">Facebook Pixel</Link>
-      </aside>
-      <main className="md:col-span-3 bg-white rounded shadow p-4">
-        {children}
-      </main>
-    </div>
-  </div>
-);
+const AdminLayout = function({ children }) {
+  return React.createElement("div", { className: "container mx-auto p-4 pb-16" },
+    React.createElement("div", { className: "grid md:grid-cols-4 gap-4" },
+      React.createElement("aside", { className: "md:col-span-1 bg-white rounded shadow p-4 space-y-2" },
+        React.createElement(Link, { className: "block hover:underline", to: "/admin" }, "Overview"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/orders" }, "Commandes"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/fees" }, "Shipping Fees"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/categories" }, "Categories"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/products" }, "Products"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/accounts" }, "Accounts"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/promotions" }, "Promotions"),
+        React.createElement(Link, { className: "block hover:underline", to: "/admin/facebook-pixel" }, "Facebook Pixel")
+      ),
+      React.createElement("main", { className: "md:col-span-3 bg-white rounded shadow p-4" }, children)
+    )
+  );
+};
 
-const AdminFacebookPixel = () => {
+const AdminFacebookPixel = function() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -38,8 +36,8 @@ const AdminFacebookPixel = () => {
     trackPurchase: true
   });
 
-  useEffect(() => {
-    const fetchConfig = async () => {
+  useEffect(function() {
+    const fetchConfig = async function() {
       setLoading(true);
       try {
         const response = await axios.get('/api/facebook-pixel/admin');
@@ -57,15 +55,17 @@ const AdminFacebookPixel = () => {
     fetchConfig();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = function(e) {
     const { name, value, type, checked } = e.target;
-    setPixelConfig(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setPixelConfig(function(prev) {
+      return {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      };
+    });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async function(e) {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
@@ -74,7 +74,7 @@ const AdminFacebookPixel = () => {
     try {
       await axios.post('/api/facebook-pixel/admin', { config: pixelConfig });
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(function() { setSuccess(false); }, 3000);
     } catch (err) {
       console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
       setError('Erreur lors de la sauvegarde de la configuration');
@@ -83,7 +83,7 @@ const AdminFacebookPixel = () => {
     }
   };
 
-  const handleTestPixel = async () => {
+  const handleTestPixel = async function() {
     try {
       await axios.post('/api/facebook-pixel/test');
       alert('Événement de test envoyé avec succès!');
@@ -93,194 +93,193 @@ const AdminFacebookPixel = () => {
     }
   };
 
-  return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Configuration Facebook Pixel</h1>
-        
-        {loading ? (
-          <div className="text-center py-4">Chargement...</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                Configuration sauvegardée avec succès!
-              </div>
-            )}
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="enabled"
-                name="enabled"
-                checked={pixelConfig.enabled}
-                onChange={handleChange}
-                className="mr-2"
-              />
-              <label htmlFor="enabled" className="font-medium">Activer Facebook Pixel</label>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="pixelId" className="block font-medium">Pixel ID <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  id="pixelId"
-                  name="pixelId"
-                  value={pixelConfig.pixelId}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required={pixelConfig.enabled}
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Vous pouvez trouver votre Pixel ID dans Facebook Events Manager
-                </p>
-              </div>
-              
-              <div>
-                <label htmlFor="accessToken" className="block font-medium">Access Token</label>
-                <input
-                  type="text"
-                  id="accessToken"
-                  name="accessToken"
-                  value={pixelConfig.accessToken}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Optionnel: Nécessaire pour les conversions avancées
-                </p>
-              </div>
-              
-              <div>
-                <label htmlFor="testEventCode" className="block font-medium">Test Event Code</label>
-                <input
-                  type="text"
-                  id="testEventCode"
-                  name="testEventCode"
-                  value={pixelConfig.testEventCode}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Optionnel: Utilisé pour tester les événements dans Facebook Events Manager
-                </p>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h3 className="font-medium mb-2">Événements à suivre</h3>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="trackPageView"
-                      name="trackPageView"
-                      checked={pixelConfig.trackPageView}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    <label htmlFor="trackPageView">PageView (Visite de page)</label>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="trackAddToCart"
-                      name="trackAddToCart"
-                      checked={pixelConfig.trackAddToCart}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    <label htmlFor="trackAddToCart">AddToCart (Ajout au panier)</label>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="trackInitiateCheckout"
-                      name="trackInitiateCheckout"
-                      checked={pixelConfig.trackInitiateCheckout}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    <label htmlFor="trackInitiateCheckout">InitiateCheckout (Début de commande)</label>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="trackPurchase"
-                      name="trackPurchase"
-                      checked={pixelConfig.trackPurchase}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    <label htmlFor="trackPurchase">Purchase (Achat complété)</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex space-x-4">
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-              >
-                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-              </button>
-              
-              {pixelConfig.enabled && pixelConfig.pixelId && (
-                <button
-                  type="button"
-                  onClick={handleTestPixel}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded"
-                >
-                  Tester le Pixel
-                </button>
-              )}
-            </div>
-          </form>
-        )}
-        
-        <div className="mt-8 border-t pt-6">
-          <h2 className="text-xl font-bold mb-4">Guide d'intégration</h2>
+  return React.createElement(AdminLayout, null,
+    React.createElement("div", { className: "space-y-6" },
+      React.createElement("h1", { className: "text-2xl font-bold" }, "Configuration Facebook Pixel"),
+      
+      loading ? 
+        React.createElement("div", { className: "text-center py-4" }, "Chargement...") : 
+        React.createElement("form", { onSubmit: handleSubmit, className: "space-y-6" },
+          error && 
+            React.createElement("div", { className: "bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" }, error),
           
-          <div className="prose max-w-none">
-            <p>
-              Le Facebook Pixel est automatiquement intégré dans votre site lorsqu'il est activé.
-              Voici comment les événements sont suivis:
-            </p>
+          success && 
+            React.createElement("div", { className: "bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" }, "Configuration sauvegardée avec succès!"),
+          
+          React.createElement("div", { className: "flex items-center" },
+            React.createElement("input", {
+              type: "checkbox",
+              id: "enabled",
+              name: "enabled",
+              checked: pixelConfig.enabled,
+              onChange: handleChange,
+              className: "mr-2"
+            }),
+            React.createElement("label", { htmlFor: "enabled", className: "font-medium" }, "Activer Facebook Pixel")
+          ),
+          
+          React.createElement("div", { className: "space-y-4" },
+            React.createElement("div", null,
+              React.createElement("label", { htmlFor: "pixelId", className: "block font-medium" }, 
+                "Pixel ID ", 
+                React.createElement("span", { className: "text-red-500" }, "*")
+              ),
+              React.createElement("input", {
+                type: "text",
+                id: "pixelId",
+                name: "pixelId",
+                value: pixelConfig.pixelId,
+                onChange: handleChange,
+                className: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2",
+                required: pixelConfig.enabled
+              }),
+              React.createElement("p", { className: "text-sm text-gray-500 mt-1" },
+                "Vous pouvez trouver votre Pixel ID dans Facebook Events Manager"
+              )
+            ),
             
-            <ul className="list-disc pl-5 space-y-2 mt-2">
-              <li><strong>PageView</strong>: Déclenché automatiquement sur chaque page</li>
-              <li><strong>AddToCart</strong>: Déclenché lorsqu'un client ajoute un produit au panier</li>
-              <li><strong>InitiateCheckout</strong>: Déclenché lorsqu'un client commence le processus de commande</li>
-              <li><strong>Purchase</strong>: Déclenché lorsqu'une commande est complétée</li>
-            </ul>
+            React.createElement("div", null,
+              React.createElement("label", { htmlFor: "accessToken", className: "block font-medium" }, "Access Token"),
+              React.createElement("input", {
+                type: "text",
+                id: "accessToken",
+                name: "accessToken",
+                value: pixelConfig.accessToken,
+                onChange: handleChange,
+                className: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              }),
+              React.createElement("p", { className: "text-sm text-gray-500 mt-1" },
+                "Optionnel: Nécessaire pour les conversions avancées"
+              )
+            ),
             
-            <p className="mt-4">
-              Pour plus d'informations sur Facebook Pixel, consultez la{' '}
-              <a 
-                href="https://developers.facebook.com/docs/facebook-pixel" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                documentation officielle
-              </a>.
-            </p>
-          </div>
-        </div>
-      </div>
-    </AdminLayout>
+            React.createElement("div", null,
+              React.createElement("label", { htmlFor: "testEventCode", className: "block font-medium" }, "Test Event Code"),
+              React.createElement("input", {
+                type: "text",
+                id: "testEventCode",
+                name: "testEventCode",
+                value: pixelConfig.testEventCode,
+                onChange: handleChange,
+                className: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              }),
+              React.createElement("p", { className: "text-sm text-gray-500 mt-1" },
+                "Optionnel: Utilisé pour tester les événements dans Facebook Events Manager"
+              )
+            ),
+            
+            React.createElement("div", { className: "border-t pt-4" },
+              React.createElement("h3", { className: "font-medium mb-2" }, "Événements à suivre"),
+              
+              React.createElement("div", { className: "space-y-2" },
+                React.createElement("div", { className: "flex items-center" },
+                  React.createElement("input", {
+                    type: "checkbox",
+                    id: "trackPageView",
+                    name: "trackPageView",
+                    checked: pixelConfig.trackPageView,
+                    onChange: handleChange,
+                    className: "mr-2"
+                  }),
+                  React.createElement("label", { htmlFor: "trackPageView" }, "PageView (Visite de page)")
+                ),
+                
+                React.createElement("div", { className: "flex items-center" },
+                  React.createElement("input", {
+                    type: "checkbox",
+                    id: "trackAddToCart",
+                    name: "trackAddToCart",
+                    checked: pixelConfig.trackAddToCart,
+                    onChange: handleChange,
+                    className: "mr-2"
+                  }),
+                  React.createElement("label", { htmlFor: "trackAddToCart" }, "AddToCart (Ajout au panier)")
+                ),
+                
+                React.createElement("div", { className: "flex items-center" },
+                  React.createElement("input", {
+                    type: "checkbox",
+                    id: "trackInitiateCheckout",
+                    name: "trackInitiateCheckout",
+                    checked: pixelConfig.trackInitiateCheckout,
+                    onChange: handleChange,
+                    className: "mr-2"
+                  }),
+                  React.createElement("label", { htmlFor: "trackInitiateCheckout" }, "InitiateCheckout (Début de commande)")
+                ),
+                
+                React.createElement("div", { className: "flex items-center" },
+                  React.createElement("input", {
+                    type: "checkbox",
+                    id: "trackPurchase",
+                    name: "trackPurchase",
+                    checked: pixelConfig.trackPurchase,
+                    onChange: handleChange,
+                    className: "mr-2"
+                  }),
+                  React.createElement("label", { htmlFor: "trackPurchase" }, "Purchase (Achat complété)")
+                )
+              )
+            )
+          ),
+          
+          React.createElement("div", { className: "flex space-x-4" },
+            React.createElement("button", {
+              type: "submit",
+              disabled: saving,
+              className: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+            }, saving ? 'Sauvegarde...' : 'Sauvegarder'),
+            
+            pixelConfig.enabled && pixelConfig.pixelId && 
+              React.createElement("button", {
+                type: "button",
+                onClick: handleTestPixel,
+                className: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded"
+              }, "Tester le Pixel")
+          )
+        ),
+      
+      React.createElement("div", { className: "mt-8 border-t pt-6" },
+        React.createElement("h2", { className: "text-xl font-bold mb-4" }, "Guide d'intégration"),
+        
+        React.createElement("div", { className: "prose max-w-none" },
+          React.createElement("p", null,
+            "Le Facebook Pixel est automatiquement intégré dans votre site lorsqu'il est activé. Voici comment les événements sont suivis:"
+          ),
+          
+          React.createElement("ul", { className: "list-disc pl-5 space-y-2 mt-2" },
+            React.createElement("li", null, 
+              React.createElement("strong", null, "PageView"), 
+              ": Déclenché automatiquement sur chaque page"
+            ),
+            React.createElement("li", null, 
+              React.createElement("strong", null, "AddToCart"), 
+              ": Déclenché lorsqu'un client ajoute un produit au panier"
+            ),
+            React.createElement("li", null, 
+              React.createElement("strong", null, "InitiateCheckout"), 
+              ": Déclenché lorsqu'un client commence le processus de commande"
+            ),
+            React.createElement("li", null, 
+              React.createElement("strong", null, "Purchase"), 
+              ": Déclenché lorsqu'une commande est complétée"
+            )
+          ),
+          
+          React.createElement("p", { className: "mt-4" },
+            "Pour plus d'informations sur Facebook Pixel, consultez la",
+            ' ',
+            React.createElement("a", {
+              href: "https://developers.facebook.com/docs/facebook-pixel",
+              target: "_blank",
+              rel: "noopener noreferrer",
+              className: "text-blue-600 hover:underline"
+            }, "documentation officielle"),
+            "."
+          )
+        )
+      )
+    )
   );
 };
 
