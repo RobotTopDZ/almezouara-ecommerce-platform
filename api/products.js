@@ -721,13 +721,27 @@ router.get('/categories/list', async (req, res) => {
       return res.json({ success: true, categories });
     }
     
-    const [categories] = await pool.execute(`
-      SELECT id, name, color, icon, description
-      FROM categories
-      ORDER BY name ASC
-    `);
-    
-    res.json({ success: true, categories });
+    try {
+      const [categories] = await pool.execute(`
+        SELECT id, name, color, icon, description
+        FROM categories
+        ORDER BY name ASC
+        LIMIT 100
+      `);
+      
+      return res.json({ success: true, categories });
+    } catch (dbError) {
+      console.error('Database error fetching categories:', dbError);
+      // Fallback en cas d'erreur de base de données
+      const categories = [
+        { id: 1, name: 'Robes', color: '#FF6B6B' },
+        { id: 2, name: 'Hijabs', color: '#4ECDC4' },
+        { id: 3, name: 'Abayas', color: '#45B7D1' },
+        { id: 4, name: 'Accessoires', color: '#96CEB4' },
+        { id: 5, name: 'Chaussures', color: '#FFEAA7' }
+      ];
+      return res.json({ success: true, categories });
+    }
   } catch (error) {
     console.error('Get categories error:', error);
     res.status(500).json({ error: 'Failed to get categories' });
