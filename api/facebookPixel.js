@@ -62,26 +62,35 @@ router.post('/', (req, res) => {
 
   const { enabled, pixelId, trackPageView, trackAddToCart, trackInitiateCheckout, trackPurchase } = config;
 
-  db.run(`
-    INSERT INTO facebook_pixel_config 
-    (enabled, pixel_id, access_token, test_event_code, track_page_view, track_add_to_cart, track_initiate_checkout, track_purchase)
-    VALUES (?, ?, '', '', ?, ?, ?, ?)
-  `, 
-  [
-    enabled ? 1 : 0, 
-    pixelId || '', 
-    trackPageView ? 1 : 0, 
-    trackAddToCart ? 1 : 0, 
-    trackInitiateCheckout ? 1 : 0, 
-    trackPurchase ? 1 : 0
-  ], 
-  function(err) {
-    if (err) {
-      console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
-      return res.status(500).json({ error: 'Erreur serveur' });
+  // Supprimer d'abord les configurations existantes pour éviter les duplications
+  db.run('DELETE FROM facebook_pixel_config', (deleteErr) => {
+    if (deleteErr) {
+      console.error('Erreur lors de la suppression des configurations existantes:', deleteErr);
+      return res.status(500).json({ error: 'Erreur serveur lors de la mise à jour' });
     }
+    
+    // Insérer la nouvelle configuration
+    db.run(`
+      INSERT INTO facebook_pixel_config 
+      (enabled, pixel_id, access_token, test_event_code, track_page_view, track_add_to_cart, track_initiate_checkout, track_purchase)
+      VALUES (?, ?, '', '', ?, ?, ?, ?)
+    `, 
+    [
+      enabled ? 1 : 0, 
+      pixelId || '', 
+      trackPageView ? 1 : 0, 
+      trackAddToCart ? 1 : 0, 
+      trackInitiateCheckout ? 1 : 0, 
+      trackPurchase ? 1 : 0
+    ], 
+    function(err) {
+      if (err) {
+        console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
+        return res.status(500).json({ error: 'Erreur serveur' });
+      }
 
-    res.json({ success: true, id: this.lastID });
+      res.json({ success: true, id: this.lastID });
+    });
   });
 });
 

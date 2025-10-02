@@ -71,9 +71,18 @@ const AdminFacebookPixel = () => {
     setError(null);
     
     try {
-      await axios.post('/api/facebook-pixel', { config: pixelConfig });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      const response = await axios.post('/api/facebook-pixel', { config: pixelConfig });
+      if (response.data && response.data.success) {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        // Recharger la configuration pour confirmer la mise à jour
+        const getResponse = await axios.get('/api/facebook-pixel');
+        if (getResponse.data && getResponse.data.config) {
+          setPixelConfig(getResponse.data.config);
+        }
+      } else {
+        throw new Error('La réponse du serveur n\'indique pas de succès');
+      }
     } catch (err) {
       console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
       setError('Erreur lors de la sauvegarde de la configuration');

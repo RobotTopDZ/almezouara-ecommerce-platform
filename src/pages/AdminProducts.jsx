@@ -551,10 +551,10 @@ const AdminProducts = () => {
       color_name: variant.color_name || '',
       color_value: variant.color_value || '#000000',
       size: variant.size,
-      stock: variant.stock,
+      stock: parseInt(variant.stock) || 0,
       sku: variant.sku || '',
       barcode: variant.barcode || '',
-      price_adjustment: variant.price_adjustment || 0
+      price_adjustment: parseFloat(variant.price_adjustment) || 0
     });
   };
   
@@ -1249,7 +1249,53 @@ const AdminProducts = () => {
                               
                               <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg text-center">
                                 <div className="text-sm font-medium">Stock</div>
-                                <div className="text-xl font-bold">{variant.stock}</div>
+                                <div className="flex items-center justify-center">
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      const newStock = Math.max(0, parseInt(variant.stock) - 1);
+                                      const newVariants = [...formData.variants];
+                                      const index = newVariants.findIndex(v => v.id === variant.id);
+                                      if (index !== -1) {
+                                        newVariants[index] = {...newVariants[index], stock: newStock};
+                                        setFormData({...formData, variants: newVariants});
+                                      }
+                                    }}
+                                    className="bg-red-200 hover:bg-red-300 text-red-800 font-bold px-2 rounded-l"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    value={variant.stock}
+                                    onChange={(e) => {
+                                      const newStock = parseInt(e.target.value) || 0;
+                                      const newVariants = [...formData.variants];
+                                      const index = newVariants.findIndex(v => v.id === variant.id);
+                                      if (index !== -1) {
+                                        newVariants[index] = {...newVariants[index], stock: newStock};
+                                        setFormData({...formData, variants: newVariants});
+                                      }
+                                    }}
+                                    min="0"
+                                    className="w-16 text-center text-xl font-bold bg-red-100 border-0 focus:ring-0"
+                                  />
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      const newStock = parseInt(variant.stock) + 1;
+                                      const newVariants = [...formData.variants];
+                                      const index = newVariants.findIndex(v => v.id === variant.id);
+                                      if (index !== -1) {
+                                        newVariants[index] = {...newVariants[index], stock: newStock};
+                                        setFormData({...formData, variants: newVariants});
+                                      }
+                                    }}
+                                    className="bg-red-200 hover:bg-red-300 text-red-800 font-bold px-2 rounded-r"
+                                  >
+                                    +
+                                  </button>
+                                </div>
                               </div>
                               
                               <button
