@@ -383,17 +383,21 @@ const AdminProducts = () => {
       
       console.log("Setting form data:", formDataToSet);
       
-      // Générer les variations automatiquement si nécessaire
-      if (processedVariants.length > 0) {
-        // Générer les combinaisons à partir des variants existants
-        generateVariantCombinations();
-      }
-      
       setFormData(formDataToSet);
       
       // Set bulk colors and sizes for the variant generator
       setBulkColors(uniqueColors);
       setBulkSizes(uniqueSizes);
+      
+      // Générer les variations automatiquement si nécessaire
+      // Important: Appeler après setFormData pour s'assurer que les données sont disponibles
+      if (processedVariants.length > 0) {
+        // Attendre que formData soit mis à jour
+        setTimeout(() => {
+          // Générer les combinaisons à partir des variants existants
+          generateVariantCombinations();
+        }, 100);
+      }
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
