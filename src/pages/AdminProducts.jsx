@@ -304,20 +304,48 @@ const AdminProducts = () => {
     setEditingProduct(product);
     console.log("Editing product:", product);
     
+    // Définir le type de produit en fonction des données existantes
+    const isVariableProduct = product.product_type === 'variable' || 
+                             (product.variants && product.variants.length > 0) ||
+                             (product.colors && product.colors.length > 0 && product.sizes && product.sizes.length > 0);
+    
     // Load variants for this product
     try {
+      // Forcer le chargement des variantes depuis l'API
       const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
       console.log("Variants response:", variantsRes.data);
       
       // Assurez-vous que nous avons des variantes, même si la réponse n'a pas de propriété success
       let variants = [];
-      if (variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
+      if (variantsRes.data && variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
         variants = variantsRes.data.variants;
-      } else if (Array.isArray(variantsRes.data)) {
+      } else if (variantsRes.data && Array.isArray(variantsRes.data)) {
         variants = variantsRes.data;
+      } else if (product.variants && Array.isArray(product.variants)) {
+        // Utiliser les variantes déjà présentes dans l'objet produit si l'API ne renvoie rien
+        variants = product.variants;
+        console.log("Using variants from product object:", variants);
       }
       
       console.log("Variants after processing response:", variants);
+      
+      // Si aucune variante n'est trouvée mais que le produit est de type variable,
+      // créer au moins une variante par défaut
+      if (variants.length === 0 && isVariableProduct) {
+        console.log("Creating default variant for variable product");
+        variants = [{
+          id: `default-${Date.now()}`,
+          color_name: product.colors && product.colors.length > 0 ? 
+                     (typeof product.colors[0] === 'string' ? product.colors[0] : product.colors[0].name) : 'Default',
+          color_value: product.colors && product.colors.length > 0 && 
+                      typeof product.colors[0] !== 'string' ? product.colors[0].value : '#000000',
+          size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Default',
+          stock: 1,
+          sku: '',
+          barcode: '',
+          price_adjustment: 0
+        }];
+      }
       
       // Ensure each variant has an id property for proper tracking
       const processedVariants = variants.map(variant => ({
