@@ -458,21 +458,25 @@ const AdminProducts = () => {
       };
       
       console.log("Setting form data with variants:", formDataToSet);
+      console.log("Processed variants count:", processedVariants.length);
       
       // Définir les données du formulaire avec les variantes
       setFormData(formDataToSet);
       
       // Forcer une mise à jour des variantes pour s'assurer qu'elles sont bien prises en compte
-      if (processedVariants.length > 0) {
+      if (processedVariants && processedVariants.length > 0) {
         console.log("Forcing variants update with:", processedVariants);
         
         // Utiliser un setTimeout pour s'assurer que le premier setFormData est traité
         setTimeout(() => {
-          setFormData(prevData => ({
-            ...prevData,
-            variants: [...processedVariants], // Créer une nouvelle référence pour forcer la mise à jour
-            product_type: 'variable' // Forcer le type à variable
-          }));
+          setFormData(prevData => {
+            console.log("Previous form data:", prevData);
+            return {
+              ...prevData,
+              variants: JSON.parse(JSON.stringify(processedVariants)), // Créer une copie profonde pour forcer la mise à jour
+              product_type: 'variable' // Forcer le type à variable
+            };
+          });
           
           // Mettre à jour également les couleurs et tailles en vrac pour le générateur de variantes
           setBulkColors(uniqueColors.length > 0 ? uniqueColors : colors);
