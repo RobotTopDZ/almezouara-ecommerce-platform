@@ -78,7 +78,7 @@ router.get('/orders', async (req, res) => {
       order.items = items;
     }
     
-    // Regrouper les commandes du même numéro de téléphone dans les dernières 12 heures
+    // Regrouper les commandes du même numéro de téléphone dans les dernières 24 heures (1 jour)
     const groupedOrders = [];
     const processedOrderIds = new Set();
     
@@ -92,12 +92,12 @@ router.get('/orders', async (req, res) => {
         continue;
       }
       
-      // Chercher toutes les commandes du même numéro de téléphone dans les 12 dernières heures
+      // Chercher toutes les commandes du même numéro de téléphone dans les 24 dernières heures (1 jour)
       const relatedOrders = orders.filter(o => 
         o.phoneNumber === order.phoneNumber && 
         o.id !== order.id &&
         !processedOrderIds.has(o.id) &&
-        Math.abs(new Date(o.date || o.created_at) - new Date(order.date || order.created_at)) < 12 * 60 * 60 * 1000
+        Math.abs(new Date(o.date || o.created_at) - new Date(order.date || order.created_at)) < 24 * 60 * 60 * 1000
       );
       
       // Si on a trouvé des commandes liées, on les regroupe
@@ -114,11 +114,28 @@ router.get('/orders', async (req, res) => {
         
         // Ajouter tous les items des commandes liées
         groupedOrder.items = [...order.items];
+        let totalProductsPrice = parseFloat(order.total || 0);
+        let shippingFee = 0;
+        
+        // Extraire les frais de livraison de la première commande
+        // On suppose que les frais de livraison sont la différence entre le total et le prix des produits
+        const orderItemsTotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.quantity || 1)), 0);
+        shippingFee = Math.max(0, totalProductsPrice - orderItemsTotal);
+        
+        // Ajouter les articles et calculer le prix total des produits
         relatedOrders.forEach(o => {
           if (o.items && o.items.length) {
             groupedOrder.items = [...groupedOrder.items, ...o.items];
+            // Ajouter seulement le prix des produits, pas les frais de livraison
+            const itemsTotal = o.items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.quantity || 1)), 0);
+            totalProductsPrice += itemsTotal;
           }
         });
+        
+        // Calculer le nouveau total: prix total des produits + frais de livraison (une seule fois)
+        groupedOrder.total = totalProductsPrice + shippingFee;
+        groupedOrder.productsTotal = totalProductsPrice;
+        groupedOrder.shippingFee = shippingFee;
         
         groupedOrders.push(groupedOrder);
       } else {
