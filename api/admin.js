@@ -114,13 +114,14 @@ router.get('/orders', async (req, res) => {
         
         // Ajouter tous les items des commandes liées
         groupedOrder.items = [...order.items];
-        let totalProductsPrice = parseFloat(order.total || 0);
-        let shippingFee = 0;
+        
+        // Calculer le prix total des produits de la première commande
+        const orderItemsTotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.quantity || 1)), 0);
         
         // Extraire les frais de livraison de la première commande
-        // On suppose que les frais de livraison sont la différence entre le total et le prix des produits
-        const orderItemsTotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.quantity || 1)), 0);
-        shippingFee = Math.max(0, totalProductsPrice - orderItemsTotal);
+        // Les frais de livraison sont la différence entre le total et le prix des produits
+        let totalProductsPrice = orderItemsTotal;
+        let shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
         
         // Ajouter les articles et calculer le prix total des produits
         relatedOrders.forEach(o => {
