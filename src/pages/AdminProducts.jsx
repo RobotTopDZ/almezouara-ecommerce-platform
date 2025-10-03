@@ -1544,7 +1544,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                     </div>
                   </div>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>
