@@ -125,15 +125,19 @@ router.get('/orders', async (req, res) => {
         // Extraire les frais de livraison de la première commande
         // Pour Stopdesk, les frais sont généralement moins élevés (environ 200-300 DA)
         // Pour la livraison à domicile, les frais sont plus élevés (environ 400-600 DA)
+        
+        // Calculer les frais de livraison en fonction du total et du prix des produits
+        const calculatedFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+        
         if (order.deliveryMethod === 'stopdesk') {
-          // Pour Stopdesk, utiliser un montant fixe de 300 DA ou extraire du total si disponible
-          // Cela garantit que nous utilisons les frais de Stopdesk et non ceux de livraison à domicile
-          shippingFee = 300; // Valeur par défaut pour Stopdesk
-          
-          // Si nous pouvons calculer les frais réels, utilisons-les
-          const calculatedFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
-          if (calculatedFee > 0 && calculatedFee <= 400) { // Vérifier que c'est un montant raisonnable pour Stopdesk
+          // Pour Stopdesk, utiliser les frais calculés s'ils sont disponibles
+          // Si les frais calculés ne sont pas disponibles ou ne sont pas raisonnables,
+          // on utilisera les frais de livraison à domicile
+          if (calculatedFee > 0 && calculatedFee <= 400) {
             shippingFee = calculatedFee;
+          } else {
+            // Si pas de frais valides pour Stopdesk, utiliser les frais de livraison à domicile
+            shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
           }
         } else {
           // Pour la livraison à domicile, extraire les frais du total
