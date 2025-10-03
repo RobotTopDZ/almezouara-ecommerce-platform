@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export const useInfiniteScroll = (initialItems = [], itemsPerPage = 6) => {
   const [displayedItems, setDisplayedItems] = useState([]);
@@ -55,8 +55,8 @@ export const useInfiniteScroll = (initialItems = [], itemsPerPage = 6) => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [loadMore, isLoading, hasMore]);
 
   return {

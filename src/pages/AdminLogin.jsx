@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useAdminStore from '../store/adminStore';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAdminStore from "../store/adminStore";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const login = useAdminStore(s => s.login);
   const isAuthenticated = useAdminStore(s => s.isAuthenticated);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("');
+  const [password, setPassword] = useState("');
+  const [error, setError] = useState("');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await login(username, password);
     if (res.ok) {
-      navigate('/admin');
+      navigate("/admin");
     } else {
-      setError(res.error || 'Login failed');
+      setError(res.error || "Login failed");
     }
   };
 
   if (isAuthenticated) {
-    navigate('/admin');
+    navigate("/admin");
     return null;
   }
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import axios from "axios";
 
 const CategoriesPage = () => {
   const { t } = useTranslation();
@@ -12,14 +12,14 @@ const CategoriesPage = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await axios.get('/api/products/categories/list');
+        const response = await axios.get("/api/products/categories/list");
         if (response.data.success && response.data.categories) {
           // Transform database categories to match expected format
           const transformedCategories = response.data.categories.map(cat => ({
             id: cat.name.toLowerCase(),
             name: cat.name,
             description: cat.description || `Découvrez notre collection de ${cat.name.toLowerCase()}`,
-            image: '/images/IMG_0630-scaled.jpeg', // Default image
+            image: "/images/IMG_0630-scaled.jpeg", // Default image
             icon: getIconForCategory(cat.name),
             color: getColorForCategory(cat.name)
           }));
@@ -29,7 +29,7 @@ const CategoriesPage = () => {
           setCategories(fallbackCategories);
         }
       } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error("Error loading categories:", error);
         setCategories(fallbackCategories);
       } finally {
         setLoading(false);
@@ -42,58 +42,58 @@ const CategoriesPage = () => {
   // Helper functions
   const getIconForCategory = (name) => {
     const icons = {
-      'robes': '👗',
-      'hijabs': '🧕',
-      'abayas': '👘',
-      'accessoires': '💎',
-      'chaussures': '👠'
+      "robes": "👗",
+      "hijabs": "🧕",
+      "abayas": "👘",
+      "accessoires": "💎",
+      "chaussures": "👠"
     };
-    return icons[name.toLowerCase()] || '🛍️';
+    return icons[name.toLowerCase()] || "🛍️";
   };
 
   const getColorForCategory = (name) => {
     const colors = {
-      'robes': 'from-pink-500 to-pink-600',
-      'hijabs': 'from-purple-500 to-purple-600',
-      'abayas': 'from-blue-500 to-blue-600',
-      'accessoires': 'from-green-500 to-green-600',
-      'chaussures': 'from-yellow-500 to-yellow-600'
+      "robes": "from-pink-500 to-pink-600",
+      "hijabs": "from-purple-500 to-purple-600",
+      "abayas": "from-blue-500 to-blue-600",
+      "accessoires": "from-green-500 to-green-600",
+      "chaussures": "from-yellow-500 to-yellow-600"
     };
-    return colors[name.toLowerCase()] || 'from-gray-500 to-gray-600';
+    return colors[name.toLowerCase()] || "from-gray-500 to-gray-600";
   };
 
   const fallbackCategories = [
     {
-      id: 'dresses',
-      name: t('categories.dresses'),
-      description: 'Découvrez notre collection de robes élégantes',
-      image: '/images/IMG_0630-scaled.jpeg',
-      icon: '👗',
-      color: 'from-pink-500 to-pink-600'
+      id: "dresses",
+      name: t("categories.dresses"),
+      description: "Découvrez notre collection de robes élégantes",
+      image: "/images/IMG_0630-scaled.jpeg",
+      icon: "👗",
+      color: "from-pink-500 to-pink-600"
     },
     {
-      id: 'hijabs',
-      name: t('categories.hijabs'),
-      description: 'Hijabs de qualité premium dans tous les styles',
-      image: '/images/IMG_6710-scaled.jpeg',
-      icon: '🧕',
-      color: 'from-purple-500 to-purple-600'
+      id: "hijabs",
+      name: t("categories.hijabs"),
+      description: "Hijabs de qualité premium dans tous les styles",
+      image: "/images/IMG_6710-scaled.jpeg",
+      icon: "🧕",
+      color: "from-purple-500 to-purple-600"
     },
     {
-      id: 'shoes',
-      name: t('categories.shoes'),
-      description: 'Chaussures confortables et tendance',
-      image: '/images/IMG_6789-scaled.jpeg',
-      icon: '👠',
-      color: 'from-blue-500 to-blue-600'
+      id: "shoes",
+      name: t("categories.shoes"),
+      description: "Chaussures confortables et tendance",
+      image: "/images/IMG_6789-scaled.jpeg",
+      icon: "👠",
+      color: "from-blue-500 to-blue-600"
     },
     {
-      id: 'accessories',
-      name: t('categories.accessories'),
-      description: 'Accessoires pour parfaire votre look',
-      image: '/images/IMG_9260-scaled.jpeg',
-      icon: '💎',
-      color: 'from-green-500 to-green-600'
+      id: "accessories",
+      name: t("categories.accessories"),
+      description: "Accessoires pour parfaire votre look",
+      image: "/images/IMG_9260-scaled.jpeg",
+      icon: "💎",
+      color: "from-green-500 to-green-600"
     }
   ];
 
@@ -174,7 +174,7 @@ const CategoriesPage = () => {
             className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
           />
           <button className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
-            S'abonner
+            S"abonner
           </button>
         </div>
       </div>

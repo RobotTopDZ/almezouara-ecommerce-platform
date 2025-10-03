@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -13,6 +13,8 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline" to="/admin/products">Products</Link>
         <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
+        <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -25,12 +27,12 @@ const AdminOrders = () => {
   const [orders, setOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filteredOrders, setFilteredOrders] = React.useState([]);
-  const [statusFilter, setStatusFilter] = React.useState('all');
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [searchTerm, setSearchTerm] = React.useState("');
   const [selectedOrder, setSelectedOrder] = React.useState(null);
   const [showOrderModal, setShowOrderModal] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState('date');
-  const [sortOrder, setSortOrder] = React.useState('desc');
+  const [sortBy, setSortBy] = React.useState("date");
+  const [sortOrder, setSortOrder] = React.useState("desc");
   const [sendingToYalidine, setSendingToYalidine] = React.useState({});
   const [yalidineConfig, setYalidineConfig] = React.useState({
     configured: false
@@ -39,12 +41,12 @@ const AdminOrders = () => {
   React.useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/admin/orders');
+        const response = await fetch("/api/admin/orders");
         const data = await response.json();
         setOrders(data.orders || []);
         setFilteredOrders(data.orders || []);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error("Error fetching orders:", error);
       } finally {
         setLoading(false);
       }
@@ -56,7 +58,7 @@ const AdminOrders = () => {
     let filtered = [...orders];
     
     // Filter by status
-    if (statusFilter !== 'all') {
+    if (statusFilter !== "all") {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     
@@ -75,24 +77,24 @@ const AdminOrders = () => {
       let aValue, bValue;
       
       switch (sortBy) {
-        case 'date':
+        case "date":
           aValue = new Date(a.date || a.createdAt);
           bValue = new Date(b.date || b.createdAt);
           break;
-        case 'total':
+        case "total":
           aValue = a.total || 0;
           bValue = b.total || 0;
           break;
-        case 'name':
-          aValue = a.fullName || '';
-          bValue = b.fullName || '';
+        case "name":
+          aValue = a.fullName || "';
+          bValue = b.fullName || "';
           break;
         default:
-          aValue = a[sortBy] || '';
-          bValue = b[sortBy] || '';
+          aValue = a[sortBy] || "';
+          bValue = b[sortBy] || "';
       }
       
-      if (sortOrder === 'asc') {
+      if (sortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
@@ -111,8 +113,8 @@ const AdminOrders = () => {
       // Show success message
       alert(`Statut de la commande ${orderId} mis à jour vers: ${getStatusText(newStatus)}`);
     } catch (error) {
-      console.error('Error updating order status:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      console.error("Error updating order status:", error);
+      alert("Erreur lors de la mise à jour du statut");
     }
   };
 
@@ -121,7 +123,7 @@ const AdminOrders = () => {
     try {
       setSendingToYalidine(prev => ({ ...prev, [orderId]: true }));
       
-      const response = await axios.post('/api/yalidine/send-order', {
+      const response = await axios.post("/api/yalidine/send-order", {
         orderId,
         stopdeskId
       });
@@ -132,74 +134,74 @@ const AdminOrders = () => {
           order.id === orderId 
             ? { 
                 ...order, 
-                status: 'shipped', 
+                status: "shipped", 
                 yalidineTracking: response.data.tracking 
               } 
             : order
         ));
         
-        alert(`✅ Commande envoyée à Yalidine avec succès!\n\nNuméro de suivi: ${response.data.tracking}\n\nVous pouvez imprimer l'étiquette depuis le lien fourni.`);
+        alert(`✅ Commande envoyée à Yalidine avec succès!\n\nNuméro de suivi: ${response.data.tracking}\n\nVous pouvez imprimer l"étiquette depuis le lien fourni.`);
       } else {
-        alert(`❌ Erreur lors de l'envoi à Yalidine: ${response.data.error}`);
+        alert(`❌ Erreur lors de l"envoi à Yalidine: ${response.data.error}`);
       }
     } catch (error) {
-      console.error('Error sending to Yalidine:', error);
-      alert(`❌ Erreur lors de l'envoi à Yalidine: ${error.response?.data?.error || error.message}`);
+      console.error("Error sending to Yalidine:", error);
+      alert(`❌ Erreur lors de l"envoi à Yalidine: ${error.response?.data?.error || error.message}`);
     } finally {
       setSendingToYalidine(prev => ({ ...prev, [orderId]: false }));
     }
   };
 
   const canSendToYalidine = (order) => {
-    return order.status === 'confirmed' || order.status === 'processing';
+    return order.status === "confirmed" || order.status === "processing";
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'processing': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'shipped': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "processing": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "confirmed": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "shipped": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "delivered": return "bg-green-100 text-green-800 border-green-200";
+      case "cancelled": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'processing': return 'En cours de traitement';
-      case 'confirmed': return 'Confirmée';
-      case 'shipped': return 'Expédiée';
-      case 'delivered': return 'Livrée';
-      case 'cancelled': return 'Annulée';
+      case "processing": return "En cours de traitement";
+      case "confirmed": return "Confirmée";
+      case "shipped": return "Expédiée";
+      case "delivered": return "Livrée";
+      case "cancelled": return "Annulée";
       default: return status;
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'processing': return '⏳';
-      case 'confirmed': return '✅';
-      case 'shipped': return '🚚';
-      case 'delivered': return '📦';
-      case 'cancelled': return '❌';
-      default: return '📋';
+      case "processing": return "⏳";
+      case "confirmed": return "✅";
+      case "shipped": return "🚚";
+      case "delivered": return "📦";
+      case "cancelled": return "❌";
+      default: return "📋";
     }
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR').format(price || 0);
+    return new Intl.NumberFormat("fr-FR").format(price || 0);
   };
 
   const viewOrder = (order) => {
-    console.log('📦 Viewing order details:', order);
+    console.log("📦 Viewing order details:", order);
     setSelectedOrder(order);
     setShowOrderModal(true);
   };
 
   const formatOrderItems = (items) => {
     if (!items) return [];
-    if (typeof items === 'string') {
+    if (typeof items === "string") {
       try {
         return JSON.parse(items);
       } catch {
@@ -266,7 +268,7 @@ const AdminOrders = () => {
               <div>
                 <div className="text-sm text-gray-500">En cours</div>
                 <div className="text-xl font-bold text-yellow-600">
-                  {orders.filter(o => o.status === 'processing').length}
+                  {orders.filter(o => o.status === "processing").length}
                 </div>
               </div>
             </div>
@@ -279,7 +281,7 @@ const AdminOrders = () => {
               <div>
                 <div className="text-sm text-gray-500">Confirmées</div>
                 <div className="text-xl font-bold text-blue-600">
-                  {orders.filter(o => o.status === 'confirmed').length}
+                  {orders.filter(o => o.status === "confirmed").length}
                 </div>
               </div>
             </div>
@@ -292,7 +294,7 @@ const AdminOrders = () => {
               <div>
                 <div className="text-sm text-gray-500">Expédiées</div>
                 <div className="text-xl font-bold text-purple-600">
-                  {orders.filter(o => o.status === 'shipped').length}
+                  {orders.filter(o => o.status === "shipped").length}
                 </div>
               </div>
             </div>
@@ -305,7 +307,7 @@ const AdminOrders = () => {
               <div>
                 <div className="text-sm text-gray-500">Livrées</div>
                 <div className="text-xl font-bold text-green-600">
-                  {orders.filter(o => o.status === 'delivered').length}
+                  {orders.filter(o => o.status === "delivered").length}
                 </div>
               </div>
             </div>
@@ -356,17 +358,17 @@ const AdminOrders = () => {
             </div>
             <div className="flex items-end space-x-2">
               <button
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
                 className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                {sortOrder === 'asc' ? '↑' : '↓'} {sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}
+                {sortOrder === "asc" ? "↑" : "↓"} {sortOrder === "asc" ? "Croissant" : "Décroissant"}
               </button>
               <button
                 onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                  setSortBy('date');
-                  setSortOrder('desc');
+                  setSearchTerm("');
+                  setStatusFilter("all");
+                  setSortBy("date");
+                  setSortOrder("desc");
                 }}
                 className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors"
               >
@@ -412,12 +414,12 @@ const AdminOrders = () => {
                       <div>
                         <div className="text-sm font-medium text-gray-900">{order.id}</div>
                         <div className="text-sm text-gray-500">
-                          {new Date(order.date || order.createdAt).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
+                          {new Date(order.date || order.createdAt).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
                           })}
                         </div>
                         {order.yalidineTracking && (
@@ -438,7 +440,7 @@ const AdminOrders = () => {
                         <div className="font-medium">{order.wilaya}, {order.city}</div>
                         <div className="text-gray-500 truncate max-w-xs">{order.address}</div>
                         <div className="text-xs text-blue-600">
-                          {order.deliveryMethod === 'domicile' ? '🏠 Domicile' : '📦 Stopdesk'}
+                          {order.deliveryMethod === "domicile" ? "🏠 Domicile" : "📦 Stopdesk"}
                         </div>
                       </div>
                     </td>
@@ -519,11 +521,11 @@ const AdminOrders = () => {
                             disabled={sendingToYalidine[order.id]}
                             className={`w-full text-xs py-1 px-2 rounded transition-colors ${
                               sendingToYalidine[order.id]
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-blue-500 text-white hover:bg-blue-600"
                             }`}
                           >
-                            {sendingToYalidine[order.id] ? '⏳ Envoi...' : '🚚 Envoyer à Yalidine'}
+                            {sendingToYalidine[order.id] ? "⏳ Envoi..." : "🚚 Envoyer à Yalidine"}
                           </button>
                         )}
                         {order.yalidineTracking && (
@@ -601,11 +603,11 @@ const AdminOrders = () => {
                         disabled={sendingToYalidine[selectedOrder.id]}
                         className={`px-4 py-2 rounded-lg text-white font-medium transition-colors ${
                           sendingToYalidine[selectedOrder.id]
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-blue-500 hover:bg-blue-600'
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-500 hover:bg-blue-600"
                         }`}
                       >
-                        {sendingToYalidine[selectedOrder.id] ? '⏳ Envoi en cours...' : '🚚 Envoyer à Yalidine'}
+                        {sendingToYalidine[selectedOrder.id] ? "⏳ Envoi en cours..." : "🚚 Envoyer à Yalidine"}
                       </button>
                     </div>
                   )}
@@ -625,7 +627,7 @@ const AdminOrders = () => {
                     <div className="space-y-2 text-sm">
                       <div><strong>Nom:</strong> {selectedOrder.fullName}</div>
                       <div><strong>Téléphone:</strong> {selectedOrder.phoneNumber}</div>
-                      <div><strong>Date de commande:</strong> {new Date(selectedOrder.date || selectedOrder.createdAt).toLocaleString('fr-FR')}</div>
+                      <div><strong>Date de commande:</strong> {new Date(selectedOrder.date || selectedOrder.createdAt).toLocaleString("fr-FR")}</div>
                     </div>
                   </div>
                   
@@ -635,7 +637,7 @@ const AdminOrders = () => {
                       <div><strong>Wilaya:</strong> {selectedOrder.wilaya}</div>
                       <div><strong>Ville:</strong> {selectedOrder.city}</div>
                       <div><strong>Adresse:</strong> {selectedOrder.address}</div>
-                      <div><strong>Méthode:</strong> {selectedOrder.deliveryMethod === 'domicile' ? 'Livraison à domicile' : 'Stopdesk (Yalidine)'}</div>
+                      <div><strong>Méthode:</strong> {selectedOrder.deliveryMethod === "domicile" ? "Livraison à domicile" : "Stopdesk (Yalidine)"}</div>
                     </div>
                   </div>
                 </div>
@@ -711,7 +713,7 @@ const AdminOrders = () => {
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-gray-600">🚚 Frais de livraison ({selectedOrder.deliveryMethod === 'domicile' ? 'Domicile' : 'Stopdesk'}):</span>
+                          <span className="text-gray-600">🚚 Frais de livraison ({selectedOrder.deliveryMethod === "domicile" ? "Domicile" : "Stopdesk"}):</span>
                           <span className="font-medium">{formatPrice(selectedOrder.shippingCost || 0)} DA</span>
                         </div>
                         <div className="border-t pt-2 mt-2">
@@ -728,7 +730,7 @@ const AdminOrders = () => {
                       <h4 className="font-medium text-blue-800 mb-2">📋 Informations supplémentaires:</h4>
                       <div className="space-y-1 text-xs text-blue-700">
                         <div><strong>ID Commande:</strong> {selectedOrder.id}</div>
-                        <div><strong>Méthode de livraison:</strong> {selectedOrder.deliveryMethod === 'domicile' ? '🏠 Livraison à domicile' : '📦 Stopdesk (Yalidine)'}</div>
+                        <div><strong>Méthode de livraison:</strong> {selectedOrder.deliveryMethod === "domicile" ? "🏠 Livraison à domicile" : "📦 Stopdesk (Yalidine)"}</div>
                         <div><strong>Statut de paiement:</strong> <span className="text-orange-600">💳 À la livraison (COD)</span></div>
                         {selectedOrder.yalidineTracking && (
                           <div><strong>Suivi Yalidine:</strong> <span className="font-mono">{selectedOrder.yalidineTracking}</span></div>

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import useAdminStore from '../store/adminStore';
-import { completeDomicileFees } from '../data/completeDomicileData';
+import React from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import useAdminStore from "../store/adminStore";
+import { completeDomicileFees } from "../data/completeDomicileData";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -15,6 +15,7 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline text-purple-600 font-medium" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline text-orange-600 font-medium" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -41,7 +42,7 @@ export const RequireAdmin = ({ children }) => {
       <div className="container mx-auto p-4 text-center">
         <div className="bg-white rounded shadow p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p>Vérification de l'authentification...</p>
+          <p>Vérification de l"authentification...</p>
         </div>
       </div>
     );
@@ -49,7 +50,7 @@ export const RequireAdmin = ({ children }) => {
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    navigate('/admin/login');
+    navigate("/admin/login");
     return null;
   }
 
@@ -64,12 +65,12 @@ export const AdminOverview = () => {
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await fetch("/api/admin/stats");
         if (response.ok) {
           const data = await response.json();
           setStats(data);
         } else {
-          // If stats endpoint doesn't exist, use mock data
+          // If stats endpoint doesn"t exist, use mock data
           setStats({
             totalOrders: 0,
             totalRevenue: 0,
@@ -78,7 +79,7 @@ export const AdminOverview = () => {
           });
         }
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error("Error fetching stats:", error);
         // Use mock data as fallback
         setStats({
           totalOrders: 0,
@@ -113,7 +114,7 @@ export const AdminOverview = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-primary to-pink-600 rounded-lg p-6 text-white">
           <h1 className="text-3xl font-bold mb-2">Dashboard Administrateur</h1>
-          <p className="text-pink-100">Vue d'ensemble de votre boutique Almezouara</p>
+          <p className="text-pink-100">Vue d"ensemble de votre boutique Almezouara</p>
         </div>
 
         {/* Key Metrics */}
@@ -140,7 +141,7 @@ export const AdminOverview = () => {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
+                <p className="text-sm font-medium text-gray-600">Chiffre d"Affaires</p>
                 <p className="text-2xl font-bold text-gray-900">{formatPrice(stats?.totalRevenue || 0)}</p>
               </div>
             </div>
@@ -185,10 +186,10 @@ export const AdminOverview = () => {
                 <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-3 ${
-                      status === 'processing' ? 'bg-blue-500' :
-                      status === 'shipped' ? 'bg-yellow-500' :
-                      status === 'delivered' ? 'bg-green-500' :
-                      'bg-red-500'
+                      status === "processing" ? "bg-blue-500" :
+                      status === "shipped" ? "bg-yellow-500" :
+                      status === "delivered" ? "bg-green-500" :
+                      "bg-red-500"
                     }`}></div>
                     <span className="text-sm font-medium text-gray-700 capitalize">{status}</span>
                   </div>
@@ -206,10 +207,10 @@ export const AdminOverview = () => {
                 <div key={method} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-3 ${
-                      method === 'domicile' ? 'bg-green-500' : 'bg-blue-500'
+                      method === "domicile" ? "bg-green-500" : "bg-blue-500"
                     }`}></div>
                     <span className="text-sm font-medium text-gray-700">
-                      {method === 'domicile' ? 'Livraison à domicile' : 'Stopdesk'}
+                      {method === "domicile" ? "Livraison à domicile" : "Stopdesk"}
                     </span>
                   </div>
                   <span className="text-sm font-bold text-gray-900">{count}</span>
@@ -221,7 +222,7 @@ export const AdminOverview = () => {
 
         {/* Monthly Revenue Trend */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Chiffre d'Affaires (6 derniers mois)</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Chiffre d"Affaires (6 derniers mois)</h3>
           <div className="h-64 flex items-end justify-between space-x-2">
             {stats?.monthlyRevenue && Object.entries(stats.monthlyRevenue).map(([month, revenue]) => {
               const maxRevenue = Math.max(...Object.values(stats.monthlyRevenue));
@@ -231,7 +232,7 @@ export const AdminOverview = () => {
                   <div className="w-full bg-gray-200 rounded-t relative">
                     <div 
                       className="bg-gradient-to-t from-primary to-pink-500 rounded-t transition-all duration-500"
-                      style={{ height: `${height}%`, minHeight: revenue > 0 ? '8px' : '0px' }}
+                      style={{ height: `${height}%`, minHeight: revenue > 0 ? "8px" : "0px" }}
                     ></div>
                   </div>
                   <div className="mt-2 text-center">
@@ -271,18 +272,18 @@ export const AdminOrders = () => {
   const [orders, setOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filteredOrders, setFilteredOrders] = React.useState([]);
-  const [statusFilter, setStatusFilter] = React.useState('all');
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [searchTerm, setSearchTerm] = React.useState("');
 
   React.useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/admin/orders');
+        const response = await fetch("/api/admin/orders");
         const data = await response.json();
         setOrders(data.orders || []);
         setFilteredOrders(data.orders || []);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error("Error fetching orders:", error);
       } finally {
         setLoading(false);
       }
@@ -294,7 +295,7 @@ export const AdminOrders = () => {
     let filtered = orders;
     
     // Filter by status
-    if (statusFilter !== 'all') {
+    if (statusFilter !== "all") {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     
@@ -316,31 +317,31 @@ export const AdminOrders = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   };
 
   const exportToCSV = () => {
     const headers = [
-      'ID Commande',
-      'Date',
-      'Client',
-      'Téléphone',
-      'Wilaya',
-      'Ville',
-      'Adresse',
-      'Méthode Livraison',
-      'Produits',
-      'Prix Produits',
-      'Frais Livraison',
-      'Total',
-      'Statut',
-      'Réduction'
+      "ID Commande",
+      "Date",
+      "Client",
+      "Téléphone",
+      "Wilaya",
+      "Ville",
+      "Adresse",
+      "Méthode Livraison",
+      "Produits",
+      "Prix Produits",
+      "Frais Livraison",
+      "Total",
+      "Statut",
+      "Réduction"
     ];
 
     const csvData = filteredOrders.map(order => [
@@ -351,25 +352,25 @@ export const AdminOrders = () => {
       order.wilaya,
       order.city,
       order.address,
-      order.deliveryMethod === 'domicile' ? 'Livraison à domicile' : 'Stopdesk',
-      order.items.map(item => `${item.name} (${item.color}, ${item.size})`).join('; '),
+      order.deliveryMethod === "domicile" ? "Livraison à domicile" : "Stopdesk",
+      order.items.map(item => `${item.name} (${item.color}, ${item.size})`).join("; "),
       formatPrice(order.productPrice || 0),
       formatPrice(order.shippingCost || 0),
       formatPrice(order.total),
       order.status,
-      order.discountPercentage ? `${order.discountPercentage}%` : '-'
+      order.discountPercentage ? `${order.discountPercentage}%` : "-"
     ]);
 
     const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
+      .map(row => row.map(field => `"${field}"`).join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `commandes_${new Date().toISOString().slice(0, 10)}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute("download", `commandes_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -377,21 +378,21 @@ export const AdminOrders = () => {
 
   const getStatusBadge = (status) => {
     const statusClasses = {
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-yellow-100 text-yellow-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
+      processing: "bg-blue-100 text-blue-800",
+      shipped: "bg-yellow-100 text-yellow-800",
+      delivered: "bg-green-100 text-green-800",
+      cancelled: "bg-red-100 text-red-800"
     };
     
     const statusLabels = {
-      processing: 'En cours',
-      shipped: 'Expédié',
-      delivered: 'Livré',
-      cancelled: 'Annulé'
+      processing: "En cours",
+      shipped: "Expédié",
+      delivered: "Livré",
+      cancelled: "Annulé"
     };
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status] || "bg-gray-100 text-gray-800"}`}>
         {statusLabels[status] || status}
       </span>
     );
@@ -471,7 +472,7 @@ export const AdminOrders = () => {
           <div className="bg-white border rounded-lg p-4">
             <p className="text-sm text-gray-600">CA Moyen</p>
             <p className="text-2xl font-bold text-gray-900">
-              {filteredOrders.length > 0 ? formatPrice(Math.round(filteredOrders.reduce((sum, order) => sum + (order.total || 0), 0) / filteredOrders.length)) : '0 DZD'}
+              {filteredOrders.length > 0 ? formatPrice(Math.round(filteredOrders.reduce((sum, order) => sum + (order.total || 0), 0) / filteredOrders.length)) : "0 DZD"}
             </p>
           </div>
         </div>
@@ -521,7 +522,7 @@ export const AdminOrders = () => {
                       <div>
                         <div className="text-sm text-gray-900">{order.wilaya}, {order.city}</div>
                         <div className="text-sm text-gray-500">
-                          {order.deliveryMethod === 'domicile' ? 'À domicile' : 'Stopdesk'}
+                          {order.deliveryMethod === "domicile" ? "À domicile" : "Stopdesk"}
                           {order.shippingCost && ` • ${formatPrice(order.shippingCost)}`}
                         </div>
                       </div>
@@ -564,9 +565,9 @@ export const AdminOrders = () => {
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune commande trouvée</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || statusFilter !== 'all' 
-                  ? 'Essayez de modifier vos filtres de recherche.' 
-                  : 'Les commandes apparaîtront ici une fois créées.'}
+                {searchTerm || statusFilter !== "all" 
+                  ? "Essayez de modifier vos filtres de recherche." 
+                  : "Les commandes apparaîtront ici une fois créées."}
               </p>
             </div>
           )}
@@ -578,141 +579,141 @@ export const AdminOrders = () => {
 
 export const AdminFees = () => {
   const { shippingFees, addShippingFee, removeShippingFee } = useAdminStore();
-  const [form, setForm] = React.useState({ wilaya: '', city: '', domicilePrice: '', stopdeskPrice: '' });
+  const [form, setForm] = React.useState({ wilaya: "', city: "', domicilePrice: "', stopdeskPrice: "' });
   const [editingId, setEditingId] = React.useState(null);
   const [editForm, setEditForm] = React.useState({});
 
   // Real Algerian shipping data
   const [stopdeskFees, setStopdeskFees] = React.useState([
-    { id: 1, nomDesk: 'Agence de Adrar', commune: 'Adrar', wilaya: 'Adrar', prix: 850 },
-    { id: 2, nomDesk: 'Agence de Timimoun', commune: 'Timimoun', wilaya: 'Adrar', prix: 850 },
-    { id: 3, nomDesk: 'Agence de Chlef', commune: 'Chlef', wilaya: 'Chlef', prix: 400 },
-    { id: 4, nomDesk: 'Agence de Ténès', commune: 'Ténès', wilaya: 'Chlef', prix: 400 },
-    { id: 5, nomDesk: 'Agence de Laghouat', commune: 'Laghouat', wilaya: 'Laghouat', prix: 600 },
-    { id: 6, nomDesk: 'Agence de Aflou', commune: 'Aflou', wilaya: 'Laghouat', prix: 600 },
-    { id: 7, nomDesk: 'Agence de Oum el Bouaghi', commune: 'Oum el Bouaghi', wilaya: 'Oum El Bouaghi', prix: 400 },
-    { id: 8, nomDesk: 'Agence de Aïn M\'lila', commune: 'Aïn M\'lila', wilaya: 'Oum El Bouaghi', prix: 400 },
-    { id: 9, nomDesk: 'Agence de Batna', commune: 'Batna', wilaya: 'Batna', prix: 400 },
-    { id: 10, nomDesk: 'Agence de Barika', commune: 'Barika', wilaya: 'Batna', prix: 400 },
-    { id: 11, nomDesk: 'Agence de Béjaïa', commune: 'Béjaïa', wilaya: 'Béjaïa', prix: 400 },
-    { id: 12, nomDesk: 'Agence de Akbou', commune: 'Akbou', wilaya: 'Béjaïa', prix: 400 },
-    { id: 13, nomDesk: 'Agence de El Kseur', commune: 'El Kseur', wilaya: 'Béjaïa', prix: 400 },
-    { id: 14, nomDesk: 'Agence de Biskra', commune: 'Biskra', wilaya: 'Biskra', prix: 600 },
-    { id: 15, nomDesk: 'Agence de Ouled Djellal', commune: 'Ouled Djellal', wilaya: 'Biskra', prix: 600 },
-    { id: 16, nomDesk: 'Agence de Tolga', commune: 'Tolga', wilaya: 'Biskra', prix: 650 },
-    { id: 17, nomDesk: 'Agence de Béchar', commune: 'Béchar', wilaya: 'Béchar', prix: 600 },
-    { id: 18, nomDesk: 'Agence de Blida', commune: 'Blida', wilaya: 'Blida', prix: 400 },
-    { id: 19, nomDesk: 'Agence de Bouarfa', commune: 'Bouarfa', wilaya: 'Blida', prix: 400 },
-    { id: 20, nomDesk: 'Agence de Boufarik', commune: 'Boufarik', wilaya: 'Blida', prix: 400 },
-    { id: 21, nomDesk: 'Agence de Larbaa', commune: 'Larbaa', wilaya: 'Blida', prix: 400 },
-    { id: 22, nomDesk: 'Agence de Bouira', commune: 'Bouira', wilaya: 'Bouira', prix: 400 },
-    { id: 23, nomDesk: 'Agence de Lakhdaria', commune: 'Lakhdaria', wilaya: 'Bouira', prix: 400 },
-    { id: 24, nomDesk: 'Agence de Sour El Ghouzlane', commune: 'Sour El Ghouzlane', wilaya: 'Bouira', prix: 400 },
-    { id: 25, nomDesk: 'Agence de Tamanrasset', commune: 'Tamanrasset', wilaya: 'Tamanrasset', prix: 1000 },
-    { id: 26, nomDesk: 'Agence de In Salah', commune: 'In Salah', wilaya: 'Tamanrasset', prix: 1000 },
-    { id: 27, nomDesk: 'Agence de Tébessa', commune: 'Tébessa', wilaya: 'Tébessa', prix: 600 },
-    { id: 28, nomDesk: 'Agence de Skanska', commune: 'Tébessa', wilaya: 'Tébessa', prix: 600 },
-    { id: 29, nomDesk: 'Agence de Tlemcen', commune: 'Tlemcen', wilaya: 'Tlemcen', prix: 300 },
-    { id: 30, nomDesk: 'Agence de Maghnia', commune: 'Maghnia', wilaya: 'Tlemcen', prix: 300 },
-    { id: 31, nomDesk: 'Agence de Mansourah', commune: 'Mansourah', wilaya: 'Tlemcen', prix: 300 },
-    { id: 32, nomDesk: 'Agence Chetouane', commune: 'Chetouane', wilaya: 'Tlemcen', prix: 300 },
-    { id: 33, nomDesk: 'Agence Remchi', commune: 'Remchi', wilaya: 'Tlemcen', prix: 300 },
-    { id: 34, nomDesk: 'Agence de Frenda', commune: 'Frenda', wilaya: 'Tiaret', prix: 400 },
-    { id: 35, nomDesk: 'Agence de Tiaret', commune: 'Tiaret', wilaya: 'Tiaret', prix: 400 },
-    { id: 36, nomDesk: 'Agence de Bekkar', commune: 'Tizi Ouzou', wilaya: 'Tizi Ouzou', prix: 400 },
-    { id: 37, nomDesk: 'Agence de nouvelle ville', commune: 'Tizi Ouzou', wilaya: 'Tizi Ouzou', prix: 400 },
-    { id: 38, nomDesk: 'Agence de Tizi Gheniff', commune: 'Tizi Gheniff', wilaya: 'Tizi Ouzou', prix: 400 },
-    { id: 39, nomDesk: 'Agence de Azazga', commune: 'Azazga', wilaya: 'Tizi Ouzou', prix: 400 },
-    { id: 40, nomDesk: 'Agence de Draâ Ben Khedda', commune: 'Draâ Ben Khedda', wilaya: 'Tizi Ouzou', prix: 400 },
-    { id: 41, nomDesk: 'Agence de Alger Centre', commune: 'Alger Centre', wilaya: 'Alger', prix: 350 },
-    { id: 42, nomDesk: 'Agence de Birkhadem', commune: 'Birkhadem', wilaya: 'Alger', prix: 350 },
-    { id: 43, nomDesk: 'Agence de Bordj El Kiffan', commune: 'Bordj El Kiffan', wilaya: 'Alger', prix: 350 },
-    { id: 44, nomDesk: 'Agence de Aïn Benian', commune: 'Aïn Benian', wilaya: 'Alger', prix: 350 },
-    { id: 45, nomDesk: 'Agence de Birtouta', commune: 'Birtouta', wilaya: 'Alger', prix: 350 },
-    { id: 46, nomDesk: 'Agence de Zeralda', commune: 'Zeralda', wilaya: 'Alger', prix: 350 },
-    { id: 47, nomDesk: 'Agence de Dar Diaf', commune: 'Cheraga', wilaya: 'Alger', prix: 350 },
-    { id: 48, nomDesk: 'Agence de Draria', commune: 'Draria', wilaya: 'Alger', prix: 350 },
-    { id: 49, nomDesk: 'Agence de Oued Tarfa', commune: 'Draria', wilaya: 'Alger', prix: 350 },
-    { id: 50, nomDesk: 'Agence de Bordj El Bahri', commune: 'Bordj El Bahri', wilaya: 'Alger', prix: 350 },
-    { id: 51, nomDesk: 'Agence de Hussein Dey', commune: 'Hussein Dey', wilaya: 'Alger', prix: 350 },
-    { id: 52, nomDesk: 'Agence Les Eucalyptus', commune: 'Les Eucalyptus', wilaya: 'Alger', prix: 350 },
-    { id: 53, nomDesk: 'Agence de DNC', commune: 'Reghaïa', wilaya: 'Alger', prix: 350 },
-    { id: 54, nomDesk: 'Agence de Signa', commune: 'Reghaïa', wilaya: 'Alger', prix: 350 },
-    { id: 55, nomDesk: 'Agence de Rouiba', commune: 'Rouiba', wilaya: 'Alger', prix: 350 },
-    { id: 56, nomDesk: 'Agence de Aïn Oussara', commune: 'Aïn Oussara', wilaya: 'Djelfa', prix: 600 },
-    { id: 57, nomDesk: 'Agence de Djelfa', commune: 'Djelfa', wilaya: 'Djelfa', prix: 600 },
-    { id: 58, nomDesk: 'Agence de Jijel', commune: 'Jijel', wilaya: 'Jijel', prix: 400 },
-    { id: 59, nomDesk: 'Agence de Taher', commune: 'Taher', wilaya: 'Jijel', prix: 400 },
-    { id: 60, nomDesk: 'Agence de Aïn Oulmene', commune: 'Aïn Oulmene', wilaya: 'Sétif', prix: 400 },
-    { id: 61, nomDesk: 'Agence de Bougaa', commune: 'Bougaa', wilaya: 'Sétif', prix: 400 },
-    { id: 62, nomDesk: 'Agence de El Eulma', commune: 'El Eulma', wilaya: 'Sétif', prix: 400 },
-    { id: 63, nomDesk: 'El Hidhab', commune: 'Sétif', wilaya: 'Sétif', prix: 400 },
-    { id: 64, nomDesk: 'Maabouda', commune: 'Sétif', wilaya: 'Sétif', prix: 400 },
-    { id: 65, nomDesk: 'Agence de Saïda', commune: 'Saïda', wilaya: 'Saïda', prix: 400 },
-    { id: 66, nomDesk: 'Agence de Azzaba', commune: 'Azzaba', wilaya: 'Skikda', prix: 400 },
-    { id: 67, nomDesk: 'Agence de Collo', commune: 'Collo', wilaya: 'Skikda', prix: 400 },
-    { id: 68, nomDesk: 'Agence de El Harrouch', commune: 'El Harrouch', wilaya: 'Skikda', prix: 400 },
-    { id: 69, nomDesk: 'Agence de Skikda', commune: 'Skikda', wilaya: 'Skikda', prix: 400 },
-    { id: 70, nomDesk: 'Agence de Sidi Bel Abbes', commune: 'Sidi Bel Abbes', wilaya: 'Sidi Bel Abbès', prix: 350 },
-    { id: 71, nomDesk: 'Benhamouda', commune: 'Sidi Bel Abbes', wilaya: 'Sidi Bel Abbès', prix: 350 },
-    { id: 72, nomDesk: 'Agence de Gassiot', commune: 'Annaba', wilaya: 'Annaba', prix: 400 },
-    { id: 73, nomDesk: 'Agence de Sidi Brahim', commune: 'Annaba', wilaya: 'Annaba', prix: 400 },
-    { id: 74, nomDesk: 'Agence de El Bouni', commune: 'El Bouni', wilaya: 'Annaba', prix: 400 },
-    { id: 75, nomDesk: 'Agence de Guelma', commune: 'Guelma', wilaya: 'Guelma', prix: 400 },
-    { id: 76, nomDesk: 'Agence de Oued Zenati', commune: 'Oued Zenati', wilaya: 'Guelma', prix: 400 },
-    { id: 77, nomDesk: 'Agence Belle vue', commune: 'Constantine', wilaya: 'Constantine', prix: 400 },
-    { id: 78, nomDesk: 'Agence Sidi Mabrouk', commune: 'Constantine', wilaya: 'Constantine', prix: 400 },
-    { id: 79, nomDesk: 'Agence de Didouche Mourad', commune: 'Didouche Mourad', wilaya: 'Constantine', prix: 400 },
-    { id: 80, nomDesk: 'Agence de El Khroub', commune: 'El Khroub', wilaya: 'Constantine', prix: 400 },
-    { id: 81, nomDesk: 'Agence Ali Mendjeli', commune: 'El Khroub', wilaya: 'Constantine', prix: 400 },
-    { id: 82, nomDesk: 'Agence de Médéa [El Koutab]', commune: 'Médéa', wilaya: 'Médéa', prix: 400 },
-    { id: 83, nomDesk: 'Agence de Médéa [Pole Urbain]', commune: 'Médéa', wilaya: 'Médéa', prix: 400 },
-    { id: 84, nomDesk: 'Agence de Salamandre', commune: 'Mostaganem', wilaya: 'Mostaganem', prix: 400 },
-    { id: 85, nomDesk: 'Agence de Kharouba', commune: 'Mostaganem', wilaya: 'Mostaganem', prix: 400 },
-    { id: 86, nomDesk: 'Agence de Berhoum', commune: 'Berhoum', wilaya: 'M\'Sila', prix: 400 },
-    { id: 87, nomDesk: 'Agence de Bou Saâda', commune: 'Bou Saâda', wilaya: 'M\'Sila', prix: 400 },
-    { id: 88, nomDesk: 'Agence de M\'Sila', commune: 'M\'Sila', wilaya: 'M\'Sila', prix: 400 },
-    { id: 89, nomDesk: 'Agence de Mascara', commune: 'Mascara', wilaya: 'Mascara', prix: 400 },
-    { id: 90, nomDesk: 'Agence de Hassi Messaoud', commune: 'Hassi Messaoud', wilaya: 'Ouargla', prix: 600 },
-    { id: 91, nomDesk: 'Agence de Ouargla', commune: 'Ouargla', wilaya: 'Ouargla', prix: 600 },
-    { id: 92, nomDesk: 'Agence de Touggourt', commune: 'Touggourt', wilaya: 'Ouargla', prix: 600 },
-    { id: 93, nomDesk: 'El Morchid', commune: 'Bir El Djir', wilaya: 'Oran', prix: 400 },
-    { id: 94, nomDesk: 'Agence Fernand Ville', commune: 'Bir El Djir', wilaya: 'Oran', prix: 400 },
-    { id: 95, nomDesk: 'Saint Hubert', commune: 'Oran', wilaya: 'Oran', prix: 400 },
-    { id: 96, nomDesk: 'Cité Djamel', commune: 'Oran', wilaya: 'Oran', prix: 400 },
-    { id: 97, nomDesk: 'Agence de Arzew', commune: 'Arzew', wilaya: 'Oran', prix: 400 },
-    { id: 98, nomDesk: 'Agence de Gambetta', commune: 'Oran', wilaya: 'Oran', prix: 400 },
-    { id: 99, nomDesk: 'Agence de El Bayadh', commune: 'El Bayadh', wilaya: 'El Bayadh', prix: 850 },
-    { id: 100, nomDesk: 'Agence de Illizi', commune: 'Illizi', wilaya: 'Illizi', prix: 1000 },
-    { id: 101, nomDesk: 'Agence de El Djebasse', commune: 'Bordj Bou Arreridj', wilaya: 'Bordj Bou Arreridj', prix: 400 },
-    { id: 102, nomDesk: 'Agence Cité Soualem', commune: 'Bordj Bou Arreridj', wilaya: 'Bordj Bou Arreridj', prix: 400 },
-    { id: 103, nomDesk: 'Agence de Boumerdes', commune: 'Boumerdes', wilaya: 'Boumerdès', prix: 400 },
-    { id: 104, nomDesk: 'Agence de Bordj Menaiel', commune: 'Bordj Menaiel', wilaya: 'Boumerdès', prix: 400 },
-    { id: 105, nomDesk: 'Agence de Ben Mehidi', commune: 'Ben Mehidi', wilaya: 'El Tarf', prix: 400 },
-    { id: 106, nomDesk: 'Agence de El Tarf', commune: 'El Tarf', wilaya: 'El Tarf', prix: 400 },
-    { id: 107, nomDesk: 'Agence de Tindouf', commune: 'Tindouf', wilaya: 'Tindouf', prix: 1000 },
-    { id: 108, nomDesk: 'Agence de Tissemsilt', commune: 'Tissemsilt', wilaya: 'Tissemsilt', prix: 400 },
-    { id: 109, nomDesk: 'Agence de El Oued', commune: 'El Oued', wilaya: 'El Oued', prix: 600 },
-    { id: 110, nomDesk: 'Agence de El M\'Ghair', commune: 'El M\'Ghair', wilaya: 'El Oued', prix: 600 },
-    { id: 111, nomDesk: 'Agence de Djamaa', commune: 'Djamaa', wilaya: 'El Oued', prix: 600 },
-    { id: 112, nomDesk: 'Agence de Khenchela', commune: 'Khenchela', wilaya: 'Khenchela', prix: 400 },
-    { id: 113, nomDesk: 'Agence de Souk Ahras', commune: 'Souk Ahras', wilaya: 'Souk Ahras', prix: 400 },
-    { id: 114, nomDesk: 'Agence de Tipaza', commune: 'Tipaza', wilaya: 'Tipaza', prix: 400 },
-    { id: 115, nomDesk: 'Agence Rue du stade', commune: 'Tipaza', wilaya: 'Tipaza', prix: 400 },
-    { id: 116, nomDesk: 'Agence de Chelghoum Laid', commune: 'Chelghoum Laid', wilaya: 'Mila', prix: 400 },
-    { id: 117, nomDesk: 'Agence de Mila', commune: 'Mila', wilaya: 'Mila', prix: 400 },
-    { id: 118, nomDesk: 'Agence de Aïn Defla', commune: 'Aïn Defla', wilaya: 'Aïn Defla', prix: 400 },
-    { id: 119, nomDesk: 'Agence de Khemis Miliana', commune: 'Khemis Miliana', wilaya: 'Aïn Defla', prix: 400 },
-    { id: 120, nomDesk: 'Agence de Mecheria', commune: 'Mecheria', wilaya: 'Naâma', prix: 600 },
-    { id: 121, nomDesk: 'Agence de Aïn Témouchent', commune: 'Aïn Témouchent', wilaya: 'Aïn Témouchent', prix: 350 },
-    { id: 122, nomDesk: 'Agence de Beni Saf', commune: 'Beni Saf', wilaya: 'Aïn Témouchent', prix: 350 },
-    { id: 123, nomDesk: 'Agence de El Menia', commune: 'El Menia', wilaya: 'Ghardaïa', prix: 600 },
-    { id: 124, nomDesk: 'Agence de Ghardaïa', commune: 'Ghardaïa', wilaya: 'Ghardaïa', prix: 500 },
-    { id: 125, nomDesk: 'Agence de Metlili', commune: 'Metlili', wilaya: 'Ghardaïa', prix: 600 },
-    { id: 126, nomDesk: 'El Guerrara', commune: 'El Guerrara', wilaya: 'Ghardaïa', prix: 600 },
-    { id: 127, nomDesk: 'Agence de Bouhraoua', commune: 'Ghardaïa', wilaya: 'Ghardaïa', prix: 500 },
-    { id: 128, nomDesk: 'Agence d\'Oued Rhiou', commune: 'Oued Rhiou', wilaya: 'Relizane', prix: 400 },
-    { id: 129, nomDesk: 'Agence de Relizane', commune: 'Relizane', wilaya: 'Relizane', prix: 400 }
+    { id: 1, nomDesk: "Agence de Adrar", commune: "Adrar", wilaya: "Adrar", prix: 850 },
+    { id: 2, nomDesk: "Agence de Timimoun", commune: "Timimoun", wilaya: "Adrar", prix: 850 },
+    { id: 3, nomDesk: "Agence de Chlef", commune: "Chlef", wilaya: "Chlef", prix: 400 },
+    { id: 4, nomDesk: "Agence de Ténès", commune: "Ténès", wilaya: "Chlef", prix: 400 },
+    { id: 5, nomDesk: "Agence de Laghouat", commune: "Laghouat", wilaya: "Laghouat", prix: 600 },
+    { id: 6, nomDesk: "Agence de Aflou", commune: "Aflou", wilaya: "Laghouat", prix: 600 },
+    { id: 7, nomDesk: "Agence de Oum el Bouaghi", commune: "Oum el Bouaghi", wilaya: "Oum El Bouaghi", prix: 400 },
+    { id: 8, nomDesk: "Agence de Aïn M\'lila", commune: "Aïn M\'lila", wilaya: "Oum El Bouaghi", prix: 400 },
+    { id: 9, nomDesk: "Agence de Batna", commune: "Batna", wilaya: "Batna", prix: 400 },
+    { id: 10, nomDesk: "Agence de Barika", commune: "Barika", wilaya: "Batna", prix: 400 },
+    { id: 11, nomDesk: "Agence de Béjaïa", commune: "Béjaïa", wilaya: "Béjaïa", prix: 400 },
+    { id: 12, nomDesk: "Agence de Akbou", commune: "Akbou", wilaya: "Béjaïa", prix: 400 },
+    { id: 13, nomDesk: "Agence de El Kseur", commune: "El Kseur", wilaya: "Béjaïa", prix: 400 },
+    { id: 14, nomDesk: "Agence de Biskra", commune: "Biskra", wilaya: "Biskra", prix: 600 },
+    { id: 15, nomDesk: "Agence de Ouled Djellal", commune: "Ouled Djellal", wilaya: "Biskra", prix: 600 },
+    { id: 16, nomDesk: "Agence de Tolga", commune: "Tolga", wilaya: "Biskra", prix: 650 },
+    { id: 17, nomDesk: "Agence de Béchar", commune: "Béchar", wilaya: "Béchar", prix: 600 },
+    { id: 18, nomDesk: "Agence de Blida", commune: "Blida", wilaya: "Blida", prix: 400 },
+    { id: 19, nomDesk: "Agence de Bouarfa", commune: "Bouarfa", wilaya: "Blida", prix: 400 },
+    { id: 20, nomDesk: "Agence de Boufarik", commune: "Boufarik", wilaya: "Blida", prix: 400 },
+    { id: 21, nomDesk: "Agence de Larbaa", commune: "Larbaa", wilaya: "Blida", prix: 400 },
+    { id: 22, nomDesk: "Agence de Bouira", commune: "Bouira", wilaya: "Bouira", prix: 400 },
+    { id: 23, nomDesk: "Agence de Lakhdaria", commune: "Lakhdaria", wilaya: "Bouira", prix: 400 },
+    { id: 24, nomDesk: "Agence de Sour El Ghouzlane", commune: "Sour El Ghouzlane", wilaya: "Bouira", prix: 400 },
+    { id: 25, nomDesk: "Agence de Tamanrasset", commune: "Tamanrasset", wilaya: "Tamanrasset", prix: 1000 },
+    { id: 26, nomDesk: "Agence de In Salah", commune: "In Salah", wilaya: "Tamanrasset", prix: 1000 },
+    { id: 27, nomDesk: "Agence de Tébessa", commune: "Tébessa", wilaya: "Tébessa", prix: 600 },
+    { id: 28, nomDesk: "Agence de Skanska", commune: "Tébessa", wilaya: "Tébessa", prix: 600 },
+    { id: 29, nomDesk: "Agence de Tlemcen", commune: "Tlemcen", wilaya: "Tlemcen", prix: 300 },
+    { id: 30, nomDesk: "Agence de Maghnia", commune: "Maghnia", wilaya: "Tlemcen", prix: 300 },
+    { id: 31, nomDesk: "Agence de Mansourah", commune: "Mansourah", wilaya: "Tlemcen", prix: 300 },
+    { id: 32, nomDesk: "Agence Chetouane", commune: "Chetouane", wilaya: "Tlemcen", prix: 300 },
+    { id: 33, nomDesk: "Agence Remchi", commune: "Remchi", wilaya: "Tlemcen", prix: 300 },
+    { id: 34, nomDesk: "Agence de Frenda", commune: "Frenda", wilaya: "Tiaret", prix: 400 },
+    { id: 35, nomDesk: "Agence de Tiaret", commune: "Tiaret", wilaya: "Tiaret", prix: 400 },
+    { id: 36, nomDesk: "Agence de Bekkar", commune: "Tizi Ouzou", wilaya: "Tizi Ouzou", prix: 400 },
+    { id: 37, nomDesk: "Agence de nouvelle ville", commune: "Tizi Ouzou", wilaya: "Tizi Ouzou", prix: 400 },
+    { id: 38, nomDesk: "Agence de Tizi Gheniff", commune: "Tizi Gheniff", wilaya: "Tizi Ouzou", prix: 400 },
+    { id: 39, nomDesk: "Agence de Azazga", commune: "Azazga", wilaya: "Tizi Ouzou", prix: 400 },
+    { id: 40, nomDesk: "Agence de Draâ Ben Khedda", commune: "Draâ Ben Khedda", wilaya: "Tizi Ouzou", prix: 400 },
+    { id: 41, nomDesk: "Agence de Alger Centre", commune: "Alger Centre", wilaya: "Alger", prix: 350 },
+    { id: 42, nomDesk: "Agence de Birkhadem", commune: "Birkhadem", wilaya: "Alger", prix: 350 },
+    { id: 43, nomDesk: "Agence de Bordj El Kiffan", commune: "Bordj El Kiffan", wilaya: "Alger", prix: 350 },
+    { id: 44, nomDesk: "Agence de Aïn Benian", commune: "Aïn Benian", wilaya: "Alger", prix: 350 },
+    { id: 45, nomDesk: "Agence de Birtouta", commune: "Birtouta", wilaya: "Alger", prix: 350 },
+    { id: 46, nomDesk: "Agence de Zeralda", commune: "Zeralda", wilaya: "Alger", prix: 350 },
+    { id: 47, nomDesk: "Agence de Dar Diaf", commune: "Cheraga", wilaya: "Alger", prix: 350 },
+    { id: 48, nomDesk: "Agence de Draria", commune: "Draria", wilaya: "Alger", prix: 350 },
+    { id: 49, nomDesk: "Agence de Oued Tarfa", commune: "Draria", wilaya: "Alger", prix: 350 },
+    { id: 50, nomDesk: "Agence de Bordj El Bahri", commune: "Bordj El Bahri", wilaya: "Alger", prix: 350 },
+    { id: 51, nomDesk: "Agence de Hussein Dey", commune: "Hussein Dey", wilaya: "Alger", prix: 350 },
+    { id: 52, nomDesk: "Agence Les Eucalyptus", commune: "Les Eucalyptus", wilaya: "Alger", prix: 350 },
+    { id: 53, nomDesk: "Agence de DNC", commune: "Reghaïa", wilaya: "Alger", prix: 350 },
+    { id: 54, nomDesk: "Agence de Signa", commune: "Reghaïa", wilaya: "Alger", prix: 350 },
+    { id: 55, nomDesk: "Agence de Rouiba", commune: "Rouiba", wilaya: "Alger", prix: 350 },
+    { id: 56, nomDesk: "Agence de Aïn Oussara", commune: "Aïn Oussara", wilaya: "Djelfa", prix: 600 },
+    { id: 57, nomDesk: "Agence de Djelfa", commune: "Djelfa", wilaya: "Djelfa", prix: 600 },
+    { id: 58, nomDesk: "Agence de Jijel", commune: "Jijel", wilaya: "Jijel", prix: 400 },
+    { id: 59, nomDesk: "Agence de Taher", commune: "Taher", wilaya: "Jijel", prix: 400 },
+    { id: 60, nomDesk: "Agence de Aïn Oulmene", commune: "Aïn Oulmene", wilaya: "Sétif", prix: 400 },
+    { id: 61, nomDesk: "Agence de Bougaa", commune: "Bougaa", wilaya: "Sétif", prix: 400 },
+    { id: 62, nomDesk: "Agence de El Eulma", commune: "El Eulma", wilaya: "Sétif", prix: 400 },
+    { id: 63, nomDesk: "El Hidhab", commune: "Sétif", wilaya: "Sétif", prix: 400 },
+    { id: 64, nomDesk: "Maabouda", commune: "Sétif", wilaya: "Sétif", prix: 400 },
+    { id: 65, nomDesk: "Agence de Saïda", commune: "Saïda", wilaya: "Saïda", prix: 400 },
+    { id: 66, nomDesk: "Agence de Azzaba", commune: "Azzaba", wilaya: "Skikda", prix: 400 },
+    { id: 67, nomDesk: "Agence de Collo", commune: "Collo", wilaya: "Skikda", prix: 400 },
+    { id: 68, nomDesk: "Agence de El Harrouch", commune: "El Harrouch", wilaya: "Skikda", prix: 400 },
+    { id: 69, nomDesk: "Agence de Skikda", commune: "Skikda", wilaya: "Skikda", prix: 400 },
+    { id: 70, nomDesk: "Agence de Sidi Bel Abbes", commune: "Sidi Bel Abbes", wilaya: "Sidi Bel Abbès", prix: 350 },
+    { id: 71, nomDesk: "Benhamouda", commune: "Sidi Bel Abbes", wilaya: "Sidi Bel Abbès", prix: 350 },
+    { id: 72, nomDesk: "Agence de Gassiot", commune: "Annaba", wilaya: "Annaba", prix: 400 },
+    { id: 73, nomDesk: "Agence de Sidi Brahim", commune: "Annaba", wilaya: "Annaba", prix: 400 },
+    { id: 74, nomDesk: "Agence de El Bouni", commune: "El Bouni", wilaya: "Annaba", prix: 400 },
+    { id: 75, nomDesk: "Agence de Guelma", commune: "Guelma", wilaya: "Guelma", prix: 400 },
+    { id: 76, nomDesk: "Agence de Oued Zenati", commune: "Oued Zenati", wilaya: "Guelma", prix: 400 },
+    { id: 77, nomDesk: "Agence Belle vue", commune: "Constantine", wilaya: "Constantine", prix: 400 },
+    { id: 78, nomDesk: "Agence Sidi Mabrouk", commune: "Constantine", wilaya: "Constantine", prix: 400 },
+    { id: 79, nomDesk: "Agence de Didouche Mourad", commune: "Didouche Mourad", wilaya: "Constantine", prix: 400 },
+    { id: 80, nomDesk: "Agence de El Khroub", commune: "El Khroub", wilaya: "Constantine", prix: 400 },
+    { id: 81, nomDesk: "Agence Ali Mendjeli", commune: "El Khroub", wilaya: "Constantine", prix: 400 },
+    { id: 82, nomDesk: "Agence de Médéa [El Koutab]", commune: "Médéa", wilaya: "Médéa", prix: 400 },
+    { id: 83, nomDesk: "Agence de Médéa [Pole Urbain]", commune: "Médéa", wilaya: "Médéa", prix: 400 },
+    { id: 84, nomDesk: "Agence de Salamandre", commune: "Mostaganem", wilaya: "Mostaganem", prix: 400 },
+    { id: 85, nomDesk: "Agence de Kharouba", commune: "Mostaganem", wilaya: "Mostaganem", prix: 400 },
+    { id: 86, nomDesk: "Agence de Berhoum", commune: "Berhoum", wilaya: "M\'Sila", prix: 400 },
+    { id: 87, nomDesk: "Agence de Bou Saâda", commune: "Bou Saâda", wilaya: "M\'Sila", prix: 400 },
+    { id: 88, nomDesk: "Agence de M\'Sila", commune: "M\'Sila", wilaya: "M\'Sila", prix: 400 },
+    { id: 89, nomDesk: "Agence de Mascara", commune: "Mascara", wilaya: "Mascara", prix: 400 },
+    { id: 90, nomDesk: "Agence de Hassi Messaoud", commune: "Hassi Messaoud", wilaya: "Ouargla", prix: 600 },
+    { id: 91, nomDesk: "Agence de Ouargla", commune: "Ouargla", wilaya: "Ouargla", prix: 600 },
+    { id: 92, nomDesk: "Agence de Touggourt", commune: "Touggourt", wilaya: "Ouargla", prix: 600 },
+    { id: 93, nomDesk: "El Morchid", commune: "Bir El Djir", wilaya: "Oran", prix: 400 },
+    { id: 94, nomDesk: "Agence Fernand Ville", commune: "Bir El Djir", wilaya: "Oran", prix: 400 },
+    { id: 95, nomDesk: "Saint Hubert", commune: "Oran", wilaya: "Oran", prix: 400 },
+    { id: 96, nomDesk: "Cité Djamel", commune: "Oran", wilaya: "Oran", prix: 400 },
+    { id: 97, nomDesk: "Agence de Arzew", commune: "Arzew", wilaya: "Oran", prix: 400 },
+    { id: 98, nomDesk: "Agence de Gambetta", commune: "Oran", wilaya: "Oran", prix: 400 },
+    { id: 99, nomDesk: "Agence de El Bayadh", commune: "El Bayadh", wilaya: "El Bayadh", prix: 850 },
+    { id: 100, nomDesk: "Agence de Illizi", commune: "Illizi", wilaya: "Illizi", prix: 1000 },
+    { id: 101, nomDesk: "Agence de El Djebasse", commune: "Bordj Bou Arreridj", wilaya: "Bordj Bou Arreridj", prix: 400 },
+    { id: 102, nomDesk: "Agence Cité Soualem", commune: "Bordj Bou Arreridj", wilaya: "Bordj Bou Arreridj", prix: 400 },
+    { id: 103, nomDesk: "Agence de Boumerdes", commune: "Boumerdes", wilaya: "Boumerdès", prix: 400 },
+    { id: 104, nomDesk: "Agence de Bordj Menaiel", commune: "Bordj Menaiel", wilaya: "Boumerdès", prix: 400 },
+    { id: 105, nomDesk: "Agence de Ben Mehidi", commune: "Ben Mehidi", wilaya: "El Tarf", prix: 400 },
+    { id: 106, nomDesk: "Agence de El Tarf", commune: "El Tarf", wilaya: "El Tarf", prix: 400 },
+    { id: 107, nomDesk: "Agence de Tindouf", commune: "Tindouf", wilaya: "Tindouf", prix: 1000 },
+    { id: 108, nomDesk: "Agence de Tissemsilt", commune: "Tissemsilt", wilaya: "Tissemsilt", prix: 400 },
+    { id: 109, nomDesk: "Agence de El Oued", commune: "El Oued", wilaya: "El Oued", prix: 600 },
+    { id: 110, nomDesk: "Agence de El M\'Ghair", commune: "El M\'Ghair", wilaya: "El Oued", prix: 600 },
+    { id: 111, nomDesk: "Agence de Djamaa", commune: "Djamaa", wilaya: "El Oued", prix: 600 },
+    { id: 112, nomDesk: "Agence de Khenchela", commune: "Khenchela", wilaya: "Khenchela", prix: 400 },
+    { id: 113, nomDesk: "Agence de Souk Ahras", commune: "Souk Ahras", wilaya: "Souk Ahras", prix: 400 },
+    { id: 114, nomDesk: "Agence de Tipaza", commune: "Tipaza", wilaya: "Tipaza", prix: 400 },
+    { id: 115, nomDesk: "Agence Rue du stade", commune: "Tipaza", wilaya: "Tipaza", prix: 400 },
+    { id: 116, nomDesk: "Agence de Chelghoum Laid", commune: "Chelghoum Laid", wilaya: "Mila", prix: 400 },
+    { id: 117, nomDesk: "Agence de Mila", commune: "Mila", wilaya: "Mila", prix: 400 },
+    { id: 118, nomDesk: "Agence de Aïn Defla", commune: "Aïn Defla", wilaya: "Aïn Defla", prix: 400 },
+    { id: 119, nomDesk: "Agence de Khemis Miliana", commune: "Khemis Miliana", wilaya: "Aïn Defla", prix: 400 },
+    { id: 120, nomDesk: "Agence de Mecheria", commune: "Mecheria", wilaya: "Naâma", prix: 600 },
+    { id: 121, nomDesk: "Agence de Aïn Témouchent", commune: "Aïn Témouchent", wilaya: "Aïn Témouchent", prix: 350 },
+    { id: 122, nomDesk: "Agence de Beni Saf", commune: "Beni Saf", wilaya: "Aïn Témouchent", prix: 350 },
+    { id: 123, nomDesk: "Agence de El Menia", commune: "El Menia", wilaya: "Ghardaïa", prix: 600 },
+    { id: 124, nomDesk: "Agence de Ghardaïa", commune: "Ghardaïa", wilaya: "Ghardaïa", prix: 500 },
+    { id: 125, nomDesk: "Agence de Metlili", commune: "Metlili", wilaya: "Ghardaïa", prix: 600 },
+    { id: 126, nomDesk: "El Guerrara", commune: "El Guerrara", wilaya: "Ghardaïa", prix: 600 },
+    { id: 127, nomDesk: "Agence de Bouhraoua", commune: "Ghardaïa", wilaya: "Ghardaïa", prix: 500 },
+    { id: 128, nomDesk: "Agence d\'Oued Rhiou", commune: "Oued Rhiou", wilaya: "Relizane", prix: 400 },
+    { id: 129, nomDesk: "Agence de Relizane", commune: "Relizane", wilaya: "Relizane", prix: 400 }
   ]);
 
   // Complete Algerian domicile shipping data from communes-wilayas (ALMEZOUARA).xlsx
@@ -723,13 +724,13 @@ export const AdminFees = () => {
 
   const handleEdit = (id, type) => {
     setEditingId(id);
-    const data = type === 'stopdesk' ? stopdeskFees : domicileFees;
+    const data = type === "stopdesk" ? stopdeskFees : domicileFees;
     const item = data.find(d => d.id === id);
     setEditForm({ ...item, type });
   };
 
   const handleSave = (type) => {
-    if (type === 'stopdesk') {
+    if (type === "stopdesk") {
       setStopdeskFees(prev => prev.map(item => 
         item.id === editingId ? { ...item, prix: Number(editForm.prix) } : item
       ));
@@ -772,7 +773,7 @@ export const AdminFees = () => {
                   <td className="border border-gray-300 px-4 py-2">{fee.commune}</td>
                   <td className="border border-gray-300 px-4 py-2">{fee.wilaya}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {editingId === fee.id && editForm.type === 'stopdesk' ? (
+                    {editingId === fee.id && editForm.type === "stopdesk" ? (
                       <input
                         type="number"
                         value={editForm.prix}
@@ -784,10 +785,10 @@ export const AdminFees = () => {
                     )}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {editingId === fee.id && editForm.type === 'stopdesk' ? (
+                    {editingId === fee.id && editForm.type === "stopdesk" ? (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleSave('stopdesk')}
+                          onClick={() => handleSave("stopdesk")}
                           className="px-3 py-1 bg-green-600 text-white rounded text-sm"
                         >
                           Save
@@ -801,7 +802,7 @@ export const AdminFees = () => {
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleEdit(fee.id, 'stopdesk')}
+                        onClick={() => handleEdit(fee.id, "stopdesk")}
                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
                       >
                         Edit
@@ -834,7 +835,7 @@ export const AdminFees = () => {
                   <td className="border border-gray-300 px-4 py-2">{fee.commune}</td>
                   <td className="border border-gray-300 px-4 py-2">{fee.wilaya}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {editingId === fee.id && editForm.type === 'domicile' ? (
+                    {editingId === fee.id && editForm.type === "domicile" ? (
                       <input
                         type="number"
                         value={editForm.prix}
@@ -846,10 +847,10 @@ export const AdminFees = () => {
                     )}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {editingId === fee.id && editForm.type === 'domicile' ? (
+                    {editingId === fee.id && editForm.type === "domicile" ? (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleSave('domicile')}
+                          onClick={() => handleSave("domicile")}
                           className="px-3 py-1 bg-green-600 text-white rounded text-sm"
                         >
                           Save
@@ -863,7 +864,7 @@ export const AdminFees = () => {
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleEdit(fee.id, 'domicile')}
+                        onClick={() => handleEdit(fee.id, "domicile")}
                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
                       >
                         Edit
@@ -882,11 +883,11 @@ export const AdminFees = () => {
 
 export const AdminCategories = () => {
   const { categories, addCategory, removeCategory } = useAdminStore();
-  const [name, setName] = React.useState('');
+  const [name, setName] = React.useState("');
   return (
     <AdminLayout>
       <h2 className="text-lg font-semibold mb-3">Categories</h2>
-      <form className="flex gap-2 mb-4" onSubmit={(e)=>{ e.preventDefault(); if(name.trim()){ addCategory({ name }); setName(''); } }}>
+      <form className="flex gap-2 mb-4" onSubmit={(e)=>{ e.preventDefault(); if(name.trim()){ addCategory({ name }); setName("'); } }}>
         <input className="border rounded px-2 py-1 flex-1" placeholder="Category name" value={name} onChange={e=>setName(e.target.value)} />
         <button className="bg-primary text-white rounded px-3">Add</button>
       </form>
@@ -909,17 +910,17 @@ export const AdminProducts = () => {
   const [loading, setLoading] = React.useState(true);
   
   const [form, setForm] = React.useState({ 
-    name: '', 
-    categoryId: '', 
-    description: '',
-    price: '', 
+    name: "', 
+    categoryId: "', 
+    description: "',
+    price: "', 
     inStock: true 
   });
   const [colors, setColors] = React.useState([]);
   const [sizes, setSizes] = React.useState([]);
   const [images, setImages] = React.useState([]);
-  const [newColor, setNewColor] = React.useState({ name: '', value: '', image: '' });
-  const [newSize, setNewSize] = React.useState('');
+  const [newColor, setNewColor] = React.useState({ name: "', value: "', image: "' });
+  const [newSize, setNewSize] = React.useState("');
   const [uploadingImages, setUploadingImages] = React.useState(false);
   const [uploadingColorImage, setUploadingColorImage] = React.useState(false);
 
@@ -931,11 +932,11 @@ export const AdminProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/admin/products');
+      const response = await fetch("/api/admin/products");
       const data = await response.json();
       setProducts(data.products || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
@@ -943,40 +944,40 @@ export const AdminProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories');
+      const response = await fetch("/api/admin/categories");
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     }
   };
 
   const addProduct = async (productData) => {
     try {
-      const response = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData)
       });
       if (response.ok) {
         fetchProducts(); // Refresh list
       }
     } catch (error) {
-      console.error('Error adding product:', error);
+      console.error("Error adding product:", error);
     }
   };
 
   const removeProduct = async (productId) => {
-    if (window.confirm('Supprimer ce produit ?')) {
+    if (window.confirm("Supprimer ce produit ?")) {
       try {
         const response = await fetch(`/api/admin/products/${productId}`, {
-          method: 'DELETE'
+          method: "DELETE"
         });
         if (response.ok) {
           fetchProducts(); // Refresh list
         }
       } catch (error) {
-        console.error('Error removing product:', error);
+        console.error("Error removing product:", error);
       }
     }
   };
@@ -984,7 +985,7 @@ export const AdminProducts = () => {
   const addColor = () => {
     if (newColor.name && newColor.value) {
       setColors([...colors, { ...newColor, id: Date.now() }]);
-      setNewColor({ name: '', value: '', image: '' });
+      setNewColor({ name: "', value: "', image: "' });
     }
   };
 
@@ -995,7 +996,7 @@ export const AdminProducts = () => {
   const addSize = () => {
     if (newSize.trim()) {
       setSizes([...sizes, newSize.trim()]);
-      setNewSize('');
+      setNewSize("');
     }
   };
 
@@ -1011,11 +1012,11 @@ export const AdminProducts = () => {
     try {
       const formData = new FormData();
       files.forEach(file => {
-        formData.append('images', file);
+        formData.append("images", file);
       });
 
-      const response = await fetch('/api/upload/multiple', {
-        method: 'POST',
+      const response = await fetch("/api/upload/multiple", {
+        method: "POST",
         body: formData,
       });
 
@@ -1023,11 +1024,11 @@ export const AdminProducts = () => {
         const data = await response.json();
         setImages(prevImages => [...prevImages, ...data.urls]);
       } else {
-        alert('Failed to upload images');
+        alert("Failed to upload images");
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload images');
+      console.error("Upload error:", error);
+      alert("Failed to upload images");
     } finally {
       setUploadingImages(false);
     }
@@ -1040,10 +1041,10 @@ export const AdminProducts = () => {
     setUploadingColorImage(true);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -1051,11 +1052,11 @@ export const AdminProducts = () => {
         const data = await response.json();
         setNewColor({ ...newColor, image: data.url });
       } else {
-        alert('Failed to upload color image');
+        alert("Failed to upload color image");
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload color image');
+      console.error("Upload error:", error);
+      alert("Failed to upload color image");
     } finally {
       setUploadingColorImage(false);
     }
@@ -1080,7 +1081,7 @@ export const AdminProducts = () => {
         isActive: form.inStock
       });
       // Reset form
-      setForm({ name: '', categoryId: '', description: '', price: '', inStock: true });
+      setForm({ name: "', categoryId: "', description: "', price: "', inStock: true });
       setColors([]);
       setSizes([]);
       setImages([]);
@@ -1315,13 +1316,13 @@ export const AdminProducts = () => {
                   <p className="text-sm text-gray-600">{p.description}</p>
                   <p className="text-sm font-medium">{p.price} DZD</p>
                   <p className="text-xs text-gray-500">
-                    Catégorie: {p.category_name || 'Sans catégorie'} | 
+                    Catégorie: {p.category_name || "Sans catégorie"} | 
                     Stock: {p.stock_quantity || 0} | 
-                    {p.is_active ? 'Actif' : 'Inactif'}
+                    {p.is_active ? "Actif" : "Inactif"}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="text-blue-600 text-sm" onClick={()=>alert('Modification à venir')}>
+                  <button className="text-blue-600 text-sm" onClick={()=>alert("Modification à venir")}>
                     Modifier
                   </button>
                   <button className="text-red-600 text-sm" onClick={()=>removeProduct(p.id)}>
@@ -1369,11 +1370,11 @@ export const AdminProducts = () => {
 
 export const AdminAccounts = () => {
   const { accounts, addAccount, removeAccount } = useAdminStore();
-  const [form, setForm] = React.useState({ email: '', name: '' });
+  const [form, setForm] = React.useState({ email: "', name: "' });
   return (
     <AdminLayout>
       <h2 className="text-lg font-semibold mb-3">Accounts</h2>
-      <form className="flex gap-2 mb-4" onSubmit={(e)=>{ e.preventDefault(); if(form.email){ addAccount(form); setForm({ email: '', name: '' }); } }}>
+      <form className="flex gap-2 mb-4" onSubmit={(e)=>{ e.preventDefault(); if(form.email){ addAccount(form); setForm({ email: "', name: "' }); } }}>
         <input className="border rounded px-2 py-1" placeholder="Email" value={form.email} onChange={e=>setForm({ ...form, email: e.target.value })} />
         <input className="border rounded px-2 py-1" placeholder="Name" value={form.name} onChange={e=>setForm({ ...form, name: e.target.value })} />
         <button className="bg-primary text-white rounded px-3">Add</button>
@@ -1392,11 +1393,11 @@ export const AdminAccounts = () => {
 
 export const AdminPromotions = () => {
   const { promotions, addPromotion, removePromotion, accounts } = useAdminStore();
-  const [form, setForm] = React.useState({ accountId: '', percentage: '', description: '' });
+  const [form, setForm] = React.useState({ accountId: "', percentage: "', description: "' });
   return (
     <AdminLayout>
       <h2 className="text-lg font-semibold mb-3">Promotions</h2>
-      <form className="grid grid-cols-3 gap-2 mb-4" onSubmit={async (e)=>{ e.preventDefault(); try { await fetch('/api/promotions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phoneNumber: form.accountId, percentage: Number(form.percentage), description: form.description }) }); addPromotion({ accountId: form.accountId, percentage: Number(form.percentage), description: form.description }); setForm({ accountId: '', percentage: '', description: '' }); } catch(e) {} }}>
+      <form className="grid grid-cols-3 gap-2 mb-4" onSubmit={async (e)=>{ e.preventDefault(); try { await fetch("/api/promotions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phoneNumber: form.accountId, percentage: Number(form.percentage), description: form.description }) }); addPromotion({ accountId: form.accountId, percentage: Number(form.percentage), description: form.description }); setForm({ accountId: "', percentage: "', description: "' }); } catch(e) {} }}>
         <input className="border rounded px-2 py-1" placeholder="Phone number" value={form.accountId} onChange={e=>setForm({ ...form, accountId: e.target.value })} />
         <input className="border rounded px-2 py-1" placeholder="Percentage" value={form.percentage} onChange={e=>setForm({ ...form, percentage: e.target.value })} />
         <input className="border rounded px-2 py-1" placeholder="Description" value={form.description} onChange={e=>setForm({ ...form, description: e.target.value })} />
@@ -1405,7 +1406,7 @@ export const AdminPromotions = () => {
       <ul className="space-y-2">
         {promotions.map(p => (
           <li key={p.id} className="flex justify-between items-center border rounded px-3 py-2">
-            <span>{p.description || 'Promo'} — {p.percentage}% {p.accountId ? `for ${accounts.find(a=>a.id===p.accountId)?.email}` : '(All)'}</span>
+            <span>{p.description || "Promo"} — {p.percentage}% {p.accountId ? `for ${accounts.find(a=>a.id===p.accountId)?.email}` : "(All)"}</span>
             <button className="text-red-600" onClick={()=>removePromotion(p.id)}>Delete</button>
           </li>
         ))}

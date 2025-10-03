@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -8,11 +8,12 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline" to="/admin">Overview</Link>
         <Link className="block hover:underline text-blue-600 font-medium" to="/admin/orders">Commandes + Yalidine</Link>
         <Link className="block hover:underline" to="/admin/fees">Shipping Fees</Link>
-        <Link className="block hover:underline" to="/admin/categories">Categories</Link>
+        <Link className="block hover:underline text-green-600 font-medium" to="/admin/categories">Categories</Link>
         <Link className="block hover:underline" to="/admin/products">Products</Link>
         <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline text-orange-600 font-medium" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -24,17 +25,17 @@ const AdminLayout = ({ children }) => (
 const AdminPromotions = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
+  const [searchTerm, setSearchTerm] = useState("');
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const [showModal, setShowModal] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
   const [formData, setFormData] = useState({
-    percentage: '',
-    description: '',
-    phone: '',
-    startDate: '',
-    endDate: '',
+    percentage: "',
+    description: "',
+    phone: "',
+    startDate: "',
+    endDate: "',
     isActive: true,
     usageLimit: 1
   });
@@ -42,11 +43,11 @@ const AdminPromotions = () => {
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
-        const response = await fetch('/api/admin/promotions');
+        const response = await fetch("/api/admin/promotions");
         const data = await response.json();
         setPromotions(data.promotions || []);
       } catch (error) {
-        console.error('Error fetching promotions:', error);
+        console.error("Error fetching promotions:", error);
       } finally {
         setLoading(false);
       }
@@ -61,22 +62,22 @@ const AdminPromotions = () => {
         promotion.phone?.includes(searchTerm) ||
         promotion.percentage?.toString().includes(searchTerm);
       
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && promotion.isActive) ||
-        (statusFilter === 'inactive' && !promotion.isActive);
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "active" && promotion.isActive) ||
+        (statusFilter === "inactive" && !promotion.isActive);
       
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'percentage':
+        case "percentage":
           return b.percentage - a.percentage;
-        case 'date':
+        case "date":
           return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        case 'phone':
-          return (a.phone || '').localeCompare(b.phone || '');
-        case 'description':
-          return (a.description || '').localeCompare(b.description || '');
+        case "phone":
+          return (a.phone || "').localeCompare(b.phone || "');
+        case "description":
+          return (a.description || "').localeCompare(b.description || "');
         default:
           return 0;
       }
@@ -98,8 +99,8 @@ const AdminPromotions = () => {
       if (editingPromotion) {
         // Update existing promotion
         const response = await fetch(`/api/admin/promotions/${editingPromotion.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(promotionData)
         });
         
@@ -112,9 +113,9 @@ const AdminPromotions = () => {
         }
       } else {
         // Create new promotion
-        const response = await fetch('/api/admin/promotions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/admin/promotions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(promotionData)
         });
         
@@ -127,28 +128,28 @@ const AdminPromotions = () => {
       setShowModal(false);
       setEditingPromotion(null);
       setFormData({
-        percentage: '',
-        description: '',
-        phone: '',
-        startDate: '',
-        endDate: '',
+        percentage: "',
+        description: "',
+        phone: "',
+        startDate: "',
+        endDate: "',
         isActive: true,
         usageLimit: 1
       });
     } catch (error) {
-      console.error('Error saving promotion:', error);
-      alert('Erreur lors de la sauvegarde de la promotion');
+      console.error("Error saving promotion:", error);
+      alert("Erreur lors de la sauvegarde de la promotion");
     }
   };
 
   const handleEdit = (promotion) => {
     setEditingPromotion(promotion);
     setFormData({
-      percentage: promotion.percentage || '',
-      description: promotion.description || '',
-      phone: promotion.phone || '',
-      startDate: promotion.startDate || '',
-      endDate: promotion.endDate || '',
+      percentage: promotion.percentage || "',
+      description: promotion.description || "',
+      phone: promotion.phone || "',
+      startDate: promotion.startDate || "',
+      endDate: promotion.endDate || "',
       isActive: promotion.isActive !== false,
       usageLimit: promotion.usage_limit || 1
     });
@@ -156,37 +157,37 @@ const AdminPromotions = () => {
   };
 
   const handleDelete = async (promotionId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette promotion ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette promotion ?")) {
       try {
         const response = await fetch(`/api/admin/promotions/${promotionId}`, {
-          method: 'DELETE'
+          method: "DELETE"
         });
         
         if (response.ok) {
           setPromotions(prev => prev.filter(promo => promo.id !== promotionId));
         }
       } catch (error) {
-        console.error('Error deleting promotion:', error);
-        alert('Erreur lors de la suppression de la promotion');
+        console.error("Error deleting promotion:", error);
+        alert("Erreur lors de la suppression de la promotion");
       }
     }
   };
 
   const getStatusColor = (isActive) => {
     return isActive 
-      ? 'bg-green-100 text-green-800 border-green-200'
-      : 'bg-gray-100 text-gray-800 border-gray-200';
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getStatusText = (isActive) => {
-    return isActive ? 'Active' : 'Inactive';
+    return isActive ? "Active" : "Inactive";
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(date).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
     });
   };
 
@@ -340,7 +341,7 @@ const AdminPromotions = () => {
                       <h3 className="text-lg font-semibold text-gray-900">
                         {promotion.percentage}% de réduction
                       </h3>
-                      <p className="text-sm text-gray-500">{promotion.description || 'Aucune description'}</p>
+                      <p className="text-sm text-gray-500">{promotion.description || "Aucune description"}</p>
                     </div>
                   </div>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(promotion.isActive)}`}>
@@ -353,7 +354,7 @@ const AdminPromotions = () => {
                     <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>{promotion.phone || 'Téléphone non fourni'}</span>
+                    <span>{promotion.phone || "Téléphone non fourni"}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,9 +378,9 @@ const AdminPromotions = () => {
                       <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className={isExpired(promotion.endDate) ? 'text-red-600' : ''}>
+                      <span className={isExpired(promotion.endDate) ? "text-red-600" : "'}>
                         Fin: {formatDate(promotion.endDate)}
-                        {isExpired(promotion.endDate) && ' (Expirée)'}
+                        {isExpired(promotion.endDate) && " (Expirée)"}
                       </span>
                     </div>
                   )}
@@ -428,7 +429,7 @@ const AdminPromotions = () => {
             <div className="bg-white rounded-lg max-w-md w-full">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingPromotion ? 'Modifier la Promotion' : 'Nouvelle Promotion'}
+                  {editingPromotion ? "Modifier la Promotion" : "Nouvelle Promotion"}
                 </h2>
               </div>
               
@@ -478,7 +479,7 @@ const AdminPromotions = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Limite d'utilisation
+                    Limite d"utilisation
                   </label>
                   <input
                     type="number"
@@ -538,7 +539,7 @@ const AdminPromotions = () => {
                     type="submit"
                     className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
                   >
-                    {editingPromotion ? 'Mettre à jour' : 'Créer'}
+                    {editingPromotion ? "Mettre à jour" : "Créer"}
                   </button>
                   <button
                     type="button"
@@ -546,11 +547,11 @@ const AdminPromotions = () => {
                       setShowModal(false);
                       setEditingPromotion(null);
                       setFormData({
-                        percentage: '',
-                        description: '',
-                        phone: '',
-                        startDate: '',
-                        endDate: '',
+                        percentage: "',
+                        description: "',
+                        phone: "',
+                        startDate: "',
+                        endDate: "',
                         isActive: true,
                         usageLimit: 1
                       });

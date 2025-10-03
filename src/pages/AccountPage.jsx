@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
+import axios from "axios";
 
 const AccountPage = () => {
   const { t } = useTranslation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState("orders");
   const [loginForm, setLoginForm] = useState({
-    phoneNumber: '',
-    password: '',
+    phoneNumber: "',
+    password: "',
   });
   const [registerForm, setRegisterForm] = useState({
-    fullName: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: '',
+    fullName: "',
+    phoneNumber: "',
+    password: "',
+    confirmPassword: "',
   });
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const AccountPage = () => {
         const response = await axios.get(`/api/accounts/${loginForm.phoneNumber}`);
         setUserData(response.data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -57,10 +57,10 @@ const AccountPage = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/login', { phoneNumber: loginForm.phoneNumber, password: loginForm.password });
+      await axios.post("/api/auth/login", { phoneNumber: loginForm.phoneNumber, password: loginForm.password });
     setIsLoggedIn(true);
     } catch (err) {
-      alert('Login failed');
+      alert("Login failed");
     }
   };
 
@@ -68,12 +68,12 @@ const AccountPage = () => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/register', { fullName: registerForm.fullName, phoneNumber: registerForm.phoneNumber, password: registerForm.password });
+      await axios.post("/api/auth/register", { fullName: registerForm.fullName, phoneNumber: registerForm.phoneNumber, password: registerForm.password });
       // Auto switch to login with provided phone
       setLoginForm({ phoneNumber: registerForm.phoneNumber, password: registerForm.password });
     setIsLoggedIn(true);
     } catch (err) {
-      alert('Registration failed');
+      alert("Registration failed");
     }
   };
 
@@ -90,30 +90,30 @@ const AccountPage = () => {
   // Get status badge class
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'processing':
-        return 'bg-blue-100 text-blue-800';
-      case 'shipped':
-        return 'bg-purple-100 text-purple-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "processing":
+        return "bg-blue-100 text-blue-800";
+      case "shipped":
+        return "bg-purple-100 text-purple-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   // Get status text
   const getStatusText = (status) => {
     switch (status) {
-      case 'delivered':
-        return t('account.status_delivered');
-      case 'processing':
-        return t('account.status_processing');
-      case 'shipped':
-        return t('account.status_shipped');
-      case 'cancelled':
-        return t('account.status_cancelled');
+      case "delivered":
+        return t("account.status_delivered");
+      case "processing":
+        return t("account.status_processing");
+      case "shipped":
+        return t("account.status_shipped");
+      case "cancelled":
+        return t("account.status_cancelled");
       default:
         return status;
     }
@@ -121,7 +121,7 @@ const AccountPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-6 pb-16">
-      <h1 className="text-2xl font-bold text-text mb-6">{t('nav.account')}</h1>
+      <h1 className="text-2xl font-bold text-text mb-6">{t("nav.account")}</h1>
 
       {isLoggedIn && userData ? (
         <div>
@@ -139,7 +139,7 @@ const AccountPage = () => {
                 onClick={handleLogout}
                 className="ml-auto text-sm text-primary hover:text-pink-700 transition-colors duration-300"
               >
-                {t('account.logout')}
+                {t("account.logout")}
               </button>
             </div>
           </div>
@@ -148,21 +148,21 @@ const AccountPage = () => {
           <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
             <div className="flex border-b">
               <button
-                onClick={() => setActiveTab('orders')}
-                className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === 'orders' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+                onClick={() => setActiveTab("orders")}
+                className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === "orders" ? "text-primary border-b-2 border-primary" : "text-gray-500"}`}
               >
-                {t('account.my_orders')}
+                {t("account.my_orders")}
               </button>
               <button
-                onClick={() => setActiveTab('profile')}
-                className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === 'profile' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+                onClick={() => setActiveTab("profile")}
+                className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === "profile" ? "text-primary border-b-2 border-primary" : "text-gray-500"}`}
               >
-                {t('account.profile')}
+                {t("account.profile")}
               </button>
             </div>
 
             {/* Orders Tab */}
-            {activeTab === 'orders' && (
+            {activeTab === "orders" && (
               <div className="p-4">
                 {userData.orders.length > 0 ? (
                   <div className="space-y-4">
@@ -191,7 +191,7 @@ const AccountPage = () => {
                             </div>
                           ))}
                           <div className="mt-3 flex justify-between items-center">
-                            <span className="font-medium text-text">{t('account.total')}:</span>
+                            <span className="font-medium text-text">{t("account.total")}:</span>
                             <span className="font-bold text-primary">{formatPrice(order.total)}</span>
                           </div>
                         </div>
@@ -200,19 +200,19 @@ const AccountPage = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">{t('account.no_orders')}</p>
+                    <p className="text-gray-500">{t("account.no_orders")}</p>
                   </div>
                 )}
               </div>
             )}
 
             {/* Profile Tab */}
-            {activeTab === 'profile' && (
+            {activeTab === "profile" && (
               <div className="p-4">
                 <form className="space-y-4">
                   <div>
                     <label htmlFor="fullName" className="block text-sm font-medium text-text mb-1">
-                      {t('checkout.full_name')}
+                      {t("checkout.full_name")}
                     </label>
                     <input
                       type="text"
@@ -225,7 +225,7 @@ const AccountPage = () => {
                   </div>
                   <div>
                     <label htmlFor="phoneNumber" className="block text-sm font-medium text-text mb-1">
-                      {t('checkout.phone_number')}
+                      {t("checkout.phone_number")}
                     </label>
                     <input
                       type="tel"
@@ -241,7 +241,7 @@ const AccountPage = () => {
                       type="button"
                       className="w-full py-3 px-6 bg-primary hover:bg-pink-700 text-white font-medium rounded-md transition-colors duration-300"
                     >
-                      {t('account.update_profile')}
+                      {t("account.update_profile")}
                     </button>
                   </div>
                 </form>
@@ -253,26 +253,26 @@ const AccountPage = () => {
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="flex border-b">
             <button
-              onClick={() => setActiveTab('login')}
-              className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === 'login' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+              onClick={() => setActiveTab("login")}
+              className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === "login" ? "text-primary border-b-2 border-primary" : "text-gray-500"}`}
             >
-              {t('account.login')}
+              {t("account.login")}
             </button>
             <button
-              onClick={() => setActiveTab('register')}
-              className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === 'register' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+              onClick={() => setActiveTab("register")}
+              className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === "register" ? "text-primary border-b-2 border-primary" : "text-gray-500"}`}
             >
-              {t('account.register')}
+              {t("account.register")}
             </button>
           </div>
 
           {/* Login Form */}
-          {activeTab === 'login' && (
+          {activeTab === "login" && (
             <div className="p-4">
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="loginPhoneNumber" className="block text-sm font-medium text-text mb-1">
-                    {t('checkout.phone_number')}
+                    {t("checkout.phone_number")}
                   </label>
                   <input
                     type="tel"
@@ -286,7 +286,7 @@ const AccountPage = () => {
                 </div>
                 <div>
                   <label htmlFor="loginPassword" className="block text-sm font-medium text-text mb-1">
-                    {t('account.password')}
+                    {t("account.password")}
                   </label>
                   <input
                     type="password"
@@ -303,7 +303,7 @@ const AccountPage = () => {
                     type="submit"
                     className="w-full py-3 px-6 bg-primary hover:bg-pink-700 text-white font-medium rounded-md transition-colors duration-300"
                   >
-                    {t('account.login')}
+                    {t("account.login")}
                   </button>
                 </div>
               </form>
@@ -311,12 +311,12 @@ const AccountPage = () => {
           )}
 
           {/* Register Form */}
-          {activeTab === 'register' && (
+          {activeTab === "register" && (
             <div className="p-4">
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="registerFullName" className="block text-sm font-medium text-text mb-1">
-                    {t('checkout.full_name')}
+                    {t("checkout.full_name")}
                   </label>
                   <input
                     type="text"
@@ -330,7 +330,7 @@ const AccountPage = () => {
                 </div>
                 <div>
                   <label htmlFor="registerPhoneNumber" className="block text-sm font-medium text-text mb-1">
-                    {t('checkout.phone_number')}
+                    {t("checkout.phone_number")}
                   </label>
                   <input
                     type="tel"
@@ -344,7 +344,7 @@ const AccountPage = () => {
                 </div>
                 <div>
                   <label htmlFor="registerPassword" className="block text-sm font-medium text-text mb-1">
-                    {t('account.password')}
+                    {t("account.password")}
                   </label>
                   <input
                     type="password"
@@ -358,7 +358,7 @@ const AccountPage = () => {
                 </div>
                 <div>
                   <label htmlFor="registerConfirmPassword" className="block text-sm font-medium text-text mb-1">
-                    {t('account.confirm_password')}
+                    {t("account.confirm_password")}
                   </label>
                   <input
                     type="password"
@@ -375,7 +375,7 @@ const AccountPage = () => {
                     type="submit"
                     className="w-full py-3 px-6 bg-primary hover:bg-pink-700 text-white font-medium rounded-md transition-colors duration-300"
                   >
-                    {t('account.register')}
+                    {t("account.register")}
                   </button>
                 </div>
               </form>

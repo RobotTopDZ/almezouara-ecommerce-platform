@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = function({ children }) {
   return React.createElement("div", { className: "container mx-auto p-4 pb-16" },
@@ -27,9 +27,9 @@ const AdminFacebookPixel = function() {
   const [error, setError] = useState(null);
   const [pixelConfig, setPixelConfig] = useState({
     enabled: false,
-    pixelId: '',
-    accessToken: '',
-    testEventCode: '',
+    pixelId: "',
+    accessToken: "',
+    testEventCode: "',
     trackPageView: true,
     trackAddToCart: true,
     trackInitiateCheckout: true,
@@ -40,13 +40,13 @@ const AdminFacebookPixel = function() {
     const fetchConfig = async function() {
       setLoading(true);
       try {
-        const response = await axios.get('/api/facebook-pixel/admin');
+        const response = await axios.get("/api/facebook-pixel/admin");
         if (response.data && response.data.config) {
           setPixelConfig(response.data.config);
         }
       } catch (err) {
-        console.error('Erreur lors du chargement de la configuration Facebook Pixel:', err);
-        setError('Erreur lors du chargement de la configuration');
+        console.error("Erreur lors du chargement de la configuration Facebook Pixel:", err);
+        setError("Erreur lors du chargement de la configuration");
       } finally {
         setLoading(false);
       }
@@ -60,7 +60,7 @@ const AdminFacebookPixel = function() {
     setPixelConfig(function(prev) {
       return {
         ...prev,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: type === "checkbox" ? checked : value
       };
     });
   };
@@ -72,12 +72,12 @@ const AdminFacebookPixel = function() {
     setError(null);
     
     try {
-      await axios.post('/api/facebook-pixel/admin', { config: pixelConfig });
+      await axios.post("/api/facebook-pixel/admin", { config: pixelConfig });
       setSuccess(true);
       setTimeout(function() { setSuccess(false); }, 3000);
     } catch (err) {
-      console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
-      setError('Erreur lors de la sauvegarde de la configuration');
+      console.error("Erreur lors de la sauvegarde de la configuration Facebook Pixel:", err);
+      setError("Erreur lors de la sauvegarde de la configuration");
     } finally {
       setSaving(false);
     }
@@ -85,11 +85,11 @@ const AdminFacebookPixel = function() {
 
   const handleTestPixel = async function() {
     try {
-      await axios.post('/api/facebook-pixel/test');
-      alert('Événement de test envoyé avec succès!');
+      await axios.post("/api/facebook-pixel/test");
+      alert("Événement de test envoyé avec succès!");
     } catch (err) {
-      console.error('Erreur lors de l\'envoi de l\'événement de test:', err);
-      alert('Erreur lors de l\'envoi de l\'événement de test');
+      console.error("Erreur lors de l\'envoi de l\'événement de test:", err);
+      alert("Erreur lors de l\'envoi de l\'événement de test");
     }
   };
 
@@ -228,7 +228,7 @@ const AdminFacebookPixel = function() {
               type: "submit",
               disabled: saving,
               className: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-            }, saving ? 'Sauvegarde...' : 'Sauvegarder'),
+            }, saving ? "Sauvegarde..." : "Sauvegarder"),
             
             pixelConfig.enabled && pixelConfig.pixelId && 
               React.createElement("button", {
@@ -240,11 +240,11 @@ const AdminFacebookPixel = function() {
         ),
       
       React.createElement("div", { className: "mt-8 border-t pt-6" },
-        React.createElement("h2", { className: "text-xl font-bold mb-4" }, "Guide d'intégration"),
+        React.createElement("h2", { className: "text-xl font-bold mb-4" }, "Guide d"intégration"),
         
         React.createElement("div", { className: "prose max-w-none" },
           React.createElement("p", null,
-            "Le Facebook Pixel est automatiquement intégré dans votre site lorsqu'il est activé. Voici comment les événements sont suivis:"
+            "Le Facebook Pixel est automatiquement intégré dans votre site lorsqu"il est activé. Voici comment les événements sont suivis:"
           ),
           
           React.createElement("ul", { className: "list-disc pl-5 space-y-2 mt-2" },
@@ -254,21 +254,21 @@ const AdminFacebookPixel = function() {
             ),
             React.createElement("li", null, 
               React.createElement("strong", null, "AddToCart"), 
-              ": Déclenché lorsqu'un client ajoute un produit au panier"
+              ": Déclenché lorsqu"un client ajoute un produit au panier"
             ),
             React.createElement("li", null, 
               React.createElement("strong", null, "InitiateCheckout"), 
-              ": Déclenché lorsqu'un client commence le processus de commande"
+              ": Déclenché lorsqu"un client commence le processus de commande"
             ),
             React.createElement("li", null, 
               React.createElement("strong", null, "Purchase"), 
-              ": Déclenché lorsqu'une commande est complétée"
+              ": Déclenché lorsqu"une commande est complétée"
             )
           ),
           
           React.createElement("p", { className: "mt-4" },
-            "Pour plus d'informations sur Facebook Pixel, consultez la",
-            ' ',
+            "Pour plus d"informations sur Facebook Pixel, consultez la",
+            " ",
             React.createElement("a", {
               href: "https://developers.facebook.com/docs/facebook-pixel",
               target: "_blank",

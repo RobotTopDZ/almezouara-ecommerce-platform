@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import useAdminStore from '../store/adminStore';
+import React, { useState, useEffect } from "react";
+import useAdminStore from "../store/adminStore";
 
 const AdminDebug = () => {
   const { isAuthenticated, adminUser, token } = useAdminStore();
@@ -10,11 +10,11 @@ const AdminDebug = () => {
     const testAPI = async () => {
       try {
         // Test basic API
-        const apiResponse = await fetch('/api/');
+        const apiResponse = await fetch("/api/");
         const apiData = await apiResponse.json();
         
         // Test admin stats
-        const statsResponse = await fetch('/api/admin/stats');
+        const statsResponse = await fetch("/api/admin/stats");
         const statsData = await statsResponse.json();
         
         setApiTest({
@@ -42,10 +42,10 @@ const AdminDebug = () => {
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Authentication Status</h2>
           <div className="bg-gray-100 p-4 rounded">
-            <p><strong>Authenticated:</strong> {isAuthenticated ? '✅ Yes' : '❌ No'}</p>
-            <p><strong>Admin User:</strong> {adminUser ? JSON.stringify(adminUser) : 'None'}</p>
-            <p><strong>Token:</strong> {token ? '✅ Present' : '❌ Missing'}</p>
-            <p><strong>LocalStorage Token:</strong> {localStorage.getItem('adminToken') ? '✅ Present' : '❌ Missing'}</p>
+            <p><strong>Authenticated:</strong> {isAuthenticated ? "✅ Yes" : "❌ No"}</p>
+            <p><strong>Admin User:</strong> {adminUser ? JSON.stringify(adminUser) : "None"}</p>
+            <p><strong>Token:</strong> {token ? "✅ Present" : "❌ Missing"}</p>
+            <p><strong>LocalStorage Token:</strong> {localStorage.getItem("adminToken") ? "✅ Present" : "❌ Missing"}</p>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ const AdminDebug = () => {
           <div className="space-x-2">
             <button 
               onClick={() => {
-                localStorage.setItem('adminToken', 'admin-token');
+                localStorage.setItem("adminToken", "admin-token");
                 window.location.reload();
               }}
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -96,7 +96,7 @@ const AdminDebug = () => {
               Clear Storage
             </button>
             <button 
-              onClick={() => window.location.href = '/admin/login'}
+              onClick={() => window.location.href = "/admin/login"}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
               Go to Login

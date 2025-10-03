@@ -5958,283 +5958,283 @@ export const completeDomicileFees = [
   {
     "id": 993,
     "commune": "Msila",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 800
   },
   {
     "id": 994,
     "commune": "Maadid",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 995,
     "commune": "Hammam Dhalaa",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 996,
     "commune": "Ouled Derradj",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 997,
     "commune": "Tarmount",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 998,
     "commune": "Mtarfa",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 800
   },
   {
     "id": 999,
     "commune": "Khoubana",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1000,
     "commune": "Mcif",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1001,
     "commune": "Chellal",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1002,
     "commune": "Ouled Madhi",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1003,
     "commune": "Magra",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1004,
     "commune": "Berhoum",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1005,
     "commune": "Ain Khadra",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1006,
     "commune": "Ouled Addi Guebala",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1007,
     "commune": "Belaiba",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1008,
     "commune": "Sidi Aissa",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1009,
     "commune": "Ain El Hadjel",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1010,
     "commune": "Sidi Hadjeres",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1011,
     "commune": "Ouanougha",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1012,
     "commune": "Bou Saada",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1013,
     "commune": "Ouled Sidi Brahim",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1014,
     "commune": "Sidi Ameur",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1015,
     "commune": "Tamsa",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1016,
     "commune": "Ben Srour",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1017,
     "commune": "Ouled Slimane",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1018,
     "commune": "El Houamed",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1019,
     "commune": "El Hamel",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1020,
     "commune": "Ouled Mansour",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1021,
     "commune": "Maarif",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1022,
     "commune": "Dehahna",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1023,
     "commune": "Bouti Sayah",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1024,
     "commune": "Khettouti Sed Djir",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1025,
     "commune": "Zarzour",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1026,
     "commune": "Oued Chair",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1027,
     "commune": "Benzouh",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1028,
     "commune": "Bir Foda",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1029,
     "commune": "Ain Fares",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 800
   },
   {
     "id": 1030,
     "commune": "Sidi Mhamed",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 800
   },
   {
     "id": 1031,
     "commune": "Ouled Atia",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1032,
     "commune": "Souamaa",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 900
   },
   {
     "id": 1033,
     "commune": "Ain El Melh",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1034,
     "commune": "Medjedel",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1035,
     "commune": "Slim",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1036,
     "commune": "Ain Errich",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1100
   },
   {
     "id": 1037,
     "commune": "Beni Ilmane",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1038,
     "commune": "Oultene",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {
     "id": 1039,
     "commune": "Djebel Messaad",
-    "wilaya": "M'Sila",
+    "wilaya": "M"Sila",
     "prix": 1000
   },
   {

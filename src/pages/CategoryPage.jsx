@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
-import { useCategories } from '../hooks/useCategories';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useCategories } from "../hooks/useCategories";
+import axios from "axios";
 
 const CategoryPage = () => {
   const { id } = useParams();
   const { t } = useTranslation();
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [filters, setFilters] = useState({
-    size: '',
-    color: '',
-    priceRange: '',
+    size: "',
+    color: "',
+    priceRange: "',
   });
   const [showFilters, setShowFilters] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
@@ -26,29 +26,29 @@ const CategoryPage = () => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/products');
+        const response = await axios.get("/api/products");
         
         if (response.data.success && response.data.products) {
           const transformedProducts = response.data.products
-            .filter(product => product.status === 'active')
+            .filter(product => product.status === "active")
             .map(product => {
               return {
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.images && product.images.length > 0 ? product.images[0] : '/images/IMG_0630-scaled.jpeg',
-                category_name: product.category_name || 'General',
+                image: product.images && product.images.length > 0 ? product.images[0] : "/images/IMG_0630-scaled.jpeg",
+                category_name: product.category_name || "General",
                 colors: product.colors || [],
                 sizes: product.sizes || []
               };
             });
           setAllProducts(transformedProducts);
         } else {
-          console.error('Failed to load products from API.');
+          console.error("Failed to load products from API.");
           setAllProducts([]); // Set to empty array on failure
         }
       } catch (error) {
-        console.error('Error loading products:', error);
+        console.error("Error loading products:", error);
         setAllProducts([]); // Set to empty array on error
       } finally {
         setLoading(false);
@@ -68,8 +68,8 @@ const CategoryPage = () => {
     if (product.category && product.category.toLowerCase() === id.toLowerCase()) {
       return true;
     }
-    // If no match, check if this is the 'all' category
-    if (id.toLowerCase() === 'all') {
+    // If no match, check if this is the "all" category
+    if (id.toLowerCase() === "all") {
       return true;
     }
     return false;
@@ -80,7 +80,7 @@ const CategoryPage = () => {
 
   // Get category name for the header
   const getCategoryName = () => {
-    if (!id || id.toLowerCase() === 'all') return 'Tous les produits';
+    if (!id || id.toLowerCase() === "all") return "Tous les produits";
     
     // First try to find by id
     let category = categories.find(cat => cat.id && cat.id.toLowerCase() === id.toLowerCase());
@@ -133,12 +133,12 @@ const CategoryPage = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Catégorie non spécifiée</h2>
-          <p className="text-gray-600">Aucune catégorie n'a été sélectionnée.</p>
+          <p className="text-gray-600">Aucune catégorie n"a été sélectionnée.</p>
           <Link 
             to="/" 
             className="mt-4 inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors"
           >
-            Retour à l'accueil
+            Retour à l"accueil
           </Link>
         </div>
       </div>
@@ -175,21 +175,21 @@ const CategoryPage = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span>{t('category.filters')}</span>
+          <span>{t("category.filters")}</span>
         </button>
 
         <div className="flex space-x-2">
           <button
-            onClick={() => toggleViewMode('list')}
-            className={`p-2 ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-neutral text-text'} rounded-md`}
+            onClick={() => toggleViewMode("list")}
+            className={`p-2 ${viewMode === "list" ? "bg-primary text-white" : "bg-neutral text-text"} rounded-md`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
           <button
-            onClick={() => toggleViewMode('grid')}
-            className={`p-2 ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-neutral text-text'} rounded-md`}
+            onClick={() => toggleViewMode("grid")}
+            className={`p-2 ${viewMode === "grid" ? "bg-primary text-white" : "bg-neutral text-text"} rounded-md`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -201,12 +201,12 @@ const CategoryPage = () => {
       {/* Filters Panel */}
       {showFilters && (
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <h2 className="font-medium text-text mb-3">{t('category.filter_products')}</h2>
+          <h2 className="font-medium text-text mb-3">{t("category.filter_products")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Size Filter */}
             <div>
               <label htmlFor="size" className="block text-sm font-medium text-text mb-1">
-                {t('category.size')}
+                {t("category.size")}
               </label>
               <select
                 id="size"
@@ -215,7 +215,7 @@ const CategoryPage = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="">{t('category.all_sizes')}</option>
+                <option value="">{t("category.all_sizes")}</option>
                 <option value="S">S</option>
                 <option value="M">M</option>
                 <option value="L">L</option>
@@ -226,7 +226,7 @@ const CategoryPage = () => {
             {/* Color Filter */}
             <div>
               <label htmlFor="color" className="block text-sm font-medium text-text mb-1">
-                {t('category.color')}
+                {t("category.color")}
               </label>
               <select
                 id="color"
@@ -235,19 +235,19 @@ const CategoryPage = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="">{t('category.all_colors')}</option>
-                <option value="black">{t('category.color_black')}</option>
-                <option value="white">{t('category.color_white')}</option>
-                <option value="red">{t('category.color_red')}</option>
-                <option value="blue">{t('category.color_blue')}</option>
-                <option value="green">{t('category.color_green')}</option>
+                <option value="">{t("category.all_colors")}</option>
+                <option value="black">{t("category.color_black")}</option>
+                <option value="white">{t("category.color_white")}</option>
+                <option value="red">{t("category.color_red")}</option>
+                <option value="blue">{t("category.color_blue")}</option>
+                <option value="green">{t("category.color_green")}</option>
               </select>
             </div>
 
             {/* Price Range Filter */}
             <div>
               <label htmlFor="priceRange" className="block text-sm font-medium text-text mb-1">
-                {t('category.price_range')}
+                {t("category.price_range")}
               </label>
               <select
                 id="priceRange"
@@ -256,7 +256,7 @@ const CategoryPage = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="">{t('category.all_prices')}</option>
+                <option value="">{t("category.all_prices")}</option>
                 <option value="0-1000">0 - 1000 DZD</option>
                 <option value="1000-2000">1000 - 2000 DZD</option>
                 <option value="2000-3000">2000 - 3000 DZD</option>
@@ -268,16 +268,16 @@ const CategoryPage = () => {
 
           <div className="mt-4 flex justify-end">
             <button
-              onClick={() => setFilters({ size: '', color: '', priceRange: '' })}
+              onClick={() => setFilters({ size: "', color: "', priceRange: "' })}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 mr-2"
             >
-              {t('category.reset_filters')}
+              {t("category.reset_filters")}
             </button>
             <button
               onClick={toggleFilters}
               className="px-4 py-2 bg-primary text-white rounded-md hover:bg-pink-700 transition-colors duration-300"
             >
-              {t('category.apply_filters')}
+              {t("category.apply_filters")}
             </button>
           </div>
         </div>
@@ -286,24 +286,24 @@ const CategoryPage = () => {
       {/* Products Grid/List */}
       {displayedProducts.length > 0 ? (
         <>
-          <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'space-y-4'}>
+          <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-4"}>
             {displayedProducts.map((product) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
-                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 ${viewMode === 'list' ? 'flex' : ''}`}
+                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 ${viewMode === "list" ? "flex" : "'}`}
               >
-                <div className={viewMode === 'grid' ? 'aspect-square overflow-hidden' : 'w-1/3'}>
+                <div className={viewMode === "grid" ? "aspect-square overflow-hidden" : "w-1/3"}>
                   <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className={`p-3 ${viewMode === 'list' ? 'w-2/3' : ''}`}>
+                <div className={`p-3 ${viewMode === "list" ? "w-2/3" : "'}`}>
                   <h4 className="text-text font-medium truncate">{product.name}</h4>
                   <p className="text-primary font-bold mt-1">{formatPrice(product.price)}</p>
-                  {viewMode === 'list' && (
+                  {viewMode === "list" && (
                     <div className="mt-2">
                       <div className="flex flex-wrap gap-1 mt-2">
                         {product.colors.map((color) => (
@@ -345,7 +345,7 @@ const CategoryPage = () => {
         </>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">{t('category.no_products')}</p>
+          <p className="text-gray-500">{t("category.no_products")}</p>
         </div>
       )}
     </div>

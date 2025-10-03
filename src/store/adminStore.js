@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import axios from 'axios';
+import { create } from "zustand";
+import axios from "axios";
 
 // API base URL - will work in both development and production
-const API_BASE = '/api';
+const API_BASE = "/api";
 
 export const useAdminStore = create((set, get) => ({
   isAuthenticated: false,
@@ -32,31 +32,31 @@ export const useAdminStore = create((set, get) => ({
         });
         
         // Store token in localStorage for persistence
-        localStorage.setItem('adminToken', token);
+        localStorage.setItem("adminToken", token);
         
         return { ok: true };
       }
       
-      return { ok: false, error: 'Invalid credentials' };
+      return { ok: false, error: "Invalid credentials" };
     } catch (error) {
-      console.error('Login error:', error);
-      return { ok: false, error: error.response?.data?.error || 'Login failed' };
+      console.error("Login error:", error);
+      return { ok: false, error: error.response?.data?.error || "Login failed" };
     }
   },
 
   logout: () => {
-    localStorage.removeItem('adminToken');
+    localStorage.removeItem("adminToken");
     set({ isAuthenticated: false, adminUser: null, token: null });
   },
   
   // Initialize auth from localStorage
   initAuth: () => {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem("adminToken");
     if (token) {
       set({ 
         isAuthenticated: true, 
         token,
-        adminUser: { username: 'admin' } // You might want to decode this from token
+        adminUser: { username: "admin" } // You might want to decode this from token
       });
     }
   },

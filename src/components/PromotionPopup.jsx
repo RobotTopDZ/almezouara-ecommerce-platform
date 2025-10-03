@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PromotionPopup = ({ isOpen, onClose, promotion, customerName }) => {
   if (!isOpen || !promotion) return null;
@@ -48,7 +48,7 @@ const PromotionPopup = ({ isOpen, onClose, promotion, customerName }) => {
           <div className="p-6 text-center">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Cher(e) {customerName || 'Client'} 💕
+                Cher(e) {customerName || "Client"} 💕
               </h3>
               <p className="text-gray-600 leading-relaxed">
                 Nous sommes ravis de vous compter parmi nos clients les plus précieux ! 
@@ -90,7 +90,7 @@ const PromotionPopup = ({ isOpen, onClose, promotion, customerName }) => {
 
             <p className="text-xs text-gray-500 italic">
               Avec toute notre gratitude,<br />
-              L'équipe Almezouara 💕
+              L"équipe Almezouara 💕
             </p>
           </div>
 
@@ -100,7 +100,7 @@ const PromotionPopup = ({ isOpen, onClose, promotion, customerName }) => {
               onClick={onClose}
               className="w-full bg-gradient-to-r from-primary to-pink-500 text-white py-3 px-6 rounded-xl font-medium hover:from-pink-600 hover:to-primary transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
-              Merci, j'accepte cette offre ! ✨
+              Merci, j"accepte cette offre ! ✨
             </button>
           </div>
         </motion.div>

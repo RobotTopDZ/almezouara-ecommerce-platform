@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCategories } from '../../hooks/useCategories';
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCategories } from "../../hooks/useCategories";
 
 const Navbar = ({ toggleLanguage, currentLang }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("');
   
   // Use database categories
   const { categories } = useCategories();
@@ -18,7 +18,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm(''); // Clear search after submission
+      setSearchTerm("'); // Clear search after submission
     }
   };
 
@@ -32,7 +32,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
   };
 
   const isHomeActive = () => {
-    return location.pathname === '/';
+    return location.pathname === "/";
   };
 
   return (
@@ -90,7 +90,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
               {searchTerm && (
                 <button
                   type="button"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => setSearchTerm("')}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:text-gray-600 transition-colors duration-300"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,8 +108,8 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
                 to="/"
                 className={`relative flex-shrink-0 px-2.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
                   isHomeActive()
-                    ? 'text-white bg-primary shadow-md'
-                    : 'text-gray-600 hover:text-primary hover:bg-gray-50'
+                    ? "text-white bg-primary shadow-md"
+                    : "text-gray-600 hover:text-primary hover:bg-gray-50"
                 }`}
               >
                 TOUT
@@ -120,8 +120,8 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
                   to={`/category/${category.originalName}`}
                   className={`group relative flex-shrink-0 px-2.5 py-1.5 text-xs font-medium rounded-full transition-all duration-300 ${
                     isCategoryActive(category.originalName)
-                      ? 'text-white bg-primary shadow-md'
-                      : 'text-gray-600 hover:text-primary hover:bg-gray-50'
+                      ? "text-white bg-primary shadow-md"
+                      : "text-gray-600 hover:text-primary hover:bg-gray-50"
                   }`}
                 >
                   {category.name}
@@ -151,9 +151,9 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
               <button
                 onClick={toggleLanguage}
                 className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors duration-300"
-                aria-label={`Switch to ${currentLang === 'fr' ? 'Arabic' : 'French'}`}
+                aria-label={`Switch to ${currentLang === "fr" ? "Arabic" : "French"}`}
               >
-                {currentLang === 'fr' ? 'العربية' : 'Français'}
+                {currentLang === "fr" ? "العربية" : "Français"}
               </button>
               
               <Link to="/search" className="text-text hover:text-primary transition-colors duration-300">
@@ -181,10 +181,10 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
 
             {/* Sliding Menu */}
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
               className="fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 md:hidden"
             >
               <div className="p-6">
@@ -203,7 +203,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
 
                 {/* Categories */}
                 <div className="space-y-1 mb-8">
-                  <h3 className="text-lg font-semibold text-text mb-4">{t('nav.categories')}</h3>
+                  <h3 className="text-lg font-semibold text-text mb-4">{t("nav.categories")}</h3>
                   {categories.map((category) => (
                     <Link
                       key={category.id}
@@ -227,7 +227,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <span className="font-medium text-text">{t('nav.search')}</span>
+                    <span className="font-medium text-text">{t("nav.search")}</span>
                   </Link>
 
                   <button
@@ -241,7 +241,7 @@ const Navbar = ({ toggleLanguage, currentLang }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                     </svg>
                     <span className="font-medium text-text">
-                      {currentLang === 'fr' ? 'العربية' : 'Français'}
+                      {currentLang === "fr" ? "العربية" : "Français"}
                     </span>
                   </button>
                 </div>

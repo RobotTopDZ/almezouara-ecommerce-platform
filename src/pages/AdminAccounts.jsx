@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -13,6 +13,7 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline text-purple-600 font-medium" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -24,20 +25,20 @@ const AdminLayout = ({ children }) => (
 const AdminAccounts = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
+  const [searchTerm, setSearchTerm] = useState("');
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
   const [showModal, setShowModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const response = await fetch('/api/admin/accounts');
+        const response = await fetch("/api/admin/accounts");
         const data = await response.json();
         setAccounts(data.accounts || []);
       } catch (error) {
-        console.error('Error fetching accounts:', error);
+        console.error("Error fetching accounts:", error);
       } finally {
         setLoading(false);
       }
@@ -52,21 +53,21 @@ const AdminAccounts = () => {
         account.phone?.includes(searchTerm) ||
         account.email?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesStatus = statusFilter === 'all' || account.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || account.status === statusFilter;
       
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'name':
-          return (a.name || '').localeCompare(b.name || '');
-        case 'phone':
-          return (a.phone || '').localeCompare(b.phone || '');
-        case 'orders':
+        case "name":
+          return (a.name || "').localeCompare(b.name || "');
+        case "phone":
+          return (a.phone || "').localeCompare(b.phone || "');
+        case "orders":
           return (b.orderCount || 0) - (a.orderCount || 0);
-        case 'total':
+        case "total":
           return (b.totalSpent || 0) - (a.totalSpent || 0);
-        case 'date':
+        case "date":
           return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         default:
           return 0;
@@ -75,31 +76,31 @@ const AdminAccounts = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'suspended': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-blue-100 text-blue-800 border-blue-200';
+      case "active": return "bg-green-100 text-green-800 border-green-200";
+      case "inactive": return "bg-gray-100 text-gray-800 border-gray-200";
+      case "suspended": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-blue-100 text-blue-800 border-blue-200";
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'active': return 'Actif';
-      case 'inactive': return 'Inactif';
-      case 'suspended': return 'Suspendu';
-      default: return 'Nouveau';
+      case "active": return "Actif";
+      case "inactive": return "Inactif";
+      case "suspended": return "Suspendu";
+      default: return "Nouveau";
     }
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR').format(price || 0);
+    return new Intl.NumberFormat("fr-FR").format(price || 0);
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(date).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
     });
   };
 
@@ -150,7 +151,7 @@ const AdminAccounts = () => {
               <div>
                 <div className="text-sm text-gray-500">Comptes Actifs</div>
                 <div className="text-xl font-bold text-blue-600">
-                  {accounts.filter(acc => acc.status === 'active').length}
+                  {accounts.filter(acc => acc.status === "active").length}
                 </div>
               </div>
             </div>
@@ -159,7 +160,7 @@ const AdminAccounts = () => {
             <div className="flex items-center">
               <div className="text-2xl mr-3">💰</div>
               <div>
-                <div className="text-sm text-gray-500">Chiffre d'Affaires</div>
+                <div className="text-sm text-gray-500">Chiffre d"Affaires</div>
                 <div className="text-xl font-bold text-purple-600">
                   {formatPrice(accounts.reduce((sum, acc) => sum + (acc.totalSpent || 0), 0))} DA
                 </div>
@@ -217,15 +218,15 @@ const AdminAccounts = () => {
                 <option value="phone">Téléphone</option>
                 <option value="orders">Nombre de commandes</option>
                 <option value="total">Montant total</option>
-                <option value="date">Date d'inscription</option>
+                <option value="date">Date d"inscription</option>
               </select>
             </div>
             <div className="flex items-end">
               <button
                 onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                  setSortBy('name');
+                  setSearchTerm("');
+                  setStatusFilter("all");
+                  setSortBy("name");
                 }}
                 className="w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors"
               >
@@ -272,13 +273,13 @@ const AdminAccounts = () => {
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                             <span className="text-purple-600 font-medium text-sm">
-                              {(account.name || 'U').charAt(0).toUpperCase()}
+                              {(account.name || "U").charAt(0).toUpperCase()}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {account.name || 'Nom non fourni'}
+                            {account.name || "Nom non fourni"}
                           </div>
                           <div className="text-sm text-gray-500">
                             ID: {account.id || account.phone}
@@ -287,15 +288,15 @@ const AdminAccounts = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{account.phone || 'N/A'}</div>
-                      <div className="text-sm text-gray-500">{account.email || 'Email non fourni'}</div>
+                      <div className="text-sm text-gray-900">{account.phone || "N/A"}</div>
+                      <div className="text-sm text-gray-500">{account.email || "Email non fourni"}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {account.orderCount || 0} commande(s)
                       </div>
                       <div className="text-sm text-gray-500">
-                        Dernière: {account.lastOrder ? formatDate(account.lastOrder) : 'Jamais'}
+                        Dernière: {account.lastOrder ? formatDate(account.lastOrder) : "Jamais"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -307,8 +308,8 @@ const AdminAccounts = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(account.status || 'active')}`}>
-                        {getStatusText(account.status || 'active')}
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(account.status || "active")}`}>
+                        {getStatusText(account.status || "active")}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -329,7 +330,7 @@ const AdminAccounts = () => {
                         <button
                           onClick={() => {
                             // Handle account status change
-                            const newStatus = account.status === 'active' ? 'suspended' : 'active';
+                            const newStatus = account.status === "active" ? "suspended" : "active";
                             setAccounts(prev => prev.map(acc => 
                               acc.id === account.id || acc.phone === account.phone
                                 ? { ...acc, status: newStatus }
@@ -337,13 +338,13 @@ const AdminAccounts = () => {
                             ));
                           }}
                           className={`transition-colors ${
-                            account.status === 'active' 
-                              ? 'text-red-600 hover:text-red-900' 
-                              : 'text-green-600 hover:text-green-900'
+                            account.status === "active" 
+                              ? "text-red-600 hover:text-red-900" 
+                              : "text-green-600 hover:text-green-900"
                           }`}
-                          title={account.status === 'active' ? 'Suspendre' : 'Activer'}
+                          title={account.status === "active" ? "Suspendre" : "Activer"}
                         >
-                          {account.status === 'active' ? '⏸️ Suspendre' : '▶️ Activer'}
+                          {account.status === "active" ? "⏸️ Suspendre" : "▶️ Activer"}
                         </button>
                       </div>
                     </td>
@@ -387,18 +388,18 @@ const AdminAccounts = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-gray-500">Nom complet</div>
-                      <div className="font-medium">{selectedAccount.name || 'Non fourni'}</div>
+                      <div className="font-medium">{selectedAccount.name || "Non fourni"}</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Téléphone</div>
-                      <div className="font-medium">{selectedAccount.phone || 'Non fourni'}</div>
+                      <div className="font-medium">{selectedAccount.phone || "Non fourni"}</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Email</div>
-                      <div className="font-medium">{selectedAccount.email || 'Non fourni'}</div>
+                      <div className="font-medium">{selectedAccount.email || "Non fourni"}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Date d'inscription</div>
+                      <div className="text-sm text-gray-500">Date d"inscription</div>
                       <div className="font-medium">{formatDate(selectedAccount.createdAt || new Date())}</div>
                     </div>
                   </div>
@@ -428,7 +429,7 @@ const AdminAccounts = () => {
                   <div className="text-sm text-gray-500">
                     {selectedAccount.orderCount > 0 
                       ? `Dernière commande: ${formatDate(selectedAccount.lastOrder || new Date())}`
-                      : 'Aucune commande passée'
+                      : "Aucune commande passée"
                     }
                   </div>
                 </div>

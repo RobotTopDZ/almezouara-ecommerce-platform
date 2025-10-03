@@ -1,5 +1,5 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 const RefundPolicyPage = () => {
   const { t } = useTranslation();
@@ -11,7 +11,7 @@ const RefundPolicyPage = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-text mb-4">Politique de Remboursement</h1>
             <p className="text-gray-600">
-              Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+              Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}
             </p>
           </div>
 
@@ -24,7 +24,7 @@ const RefundPolicyPage = () => {
                 Notre Engagement
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                Chez Almezouara, votre satisfaction est notre priorité. Nous nous engageons à fournir des produits de qualité et un service client exceptionnel. Si vous n'êtes pas entièrement satisfait de votre achat, nous offrons une politique de retour et d'échange flexible.
+                Chez Almezouara, votre satisfaction est notre priorité. Nous nous engageons à fournir des produits de qualité et un service client exceptionnel. Si vous n"êtes pas entièrement satisfait de votre achat, nous offrons une politique de retour et d"échange flexible.
               </p>
             </section>
 
@@ -58,19 +58,19 @@ const RefundPolicyPage = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  L'article doit être dans son état d'origine, non porté et non endommagé
+                  L"article doit être dans son état d"origine, non porté et non endommagé
                 </li>
                 <li className="flex items-start">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Toutes les étiquettes d'origine doivent être attachées
+                  Toutes les étiquettes d"origine doivent être attachées
                 </li>
                 <li className="flex items-start">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  L'article doit être retourné dans son emballage d'origine
+                  L"article doit être retourné dans son emballage d"origine
                 </li>
                 <li className="flex items-start">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,15 +96,15 @@ const RefundPolicyPage = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-text mb-2">2. Obtenez l'autorisation</h3>
+                  <h3 className="font-semibold text-text mb-2">2. Obtenez l"autorisation</h3>
                   <p className="text-gray-700">
-                    Nous vous fournirons un numéro d'autorisation de retour et les instructions d'expédition.
+                    Nous vous fournirons un numéro d"autorisation de retour et les instructions d"expédition.
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-text mb-2">3. Expédiez l'article</h3>
+                  <h3 className="font-semibold text-text mb-2">3. Expédiez l"article</h3>
                   <p className="text-gray-700">
-                    Emballez soigneusement l'article et expédiez-le à l'adresse indiquée.
+                    Emballez soigneusement l"article et expédiez-le à l"adresse indiquée.
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -130,7 +130,7 @@ const RefundPolicyPage = () => {
               </div>
               <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4">
                 <p className="text-gray-700">
-                  <strong>Changement d'avis :</strong> Les frais de retour sont à la charge du client.
+                  <strong>Changement d"avis :</strong> Les frais de retour sont à la charge du client.
                 </p>
               </div>
             </section>
@@ -169,7 +169,7 @@ const RefundPolicyPage = () => {
                 Articles Non Remboursables
               </h2>
               <p className="text-gray-700 mb-4">
-                Les articles suivants ne peuvent pas être retournés pour des raisons d'hygiène et de sécurité :
+                Les articles suivants ne peuvent pas être retournés pour des raisons d"hygiène et de sécurité :
               </p>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start">
@@ -218,7 +218,7 @@ const RefundPolicyPage = () => {
 
           {/* Call to Action */}
           <div className="mt-12 bg-gradient-to-r from-primary to-pink-600 rounded-xl p-8 text-white text-center">
-            <h2 className="text-2xl font-bold mb-4">Besoin d'aide ?</h2>
+            <h2 className="text-2xl font-bold mb-4">Besoin d"aide ?</h2>
             <p className="text-pink-100 mb-6">
               Notre équipe est là pour vous accompagner dans vos retours et échanges
             </p>

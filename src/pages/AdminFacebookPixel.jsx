@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -28,7 +28,7 @@ const AdminFacebookPixel = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   // ID du pixel Facebook directement intégré
-  const PIXEL_ID = '925399229731159';
+  const PIXEL_ID = "925399229731159";
   
   const [pixelConfig, setPixelConfig] = useState({
     enabled: true,
@@ -40,7 +40,7 @@ const AdminFacebookPixel = () => {
   });
 
   useEffect(() => {
-    // Afficher directement la configuration avec l'ID fixe
+    // Afficher directement la configuration avec l"ID fixe
     setLoading(true);
     setError(null);
     
@@ -53,7 +53,7 @@ const AdminFacebookPixel = () => {
     // mais on garde notre ID fixe
     const fetchConfig = async () => {
       try {
-        const response = await axios.get('/api/facebook-pixel');
+        const response = await axios.get("/api/facebook-pixel");
         if (response.data && response.data.config) {
           // Fusionner la configuration mais garder notre ID fixe
           setPixelConfig({
@@ -63,8 +63,8 @@ const AdminFacebookPixel = () => {
           });
         }
       } catch (err) {
-        console.error('Erreur lors du chargement de la configuration Facebook Pixel:', err);
-        // Ne pas afficher d'erreur puisqu'on a déjà une configuration par défaut
+        console.error("Erreur lors du chargement de la configuration Facebook Pixel:", err);
+        // Ne pas afficher d"erreur puisqu"on a déjà une configuration par défaut
       }
     };
 
@@ -73,14 +73,14 @@ const AdminFacebookPixel = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // Ne pas permettre de modifier l'ID du pixel ou l'état d'activation
-    if (name === 'pixelId' || name === 'enabled') {
+    // Ne pas permettre de modifier l"ID du pixel ou l"état d"activation
+    if (name === "pixelId" || name === "enabled") {
       return;
     }
     
     setPixelConfig({
       ...pixelConfig,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value
     });
   };
 
@@ -98,17 +98,17 @@ const AdminFacebookPixel = () => {
         enabled: true
       };
       
-      console.log('Sauvegarde de la configuration:', configToSave);
-      const response = await axios.post('/api/facebook-pixel', { config: configToSave });
-      console.log('Réponse du serveur:', response.data);
+      console.log("Sauvegarde de la configuration:", configToSave);
+      const response = await axios.post("/api/facebook-pixel", { config: configToSave });
+      console.log("Réponse du serveur:", response.data);
       
       if (response.data && response.data.success) {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
-      console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
-      setError('Erreur lors de la sauvegarde de la configuration: ' + (err.message || 'Erreur inconnue'));
+      console.error("Erreur lors de la sauvegarde de la configuration Facebook Pixel:", err);
+      setError("Erreur lors de la sauvegarde de la configuration: " + (err.message || "Erreur inconnue"));
     } finally {
       setSaving(false);
     }
@@ -117,15 +117,15 @@ const AdminFacebookPixel = () => {
   const testPixelConnection = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/facebook-pixel/test');
+      const response = await axios.post("/api/facebook-pixel/test");
       if (response.data.success) {
-        alert('Test réussi ! Événement de test envoyé à Facebook.');
+        alert("Test réussi ! Événement de test envoyé à Facebook.");
       } else {
-        alert('Échec du test. Vérifiez votre configuration et réessayez.');
+        alert("Échec du test. Vérifiez votre configuration et réessayez.");
       }
     } catch (err) {
-      console.error('Erreur lors du test de la connexion Facebook Pixel:', err);
-      alert('Erreur lors du test de la connexion. Vérifiez votre configuration.');
+      console.error("Erreur lors du test de la connexion Facebook Pixel:", err);
+      alert("Erreur lors du test de la connexion. Vérifiez votre configuration.");
     } finally {
       setLoading(false);
     }
@@ -199,13 +199,13 @@ const AdminFacebookPixel = () => {
                   Pixel ID configuré: {PIXEL_ID}
                 </p>
                 <p className="mt-1 text-sm text-gray-500">
-                  Vous pouvez trouver votre Pixel ID dans le Gestionnaire d'événements Facebook.
+                  Vous pouvez trouver votre Pixel ID dans le Gestionnaire d"événements Facebook.
                 </p>
               </div>
 
               <div>
                 <label htmlFor="accessToken" className="block text-sm font-medium text-gray-700">
-                  Token d'accès (pour l'API Conversions)
+                  Token d"accès (pour l"API Conversions)
                 </label>
                 <input
                   type="text"
@@ -217,13 +217,13 @@ const AdminFacebookPixel = () => {
                   placeholder="EAAxxxx..."
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Optionnel. Nécessaire uniquement pour l'API Conversions.
+                  Optionnel. Nécessaire uniquement pour l"API Conversions.
                 </p>
               </div>
 
               <div>
                 <label htmlFor="testEventCode" className="block text-sm font-medium text-gray-700">
-                  Code d'événement de test
+                  Code d"événement de test
                 </label>
                 <input
                   type="text"
@@ -307,23 +307,23 @@ const AdminFacebookPixel = () => {
                 disabled={saving}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
               >
-                {saving ? 'Sauvegarde en cours...' : 'Sauvegarder'}
+                {saving ? "Sauvegarde en cours..." : "Sauvegarder"}
               </button>
             </div>
           </form>
         )}
 
         <div className="mt-8 border-t pt-6">
-          <h2 className="text-xl font-semibold mb-4">Guide d'intégration</h2>
+          <h2 className="text-xl font-semibold mb-4">Guide d"intégration</h2>
           <div className="bg-gray-50 p-4 rounded-md">
             <ol className="list-decimal list-inside space-y-2">
-              <li>Créez un compte Facebook Business si vous n'en avez pas déjà un</li>
-              <li>Accédez au Gestionnaire d'événements Facebook</li>
-              <li>Créez un nouveau pixel et copiez l'ID du pixel</li>
-              <li>Collez l'ID du pixel dans le champ ci-dessus</li>
+              <li>Créez un compte Facebook Business si vous n"en avez pas déjà un</li>
+              <li>Accédez au Gestionnaire d"événements Facebook</li>
+              <li>Créez un nouveau pixel et copiez l"ID du pixel</li>
+              <li>Collez l"ID du pixel dans le champ ci-dessus</li>
               <li>Activez les événements que vous souhaitez suivre</li>
               <li>Sauvegardez la configuration</li>
-              <li>Pour des fonctionnalités avancées, générez un token d'accès dans Facebook</li>
+              <li>Pour des fonctionnalités avancées, générez un token d"accès dans Facebook</li>
             </ol>
           </div>
         </div>

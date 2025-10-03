@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -26,8 +26,8 @@ const AdminLayout = ({ children }) => (
 const AdminConfiguration = () => {
   // Yalidine Configuration State
   const [yalidineConfig, setYalidineConfig] = useState({
-    apiId: '',
-    apiToken: '',
+    apiId: "',
+    apiToken: "',
     configured: false
   });
   const [testingYalidine, setTestingYalidine] = useState(false);
@@ -41,9 +41,9 @@ const AdminConfiguration = () => {
   const [error, setError] = useState(null);
   const [pixelConfig, setPixelConfig] = useState({
     enabled: false,
-    pixelId: '',
-    accessToken: '',
-    testEventCode: '',
+    pixelId: "',
+    accessToken: "',
+    testEventCode: "',
     trackPageView: true,
     trackAddToCart: true,
     trackInitiateCheckout: true,
@@ -51,7 +51,7 @@ const AdminConfiguration = () => {
   });
 
   // Active Tab State
-  const [activeTab, setActiveTab] = useState('yalidine');
+  const [activeTab, setActiveTab] = useState("yalidine");
 
   useEffect(() => {
     // Load configurations
@@ -62,23 +62,23 @@ const AdminConfiguration = () => {
   // Yalidine Configuration Functions
   const loadYalidineConfig = async () => {
     try {
-      const response = await axios.get('/api/admin/yalidine-config');
+      const response = await axios.get("/api/admin/yalidine-config");
       if (response.data && response.data.config) {
         setYalidineConfig(response.data.config);
       }
     } catch (err) {
-      console.error('Erreur lors du chargement de la configuration Yalidine:', err);
+      console.error("Erreur lors du chargement de la configuration Yalidine:", err);
     }
   };
 
   const saveYalidineConfig = async () => {
     setSavingYalidine(true);
     try {
-      await axios.post('/api/admin/yalidine-config', { config: yalidineConfig });
-      alert('Configuration Yalidine sauvegardée avec succès!');
+      await axios.post("/api/admin/yalidine-config", { config: yalidineConfig });
+      alert("Configuration Yalidine sauvegardée avec succès!");
     } catch (err) {
-      console.error('Erreur lors de la sauvegarde de la configuration Yalidine:', err);
-      alert('Erreur lors de la sauvegarde de la configuration Yalidine');
+      console.error("Erreur lors de la sauvegarde de la configuration Yalidine:", err);
+      alert("Erreur lors de la sauvegarde de la configuration Yalidine");
     } finally {
       setSavingYalidine(false);
     }
@@ -88,13 +88,13 @@ const AdminConfiguration = () => {
     setTestingYalidine(true);
     setYalidineTestResult(null);
     try {
-      const response = await axios.post('/api/yalidine/test-connection', yalidineConfig);
+      const response = await axios.post("/api/yalidine/test-connection", yalidineConfig);
       setYalidineTestResult({
         success: true,
-        message: 'Connexion réussie avec Yalidine!'
+        message: "Connexion réussie avec Yalidine!"
       });
     } catch (err) {
-      console.error('Erreur lors du test de connexion Yalidine:', err);
+      console.error("Erreur lors du test de connexion Yalidine:", err);
       setYalidineTestResult({
         success: false,
         message: `Erreur de connexion: ${err.response?.data?.message || err.message}`
@@ -116,13 +116,13 @@ const AdminConfiguration = () => {
   const loadFacebookPixelConfig = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/admin/facebook-pixel');
+      const response = await axios.get("/api/admin/facebook-pixel");
       if (response.data && response.data.config) {
         setPixelConfig(response.data.config);
       }
     } catch (err) {
-      console.error('Erreur lors du chargement de la configuration Facebook Pixel:', err);
-      setError('Impossible de charger la configuration');
+      console.error("Erreur lors du chargement de la configuration Facebook Pixel:", err);
+      setError("Impossible de charger la configuration");
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ const AdminConfiguration = () => {
     const { name, value, type, checked } = e.target;
     setPixelConfig({
       ...pixelConfig,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value
     });
   };
 
@@ -143,12 +143,12 @@ const AdminConfiguration = () => {
     setError(null);
 
     try {
-      await axios.post('/api/admin/facebook-pixel', { config: pixelConfig });
+      await axios.post("/api/admin/facebook-pixel", { config: pixelConfig });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
-      setError('Impossible de sauvegarder la configuration');
+      console.error("Erreur lors de la sauvegarde de la configuration Facebook Pixel:", err);
+      setError("Impossible de sauvegarder la configuration");
     } finally {
       setSavingPixel(false);
     }
@@ -157,14 +157,14 @@ const AdminConfiguration = () => {
   const testPixelConnection = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/admin/facebook-pixel/test');
+      const response = await axios.post("/api/admin/facebook-pixel/test");
       if (response.data.success) {
-        alert('Connexion réussie avec Facebook Pixel!');
+        alert("Connexion réussie avec Facebook Pixel!");
       } else {
         alert(`Erreur de connexion: ${response.data.error}`);
       }
     } catch (err) {
-      console.error('Erreur lors du test de connexion:', err);
+      console.error("Erreur lors du test de connexion:", err);
       alert(`Erreur de connexion: ${err.response?.data?.error || err.message}`);
     } finally {
       setLoading(false);
@@ -179,21 +179,21 @@ const AdminConfiguration = () => {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex">
             <button
-              onClick={() => setActiveTab('yalidine')}
+              onClick={() => setActiveTab("yalidine")}
               className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'yalidine'
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                activeTab === "yalidine"
+                  ? "border-green-500 text-green-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               Configuration Yalidine
             </button>
             <button
-              onClick={() => setActiveTab('facebook')}
+              onClick={() => setActiveTab("facebook")}
               className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'facebook'
-                  ? 'border-pink-500 text-pink-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                activeTab === "facebook"
+                  ? "border-pink-500 text-pink-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               Configuration Facebook Pixel
@@ -203,7 +203,7 @@ const AdminConfiguration = () => {
       </div>
 
       {/* Yalidine Configuration Tab */}
-      {activeTab === 'yalidine' && (
+      {activeTab === "yalidine" && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Configuration Yalidine</h2>
           
@@ -240,29 +240,29 @@ const AdminConfiguration = () => {
           <div className="flex items-center justify-between">
             <button
               className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                testingYalidine ? 'opacity-50 cursor-not-allowed' : ''
+                testingYalidine ? "opacity-50 cursor-not-allowed" : "'
               }`}
               type="button"
               onClick={testYalidineConnection}
               disabled={testingYalidine}
             >
-              {testingYalidine ? 'Test en cours...' : 'Tester la connexion'}
+              {testingYalidine ? "Test en cours..." : "Tester la connexion"}
             </button>
             
             <button
               className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                savingYalidine ? 'opacity-50 cursor-not-allowed' : ''
+                savingYalidine ? "opacity-50 cursor-not-allowed" : "'
               }`}
               type="button"
               onClick={saveYalidineConfig}
               disabled={savingYalidine}
             >
-              {savingYalidine ? 'Sauvegarde...' : 'Sauvegarder'}
+              {savingYalidine ? "Sauvegarde..." : "Sauvegarder"}
             </button>
           </div>
           
           {yalidineTestResult && (
-            <div className={`mt-4 p-3 rounded ${yalidineTestResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div className={`mt-4 p-3 rounded ${yalidineTestResult.success ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
               {yalidineTestResult.message}
             </div>
           )}
@@ -270,7 +270,7 @@ const AdminConfiguration = () => {
       )}
 
       {/* Facebook Pixel Configuration Tab */}
-      {activeTab === 'facebook' && (
+      {activeTab === "facebook" && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Configuration Facebook Pixel</h2>
           
@@ -387,22 +387,22 @@ const AdminConfiguration = () => {
               <button
                 type="button"
                 className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                  loading ? "opacity-50 cursor-not-allowed" : "'
                 }`}
                 onClick={testPixelConnection}
                 disabled={loading || !pixelConfig.enabled || !pixelConfig.pixelId || !pixelConfig.accessToken}
               >
-                {loading ? 'Test en cours...' : 'Tester la connexion'}
+                {loading ? "Test en cours..." : "Tester la connexion"}
               </button>
               
               <button
                 type="submit"
                 className={`bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                  savingPixel ? 'opacity-50 cursor-not-allowed' : ''
+                  savingPixel ? "opacity-50 cursor-not-allowed" : "'
                 }`}
                 disabled={savingPixel}
               >
-                {savingPixel ? 'Sauvegarde...' : 'Sauvegarder'}
+                {savingPixel ? "Sauvegarde..." : "Sauvegarder"}
               </button>
             </div>
             

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const FAQPage = () => {
   const { t } = useTranslation();
@@ -9,7 +9,7 @@ const FAQPage = () => {
     {
       id: 1,
       question: "Comment passer une commande?",
-      answer: "Pour passer une commande, parcourez nos produits, sélectionnez l'article souhaité, choisissez la taille et la couleur, puis cliquez sur 'Acheter maintenant'. Remplissez vos informations de livraison et confirmez votre commande."
+      answer: "Pour passer une commande, parcourez nos produits, sélectionnez l"article souhaité, choisissez la taille et la couleur, puis cliquez sur "Acheter maintenant". Remplissez vos informations de livraison et confirmez votre commande."
     },
     {
       id: 2,
@@ -34,22 +34,22 @@ const FAQPage = () => {
     {
       id: 6,
       question: "Puis-je échanger ou retourner un article?",
-      answer: "Oui, vous pouvez retourner ou échanger un article dans les 7 jours suivant la réception, à condition qu'il soit dans son état d'origine avec ses étiquettes. Consultez notre politique de remboursement pour plus de détails."
+      answer: "Oui, vous pouvez retourner ou échanger un article dans les 7 jours suivant la réception, à condition qu"il soit dans son état d"origine avec ses étiquettes. Consultez notre politique de remboursement pour plus de détails."
     },
     {
       id: 7,
       question: "Comment connaître ma taille?",
-      answer: "Chaque produit dispose d'un guide des tailles détaillé. Nous recommandons de consulter le tableau des tailles avant de passer commande. En cas de doute, n'hésitez pas à nous contacter."
+      answer: "Chaque produit dispose d"un guide des tailles détaillé. Nous recommandons de consulter le tableau des tailles avant de passer commande. En cas de doute, n"hésitez pas à nous contacter."
     },
     {
       id: 8,
       question: "Les couleurs affichées sont-elles exactes?",
-      answer: "Nous faisons de notre mieux pour afficher des couleurs précises, mais elles peuvent légèrement varier selon votre écran. Si vous n'êtes pas satisfait de la couleur reçue, vous pouvez échanger l'article."
+      answer: "Nous faisons de notre mieux pour afficher des couleurs précises, mais elles peuvent légèrement varier selon votre écran. Si vous n"êtes pas satisfait de la couleur reçue, vous pouvez échanger l"article."
     },
     {
       id: 9,
       question: "Comment créer un compte?",
-      answer: "Cliquez sur l'icône compte dans le menu, puis sélectionnez 'S'inscrire'. Remplissez vos informations (nom complet, numéro de téléphone, mot de passe) pour créer votre compte."
+      answer: "Cliquez sur l"icône compte dans le menu, puis sélectionnez "S"inscrire". Remplissez vos informations (nom complet, numéro de téléphone, mot de passe) pour créer votre compte."
     },
     {
       id: 10,
@@ -63,8 +63,8 @@ const FAQPage = () => {
     },
     {
       id: 12,
-      question: "Livrez-vous dans toute l'Algérie?",
-      answer: "Oui, nous livrons dans les 58 wilayas d'Algérie. Les frais de livraison varient selon la destination et le mode de livraison choisi."
+      question: "Livrez-vous dans toute l"Algérie?",
+      answer: "Oui, nous livrons dans les 58 wilayas d"Algérie. Les frais de livraison varient selon la destination et le mode de livraison choisi."
     }
   ];
 
@@ -95,7 +95,7 @@ const FAQPage = () => {
                 <h3 className="text-lg font-medium text-text pr-4">
                   {faq.question}
                 </h3>
-                <div className={`transform transition-transform duration-200 ${openFAQ === faq.id ? 'rotate-180' : ''}`}>
+                <div className={`transform transition-transform duration-200 ${openFAQ === faq.id ? "rotate-180" : "'}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>

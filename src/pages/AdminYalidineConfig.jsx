@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -15,6 +15,7 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline text-green-600 font-medium" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -25,8 +26,8 @@ const AdminLayout = ({ children }) => (
 
 const AdminYalidineConfig = () => {
   const [config, setConfig] = useState({
-    apiId: '',
-    apiToken: '',
+    apiId: "',
+    apiToken: "',
     configured: false
   });
   const [testing, setTesting] = useState(false);
@@ -39,8 +40,8 @@ const AdminYalidineConfig = () => {
   }, []);
 
   const loadConfig = () => {
-    // In a real app, you'd load this from your backend
-    const savedConfig = localStorage.getItem('yalidineConfig');
+    // In a real app, you"d load this from your backend
+    const savedConfig = localStorage.getItem("yalidineConfig");
     if (savedConfig) {
       setConfig(JSON.parse(savedConfig));
     }
@@ -49,12 +50,12 @@ const AdminYalidineConfig = () => {
   const saveConfig = async () => {
     setSaving(true);
     try {
-      // In a real app, you'd save this to your backend
-      localStorage.setItem('yalidineConfig', JSON.stringify(config));
+      // In a real app, you"d save this to your backend
+      localStorage.setItem("yalidineConfig", JSON.stringify(config));
       setConfig(prev => ({ ...prev, configured: true }));
-      alert('Configuration Yalidine sauvegardée avec succès!');
+      alert("Configuration Yalidine sauvegardée avec succès!");
     } catch (error) {
-      alert('Erreur lors de la sauvegarde: ' + error.message);
+      alert("Erreur lors de la sauvegarde: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -62,7 +63,7 @@ const AdminYalidineConfig = () => {
 
   const testConnection = async () => {
     if (!config.apiId || !config.apiToken) {
-      alert('Veuillez d\'abord configurer votre API ID et Token');
+      alert("Veuillez d\'abord configurer votre API ID et Token");
       return;
     }
 
@@ -77,24 +78,24 @@ const AdminYalidineConfig = () => {
       process.env.YALIDINE_API_ID = config.apiId;
       process.env.YALIDINE_API_TOKEN = config.apiToken;
 
-      const response = await axios.get('/api/yalidine/test');
+      const response = await axios.get("/api/yalidine/test");
       
       if (response.data.success) {
         setTestResult({
           success: true,
-          message: 'Connexion à Yalidine réussie!',
+          message: "Connexion à Yalidine réussie!",
           data: response.data.data
         });
       } else {
         setTestResult({
           success: false,
-          message: 'Échec de la connexion: ' + response.data.error
+          message: "Échec de la connexion: " + response.data.error
         });
       }
     } catch (error) {
       setTestResult({
         success: false,
-        message: 'Erreur de connexion: ' + (error.response?.data?.error || error.message)
+        message: "Erreur de connexion: " + (error.response?.data?.error || error.message)
       });
     } finally {
       setTesting(false);
@@ -117,7 +118,7 @@ const AdminYalidineConfig = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold mb-2">Configuration Yalidine</h1>
-              <p className="text-green-100">Configurez votre intégration avec l'API Yalidine</p>
+              <p className="text-green-100">Configurez votre intégration avec l"API Yalidine</p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold">🚚</div>
@@ -138,7 +139,7 @@ const AdminYalidineConfig = () => {
               <input
                 type="text"
                 value={config.apiId}
-                onChange={(e) => handleInputChange('apiId', e.target.value)}
+                onChange={(e) => handleInputChange("apiId", e.target.value)}
                 placeholder="Votre API ID Yalidine"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
@@ -154,7 +155,7 @@ const AdminYalidineConfig = () => {
               <input
                 type="password"
                 value={config.apiToken}
-                onChange={(e) => handleInputChange('apiToken', e.target.value)}
+                onChange={(e) => handleInputChange("apiToken", e.target.value)}
                 placeholder="Votre API Token Yalidine"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
@@ -169,11 +170,11 @@ const AdminYalidineConfig = () => {
                 disabled={testing || !config.apiId || !config.apiToken}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   testing || !config.apiId || !config.apiToken
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
                 }`}
               >
-                {testing ? '⏳ Test en cours...' : '🧪 Tester la connexion'}
+                {testing ? "⏳ Test en cours..." : "🧪 Tester la connexion"}
               </button>
 
               <button
@@ -181,11 +182,11 @@ const AdminYalidineConfig = () => {
                 disabled={saving || !config.apiId || !config.apiToken}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   saving || !config.apiId || !config.apiToken
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-500 text-white hover:bg-green-600'
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-green-500 text-white hover:bg-green-600"
                 }`}
               >
-                {saving ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}
+                {saving ? "⏳ Sauvegarde..." : "💾 Sauvegarder"}
               </button>
             </div>
           </div>
@@ -195,23 +196,23 @@ const AdminYalidineConfig = () => {
         {testResult && (
           <div className={`rounded-lg p-4 ${
             testResult.success 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
+              ? "bg-green-50 border border-green-200" 
+              : "bg-red-50 border border-red-200"
           }`}>
             <div className="flex items-center">
               <div className={`text-2xl mr-3 ${
-                testResult.success ? 'text-green-500' : 'text-red-500'
+                testResult.success ? "text-green-500" : "text-red-500"
               }`}>
-                {testResult.success ? '✅' : '❌'}
+                {testResult.success ? "✅" : "❌"}
               </div>
               <div>
                 <h4 className={`font-medium ${
-                  testResult.success ? 'text-green-900' : 'text-red-900'
+                  testResult.success ? "text-green-900" : "text-red-900"
                 }`}>
-                  {testResult.success ? 'Connexion réussie!' : 'Échec de la connexion'}
+                  {testResult.success ? "Connexion réussie!" : "Échec de la connexion"}
                 </h4>
                 <p className={`text-sm ${
-                  testResult.success ? 'text-green-700' : 'text-red-700'
+                  testResult.success ? "text-green-700" : "text-red-700"
                 }`}>
                   {testResult.message}
                 </p>
@@ -235,27 +236,27 @@ const AdminYalidineConfig = () => {
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">API ID configuré:</span>
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                config.apiId ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                config.apiId ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
               }`}>
-                {config.apiId ? '✅ Configuré' : '❌ Non configuré'}
+                {config.apiId ? "✅ Configuré" : "❌ Non configuré"}
               </span>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">API Token configuré:</span>
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                config.apiToken ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                config.apiToken ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
               }`}>
-                {config.apiToken ? '✅ Configuré' : '❌ Non configuré'}
+                {config.apiToken ? "✅ Configuré" : "❌ Non configuré"}
               </span>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">Configuration complète:</span>
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                config.configured ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                config.configured ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
               }`}>
-                {config.configured ? '✅ Prêt' : '⚠️ En attente'}
+                {config.configured ? "✅ Prêt" : "⚠️ En attente"}
               </span>
             </div>
           </div>

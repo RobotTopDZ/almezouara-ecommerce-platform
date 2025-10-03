@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Navigation, Zoom } from 'swiper/modules';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Navigation, Zoom } from "swiper/modules";
+import { motion } from "framer-motion";
+import axios from "axios";
 // Removed static data import - now using API
-import PromotionPopup from '../components/PromotionPopup';
+import PromotionPopup from "../components/PromotionPopup";
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import 'swiper/css/zoom';
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import "swiper/css/zoom";
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -21,15 +21,15 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCity, setSelectedCity] = useState("');
   const [shippingCost, setShippingCost] = useState(0);
   const [availableCities, setAvailableCities] = useState([]);
   
   // New state for smart checkout
-  const [checkoutStep, setCheckoutStep] = useState('phone'); // 'phone', 'customer-choice', 'form'
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [checkoutStep, setCheckoutStep] = useState("phone"); // "phone", "customer-choice", "form"
+  const [phoneNumber, setPhoneNumber] = useState("');
   const [customerInfo, setCustomerInfo] = useState(null);
-  const [customerChoice, setCustomerChoice] = useState(''); // 'use-previous', 'modify', 'new'
+  const [customerChoice, setCustomerChoice] = useState("'); // "use-previous", "modify", "new"
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [showPreviousInfo, setShowPreviousInfo] = useState(false);
   const [showPromotionPopup, setShowPromotionPopup] = useState(false);
@@ -41,11 +41,11 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
   
   const [formData, setFormData] = useState({
-    fullName: '',
-    phoneNumber: '',
-    wilaya: '',
-    address: '',
-    deliveryMethod: '',
+    fullName: "',
+    phoneNumber: "',
+    wilaya: "',
+    address: "',
+    deliveryMethod: "',
   });
 
   // Load product data from API
@@ -54,36 +54,36 @@ const ProductPage = () => {
       try {
         setLoading(true);
         const response = await axios.get(`/api/products/${id}`);
-        console.log('ProductPage API response:', response.data);
+        console.log("ProductPage API response:", response.data);
         if (response.data.success && response.data.product) {
           const productData = response.data.product;
-          console.log('Raw product data:', productData);
-          console.log('Images:', productData.images);
-          console.log('Colors:', productData.colors);
-          console.log('Sizes:', productData.sizes);
+          console.log("Raw product data:", productData);
+          console.log("Images:", productData.images);
+          console.log("Colors:", productData.colors);
+          console.log("Sizes:", productData.sizes);
           
           const transformedProduct = {
             id: productData.id,
             name: productData.name,
             price: productData.price,
-            description: productData.description || 'Description non disponible',
-            images: productData.images || ['/images/IMG_0630-scaled.jpeg'],
+            description: productData.description || "Description non disponible",
+            images: productData.images || ["/images/IMG_0630-scaled.jpeg"],
             // Keep colors and sizes as they are from the API
             colors: productData.colors || [],
             sizes: productData.sizes || [],
             stock: productData.stock || 0,
-            category: productData.category_name || 'Général',
-            status: productData.status || 'active',
-            product_type: productData.product_type || 'simple',
+            category: productData.category_name || "Général",
+            status: productData.status || "active",
+            product_type: productData.product_type || "simple",
             variants: productData.variants || [],
           };
           
-          console.log('Transformed product:', transformedProduct);
+          console.log("Transformed product:", transformedProduct);
           setProduct(transformedProduct);
           
           // Set default selections based on variants if available
           if (productData.variants && productData.variants.length > 0) {
-            // Use the first variant's color and size as default
+            // Use the first variant"s color and size as default
             const firstVariant = productData.variants[0];
             setSelectedColor(firstVariant.color_name);
             setSelectedSize(firstVariant.size);
@@ -97,11 +97,11 @@ const ProductPage = () => {
             }
           }
         } else {
-          setError('Produit non trouvé');
+          setError("Produit non trouvé");
         }
       } catch (error) {
-        console.error('Error loading product:', error);
-        setError('Erreur lors du chargement du produit');
+        console.error("Error loading product:", error);
+        setError("Erreur lors du chargement du produit");
       } finally {
         setLoading(false);
       }
@@ -115,20 +115,20 @@ const ProductPage = () => {
   // Sample product data for fallback
   const fallbackProduct = {
     id: 1,
-    name: 'Robe Élégante',
+    name: "Robe Élégante",
     price: 3500,
-    description: 'Une robe élégante parfaite pour toutes les occasions. Fabriquée avec des matériaux de haute qualité pour un confort optimal.',
+    description: "Une robe élégante parfaite pour toutes les occasions. Fabriquée avec des matériaux de haute qualité pour un confort optimal.",
     images: [
-      '/images/IMG_0630-scaled.jpeg',
-      '/images/IMG_6710-scaled.jpeg',
-      '/images/IMG_6789-scaled.jpeg',
+      "/images/IMG_0630-scaled.jpeg",
+      "/images/IMG_6710-scaled.jpeg",
+      "/images/IMG_6789-scaled.jpeg",
     ],
     colors: [
-      { name: 'Noir', value: 'black' },
-      { name: 'Rouge', value: 'red' },
-      { name: 'Bleu', value: 'blue' },
+      { name: "Noir", value: "black" },
+      { name: "Rouge", value: "red" },
+      { name: "Bleu", value: "blue" },
     ],
-    sizes: ['S', 'M', 'L', 'XL'],
+    sizes: ["S", "M", "L", "XL"],
     inStock: true,
   };
 
@@ -142,18 +142,18 @@ const ProductPage = () => {
   const discountedPrice = product ? Math.round(product.price * (1 - (discountPercentage || 0) / 100)) : 0;
 
   const normalizePhone = (raw) => {
-    if (!raw) return '';
-    const digits = String(raw).replace(/\D/g, '');
+    if (!raw) return "';
+    const digits = String(raw).replace(/\D/g, "');
     // Convert +213x... to 0x... if detected
-    if (digits.startsWith('213') && digits.length >= 10) {
-      return '0' + digits.slice(3);
+    if (digits.startsWith("213") && digits.length >= 10) {
+      return "0" + digits.slice(3);
     }
     return digits;
   };
   
   // Get available sizes for the selected color
   const getAvailableSizes = () => {
-    if (!product || product.product_type !== 'variable' || !selectedColor) {
+    if (!product || product.product_type !== "variable" || !selectedColor) {
       return product ? product.sizes : [];
     }
     return product.variants
@@ -163,7 +163,7 @@ const ProductPage = () => {
 
   // Check if a specific size is available for the selected color
   const isSizeAvailable = (size) => {
-    if (!product || product.product_type !== 'variable' || !selectedColor) {
+    if (!product || product.product_type !== "variable" || !selectedColor) {
       return true; // Assume available if not a variable product
     }
     const availableSizes = getAvailableSizes();
@@ -175,11 +175,11 @@ const ProductPage = () => {
     if (!product) return false;
     
     // For simple products, just check the product stock
-    if (product.product_type === 'simple') {
+    if (product.product_type === "simple") {
       return product.stock > 0;
     }
     
-    // For variable products, check the selected variant's stock
+    // For variable products, check the selected variant"s stock
     if (product.variants && product.variants.length > 0) {
       if (!selectedColor || !selectedSize) return false;
       const variant = product.variants.find(v => 
@@ -200,7 +200,7 @@ const ProductPage = () => {
       try {
         setPromoLoading(true);
         const res = await axios.get(`/api/promotions/${phone}`);
-        console.log('🎁 Promotion API response:', res.data);
+        console.log("🎁 Promotion API response:", res.data);
         
         // API returns single promotion object, not array
         const promotion = res.data?.promotion;
@@ -209,10 +209,10 @@ const ProductPage = () => {
           setDiscountPercentage(percentage);
           setCurrentPromotion(promotion);
           setShowPromotionPopup(true);
-          console.log('✅ Promotion applied:', percentage + '%');
+          console.log("✅ Promotion applied:", percentage + "%");
         } else {
           setDiscountPercentage(0);
-          console.log('❌ No active promotion found');
+          console.log("❌ No active promotion found");
         }
       } catch (e) {
         setDiscountPercentage(0);
@@ -225,12 +225,12 @@ const ProductPage = () => {
 
   // Debug: Monitor form data changes
   useEffect(() => {
-    console.log('📋 Form data changed:', formData);
+    console.log("📋 Form data changed:", formData);
   }, [formData]);
 
   // Reset selected size when color changes
   useEffect(() => {
-    if (product && product.product_type === 'variable' && selectedColor) {
+    if (product && product.product_type === "variable" && selectedColor) {
       const availableSizes = getAvailableSizes();
       // If the current size is not in the new list of available sizes, reset it
       if (!availableSizes.includes(selectedSize)) {
@@ -249,12 +249,12 @@ const ProductPage = () => {
       const response = await axios.get(`/api/orders/last-by-phone/${phone}`);
 
       // Transform the API response to match expected format
-      console.log('📋 Raw API response:', response.data.data);
+      console.log("📋 Raw API response:", response.data.data);
       
       // Handle different possible values for delivery method
       let deliveryMethod = response.data.data.delivery_method;
-      if (!deliveryMethod || deliveryMethod === 'null' || deliveryMethod === '') {
-        deliveryMethod = 'domicile'; // Default fallback
+      if (!deliveryMethod || deliveryMethod === "null" || deliveryMethod === "') {
+        deliveryMethod = "domicile"; // Default fallback
       }
       
       const customerData = {
@@ -267,9 +267,9 @@ const ProductPage = () => {
         }
       };
       
-      console.log('🔄 Transformed customer data:', customerData);
+      console.log("🔄 Transformed customer data:", customerData);
       setCustomerInfo(customerData);
-      setCheckoutStep('customer-choice');
+      setCheckoutStep("customer-choice");
     } catch (error) {
       // Customer not found, proceed to form
       setCustomerInfo(null);
@@ -278,7 +278,7 @@ const ProductPage = () => {
         ...formData,
         phoneNumber: phone,
       });
-      setCheckoutStep('form');
+      setCheckoutStep("form");
     } finally {
       setIsSearchingCustomer(false);
     }
@@ -297,12 +297,12 @@ const ProductPage = () => {
 
   // Handle customer choice
   const handleCustomerChoice = async (choice) => {
-    console.log('🎯 Customer choice:', choice);
-    console.log('📋 Customer info before choice:', customerInfo);
+    console.log("🎯 Customer choice:", choice);
+    console.log("📋 Customer info before choice:", customerInfo);
     
     setCustomerChoice(choice);
     
-    if (choice === 'use-previous' && customerInfo?.lastOrderInfo) {
+    if (choice === "use-previous" && customerInfo?.lastOrderInfo) {
       // Auto-fill form with previous info
       const newFormData = {
         ...formData,
@@ -310,17 +310,17 @@ const ProductPage = () => {
         fullName: customerInfo.lastOrderInfo.fullName,
         wilaya: customerInfo.lastOrderInfo.wilaya,
         address: customerInfo.lastOrderInfo.address,
-        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || 'domicile',
+        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || "domicile",
       };
       
-      console.log('📋 Setting form data to:', newFormData);
+      console.log("📋 Setting form data to:", newFormData);
       setFormData(newFormData);
       setSelectedCity(customerInfo.lastOrderInfo.city);
       await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
       const cost = await getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
       setShippingCost(cost);
-      setCheckoutStep('form');
-    } else if (choice === 'modify' && customerInfo?.lastOrderInfo) {
+      setCheckoutStep("form");
+    } else if (choice === "modify" && customerInfo?.lastOrderInfo) {
       // Pre-fill form but allow modification
       setFormData({
         ...formData,
@@ -328,26 +328,26 @@ const ProductPage = () => {
         fullName: customerInfo.lastOrderInfo.fullName,
         wilaya: customerInfo.lastOrderInfo.wilaya,
         address: customerInfo.lastOrderInfo.address,
-        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || 'domicile',
+        deliveryMethod: customerInfo.lastOrderInfo.deliveryMethod || "domicile",
       });
       setSelectedCity(customerInfo.lastOrderInfo.city);
       await loadCitiesForWilaya(customerInfo.lastOrderInfo.wilaya);
       const cost = await getShippingCost(customerInfo.lastOrderInfo.wilaya, customerInfo.lastOrderInfo.city, customerInfo.lastOrderInfo.deliveryMethod);
       setShippingCost(cost);
-      setCheckoutStep('form');
+      setCheckoutStep("form");
     } else {
       // New customer or new info
       setFormData({
         ...formData,
         phoneNumber: phoneNumber,
-        fullName: '',
-        wilaya: '',
-        address: '',
-        deliveryMethod: '',
+        fullName: "',
+        wilaya: "',
+        address: "',
+        deliveryMethod: "',
       });
-      setSelectedCity('');
+      setSelectedCity("');
       setShippingCost(0);
-      setCheckoutStep('form');
+      setCheckoutStep("form");
     }
   };
 
@@ -356,24 +356,24 @@ const ProductPage = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'phoneNumber' ? normalizePhone(value) : value,
+      [name]: name === "phoneNumber" ? normalizePhone(value) : value,
     });
   };
 
   // Reset checkout flow
   const resetCheckout = () => {
-    setCheckoutStep('phone');
-    setPhoneNumber('');
+    setCheckoutStep("phone");
+    setPhoneNumber("');
     setCustomerInfo(null);
-    setCustomerChoice('');
+    setCustomerChoice("');
     setFormData({
-      fullName: '',
-      phoneNumber: '',
-      wilaya: '',
-      address: '',
-      deliveryMethod: '',
+      fullName: "',
+      phoneNumber: "',
+      wilaya: "',
+      address: "',
+      deliveryMethod: "',
     });
-    setSelectedCity('');
+    setSelectedCity("');
     setShippingCost(0);
   };
 
@@ -385,7 +385,7 @@ const ProductPage = () => {
       const totalProductPrice = discountedPrice * quantity;
       const totalWithShipping = totalProductPrice + shippingCost;
       
-      console.log('💰 Order calculation:', {
+      console.log("💰 Order calculation:", {
         productPrice: product.price,
         discountedPrice,
         quantity,
@@ -394,23 +394,23 @@ const ProductPage = () => {
         totalWithShipping
       });
       
-      console.log('🔍 Form data before order:', formData);
-      console.log('🔍 Customer info:', customerInfo);
-      console.log('🔍 Customer choice:', customerChoice);
+      console.log("🔍 Form data before order:", formData);
+      console.log("🔍 Customer info:", customerInfo);
+      console.log("🔍 Customer choice:", customerChoice);
       
       // Find the variant ID based on selected color and size
       let variantId = null;
-      if (product.product_type === 'simple') {
+      if (product.product_type === "simple") {
         // For simple products, use the first variant (there should be only one)
         if (product.variants && product.variants.length > 0) {
           variantId = product.variants[0].id;
-          console.log('Using default variant for simple product:', product.variants[0]);
+          console.log("Using default variant for simple product:", product.variants[0]);
         }
       } else if (product.variants && product.variants.length > 0) {
         // For variable products, find the matching variant
         const selectedVariant = product.variants.find(variant => {
           const colorMatch = selectedColor ? 
-            (typeof selectedColor === 'object' ? 
+            (typeof selectedColor === "object" ? 
               variant.color_name === selectedColor.name : 
               variant.color_name === selectedColor) : 
             true;
@@ -420,9 +420,9 @@ const ProductPage = () => {
         
         if (selectedVariant) {
           variantId = selectedVariant.id;
-          console.log('Found variant:', selectedVariant);
+          console.log("Found variant:", selectedVariant);
         } else {
-          console.log('No variant found for:', { selectedColor, selectedSize });
+          console.log("No variant found for:", { selectedColor, selectedSize });
         }
       }
       
@@ -435,8 +435,8 @@ const ProductPage = () => {
           price: discountedPrice, 
           quantity: quantity, 
           image: product.images[0], 
-          color: product.product_type === 'simple' ? '' : (selectedColor ? (typeof selectedColor === 'object' ? selectedColor.name : selectedColor) : ''), 
-          size: product.product_type === 'simple' ? '' : selectedSize 
+          color: product.product_type === "simple" ? "' : (selectedColor ? (typeof selectedColor === "object" ? selectedColor.name : selectedColor) : "'), 
+          size: product.product_type === "simple" ? "' : selectedSize 
         }],
         total: totalWithShipping,
         deliveryMethod: formData.deliveryMethod,
@@ -451,25 +451,25 @@ const ProductPage = () => {
       
       // CRITICAL FIX: Ensure deliveryMethod is never undefined
       if (!orderPayload.deliveryMethod) {
-        console.log('⚠️ CRITICAL: deliveryMethod is undefined, using fallback');
-        orderPayload.deliveryMethod = 'domicile';
+        console.log("⚠️ CRITICAL: deliveryMethod is undefined, using fallback");
+        orderPayload.deliveryMethod = "domicile";
       }
       
-      console.log('🚀 Final order payload:', orderPayload);
-      const response = await axios.post('/api/orders', orderPayload);
+      console.log("🚀 Final order payload:", orderPayload);
+      const response = await axios.post("/api/orders", orderPayload);
       
       // Show beautiful success modal
       setOrderSuccess({
-        type: response.data.orderType === 'merged' ? 'merged' : 'new',
+        type: response.data.orderType === "merged" ? "merged" : "new",
         orderId: response.data.orderId,
         customerName: formData.fullName,
         total: totalWithShipping
       });
       setShowSuccessModal(true);
       
-      // Don't auto-close - let user close manually for better experience
+      // Don"t auto-close - let user close manually for better experience
     } catch (err) {
-      alert('Order failed');
+      alert("Order failed");
     }
   };
 
@@ -481,7 +481,7 @@ const ProductPage = () => {
     }
     try {
       // Pass the delivery method to the API to filter cities accordingly
-      const deliveryType = formData.deliveryMethod || 'domicile';
+      const deliveryType = formData.deliveryMethod || "domicile";
       const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&type=${deliveryType}`);
       if (response.data.success && response.data.cities) {
         setAvailableCities(response.data.cities.map(c => c.city));
@@ -489,18 +489,18 @@ const ProductPage = () => {
         setAvailableCities([]);
       }
     } catch (error) {
-      console.error('Error fetching communes:', error);
+      console.error("Error fetching communes:", error);
       setAvailableCities([]);
     }
   };
 
   // Real Algerian wilayas
   const wilayas = [
-    'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar', 'Blida', 'Bouira',
-    'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret', 'Tizi Ouzou', 'Alger', 'Djelfa', 'Jijel', 'Sétif', 'Saïda',
-    'Skikda', 'Sidi Bel Abbès', 'Annaba', 'Guelma', 'Constantine', 'Médéa', 'Mostaganem', 'M\'Sila', 'Mascara', 'Ouargla',
-    'Oran', 'El Bayadh', 'Illizi', 'Bordj Bou Arreridj', 'Boumerdès', 'El Tarf', 'Tindouf', 'Tissemsilt', 'El Oued', 'Khenchela',
-    'Souk Ahras', 'Tipaza', 'Mila', 'Aïn Defla', 'Naâma', 'Aïn Témouchent', 'Ghardaïa', 'Relizane'
+    "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa", "Biskra", "Béchar", "Blida", "Bouira",
+    "Tamanrasset", "Tébessa", "Tlemcen", "Tiaret", "Tizi Ouzou", "Alger", "Djelfa", "Jijel", "Sétif", "Saïda",
+    "Skikda", "Sidi Bel Abbès", "Annaba", "Guelma", "Constantine", "Médéa", "Mostaganem", "M\'Sila", "Mascara", "Ouargla",
+    "Oran", "El Bayadh", "Illizi", "Bordj Bou Arreridj", "Boumerdès", "El Tarf", "Tindouf", "Tissemsilt", "El Oued", "Khenchela",
+    "Souk Ahras", "Tipaza", "Mila", "Aïn Defla", "Naâma", "Aïn Témouchent", "Ghardaïa", "Relizane"
   ];
 
   // Shipping cost lookup using API
@@ -512,14 +512,14 @@ const ProductPage = () => {
       const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&city=${encodeURIComponent(commune)}&type=${deliveryMethod}`);
       if (response.data.success && response.data.shippingFee) {
         const fee = response.data.shippingFee;
-        const cost = deliveryMethod === 'domicile' ? fee.domicilePrice : fee.stopdeskPrice;
+        const cost = deliveryMethod === "domicile" ? fee.domicilePrice : fee.stopdeskPrice;
         console.log(`✅ Shipping cost calculated: ${cost} DZD`);
         return cost;
       }
-      console.log('❌ No shipping fee found in response');
+      console.log("❌ No shipping fee found in response");
       return 0;
     } catch (error) {
-      console.error('❌ Error fetching shipping cost:', error);
+      console.error("❌ Error fetching shipping cost:", error);
       return 0;
     }
   };
@@ -543,9 +543,9 @@ const ProductPage = () => {
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Produit non trouvé</h2>
-          <p className="text-gray-600 mb-4">{error || 'Ce produit n\'existe pas ou a été supprimé.'}</p>
+          <p className="text-gray-600 mb-4">{error || "Ce produit n\'existe pas ou a été supprimé."}</p>
           <a href="/" className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-            Retour à l'accueil
+            Retour à l"accueil
           </a>
         </div>
       </div>
@@ -636,7 +636,7 @@ const ProductPage = () => {
             {/* Color Selection - Only for variable products */}
             {(() => {
               // Skip color selection for simple products
-              if (product.product_type === 'simple') {
+              if (product.product_type === "simple") {
                 return null;
               }
               
@@ -649,14 +649,14 @@ const ProductPage = () => {
                   if (!colorMap.has(variant.color_name)) {
                     colorMap.set(variant.color_name, {
                       name: variant.color_name,
-                      value: variant.color_value || '#000000'
+                      value: variant.color_value || "#000000"
                     });
                   }
                 });
                 availableColors = Array.from(colorMap.values());
               } else if (product.colors && product.colors.length > 0) {
                 availableColors = product.colors.map(color => 
-                  typeof color === 'object' ? color : { name: color, value: '#000000' }
+                  typeof color === "object" ? color : { name: color, value: "#000000" }
                 );
               }
               
@@ -673,8 +673,8 @@ const ProductPage = () => {
                           onClick={() => setSelectedColor(color.name)}
                         className={`w-12 h-12 rounded-full border-4 transition-all duration-300 ${
                           isSelected
-                            ? 'border-primary shadow-lg scale-110' 
-                            : 'border-gray-300 hover:border-gray-400'
+                            ? "border-primary shadow-lg scale-110" 
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
                           style={{ backgroundColor: color.value }}
                           title={color.name}
@@ -689,7 +689,7 @@ const ProductPage = () => {
             {/* Size Selection - Only for variable products */}
             {(() => {
               // Skip size selection for simple products
-              if (product.product_type === 'simple') {
+              if (product.product_type === "simple") {
                 return null;
               }
               
@@ -734,12 +734,12 @@ const ProductPage = () => {
                           disabled={!isAvailable}
                       className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-300 ${
                         selectedSize === size
-                          ? 'border-primary bg-primary text-white shadow-lg scale-105'
+                          ? "border-primary bg-primary text-white shadow-lg scale-105"
                               : isAvailable
-                              ? 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                              : 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
+                              ? "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                              : "border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
                       }`}
-                          title={isAvailable ? size : 'Non disponible'}
+                          title={isAvailable ? size : "Non disponible"}
                     >
                       {size}
                     </button>
@@ -777,7 +777,7 @@ const ProductPage = () => {
                       }
                     }
                     
-                    // Only increase if we haven't reached the maximum stock
+                    // Only increase if we haven"t reached the maximum stock
                     if (quantity < maxStock) {
                       setQuantity(quantity + 1);
                     }
@@ -794,8 +794,8 @@ const ProductPage = () => {
                         }
                       }
                       return quantity >= maxStock 
-                        ? 'border-gray-200 text-gray-400 cursor-not-allowed' 
-                        : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50';
+                        ? "border-gray-200 text-gray-400 cursor-not-allowed" 
+                        : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50";
                     })()
                   }`}
                   disabled={(() => {
@@ -846,21 +846,21 @@ const ProductPage = () => {
                 setShowCheckout(true);
               }}
               disabled={
-                product.product_type === 'simple' 
+                product.product_type === "simple" 
                   ? !isVariantAvailable() 
                   : !selectedColor || !selectedSize || !isVariantAvailable()
               }
               className={`w-full py-4 px-8 rounded-xl font-semibold text-white text-lg transition-all duration-300 ${
-                (product.product_type === 'simple' && isVariantAvailable()) || 
-                (product.product_type !== 'simple' && selectedColor && selectedSize && isVariantAvailable())
-                  ? 'bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
-                  : 'bg-gray-400 cursor-not-allowed'
+                (product.product_type === "simple" && isVariantAvailable()) || 
+                (product.product_type !== "simple" && selectedColor && selectedSize && isVariantAvailable())
+                  ? "bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary shadow-lg hover:shadow-xl transform hover:-translate-y-1" 
+                  : "bg-gray-400 cursor-not-allowed"
               }`}
             >
-              {product.product_type === 'simple' 
-                ? (!isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now'))
-                : (!selectedColor || !selectedSize ? t('product.buy_now') : 
-                   !isVariantAvailable() ? 'Rupture de stock' : t('product.buy_now'))}
+              {product.product_type === "simple" 
+                ? (!isVariantAvailable() ? "Rupture de stock" : t("product.buy_now"))
+                : (!selectedColor || !selectedSize ? t("product.buy_now") : 
+                   !isVariantAvailable() ? "Rupture de stock" : t("product.buy_now"))}
             </button>
           </div>
         </div>
@@ -882,7 +882,7 @@ const ProductPage = () => {
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-text">{t('checkout.title')}</h2>
+                <h2 className="text-xl font-bold text-text">{t("checkout.title")}</h2>
                 <button
                   onClick={() => {
                     setShowCheckout(false);
@@ -901,9 +901,9 @@ const ProductPage = () => {
                 <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded" />
                 <div className="ml-3">
                   <h3 className="font-medium text-text">{product.name}</h3>
-                  {product.product_type !== 'simple' && (
+                  {product.product_type !== "simple" && (
                     <p className="text-sm text-gray-500">
-                      {selectedColor && (typeof selectedColor === 'object' ? selectedColor.name : selectedColor)} - {selectedSize}
+                      {selectedColor && (typeof selectedColor === "object" ? selectedColor.name : selectedColor)} - {selectedSize}
                     </p>
                   )}
                   <p className="text-sm text-gray-500">Quantité: {quantity}</p>
@@ -919,7 +919,7 @@ const ProductPage = () => {
               </div>
 
               {/* Smart Checkout Flow */}
-              {checkoutStep === 'phone' && (
+              {checkoutStep === "phone" && (
                 <div className="space-y-4">
                   <div className="text-center mb-6">
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">Commencez par votre numéro de téléphone</h3>
@@ -949,7 +949,7 @@ const ProductPage = () => {
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {isSearchingCustomer ? 'Recherche en cours...' : 'Tapez votre numéro pour continuer'}
+                      {isSearchingCustomer ? "Recherche en cours..." : "Tapez votre numéro pour continuer"}
                     </p>
                     
                     {phoneNumber.length === 10 && !isSearchingCustomer && (
@@ -965,7 +965,7 @@ const ProductPage = () => {
                 </div>
               )}
 
-              {checkoutStep === 'customer-choice' && customerInfo && (
+              {checkoutStep === "customer-choice" && customerInfo && (
                 <div className="space-y-4">
 
                   <div className="text-center mb-6">
@@ -974,7 +974,7 @@ const ProductPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Bonjour {customerInfo.lastOrderInfo?.fullName || 'cher(e) client(e)'} ! 💝</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Bonjour {customerInfo.lastOrderInfo?.fullName || "cher(e) client(e)"} ! 💝</h3>
                     <p className="text-sm text-gray-600">Nous avons retrouvé vos informations de livraison précédentes ✨</p>
                   </div>
 
@@ -983,7 +983,7 @@ const ProductPage = () => {
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => handleCustomerChoice('use-previous')}
+                      onClick={() => handleCustomerChoice("use-previous")}
                       className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
                     >
                       ✅ Utiliser mes informations précédentes
@@ -991,7 +991,7 @@ const ProductPage = () => {
                     
                     <button
                       type="button"
-                      onClick={() => handleCustomerChoice('modify')}
+                      onClick={() => handleCustomerChoice("modify")}
                       className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                       ✏️ Modifier mes informations
@@ -999,7 +999,7 @@ const ProductPage = () => {
                     
                                          <button
                        type="button"
-                       onClick={() => handleCustomerChoice('new')}
+                       onClick={() => handleCustomerChoice("new")}
                        className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
                      >
                        🆕 Nouvelle adresse de livraison
@@ -1008,7 +1008,7 @@ const ProductPage = () => {
                      <button
                        type="button"
                        onClick={() => {
-                         setCheckoutStep('phone');
+                         setCheckoutStep("phone");
                          setShowPreviousInfo(false);
                        }}
                        className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 transition-colors"
@@ -1029,7 +1029,7 @@ const ProductPage = () => {
                        <div className="mt-4 space-y-2">
                          <button
                            type="button"
-                           onClick={() => handleCustomerChoice('use-previous')}
+                           onClick={() => handleCustomerChoice("use-previous")}
                            className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
                          >
                            Confirmer et utiliser ces informations
@@ -1047,10 +1047,10 @@ const ProductPage = () => {
                 </div>
               )}
 
-              {checkoutStep === 'form' && (
+              {checkoutStep === "form" && (
                 <form onSubmit={handleCheckoutSubmit}>
                   <div className="space-y-4">
-                    {customerInfo && customerChoice === 'use-previous' ? (
+                    {customerInfo && customerChoice === "use-previous" ? (
                       // Direct confirmation for previous info users
                       <div className="space-y-4">
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
@@ -1067,14 +1067,14 @@ const ProductPage = () => {
                             <p><strong>Wilaya :</strong> {formData.wilaya}</p>
                             <p><strong>Ville :</strong> {selectedCity}</p>
                             <p><strong>Adresse :</strong> {formData.address}</p>
-                            <p><strong>Méthode de livraison :</strong> {formData.deliveryMethod === 'domicile' ? 'Livraison à domicile' : 'Stopdesk (Yalidine)'}</p>
+                            <p><strong>Méthode de livraison :</strong> {formData.deliveryMethod === "domicile" ? "Livraison à domicile" : "Stopdesk (Yalidine)"}</p>
                           </div>
                         </div>
                         
                         <div className="flex justify-between pt-2">
                           <button 
                             type="button" 
-                            onClick={() => setCheckoutStep('customer-choice')}
+                            onClick={() => setCheckoutStep("customer-choice")}
                             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
                           >
                             ← Retour
@@ -1089,7 +1089,7 @@ const ProductPage = () => {
                       <>
                         <div>
                           <label htmlFor="fullName" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.full_name')} *
+                            {t("checkout.full_name")} *
                           </label>
                           <input
                             id="fullName"
@@ -1104,7 +1104,7 @@ const ProductPage = () => {
                         
                         <div>
                           <label htmlFor="phoneNumber" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.phone')} *
+                            {t("checkout.phone")} *
                           </label>
                           <input
                             id="phoneNumber"
@@ -1127,7 +1127,7 @@ const ProductPage = () => {
                         {/* Delivery Method Selection - FIRST */}
                         <div>
                           <label htmlFor="deliveryMethod" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.delivery_method') || 'Méthode de livraison'} *
+                            {t("checkout.delivery_method") || "Méthode de livraison"} *
                           </label>
                           <select
                             id="deliveryMethod"
@@ -1136,15 +1136,15 @@ const ProductPage = () => {
                             onChange={(e) => {
                               handleInputChange(e);
                               // Reset city and shipping cost when delivery method changes
-                              setSelectedCity('');
+                              setSelectedCity("');
                               setShippingCost(0);
                               // Also reset wilaya when delivery method changes
-                              setFormData(prev => ({ ...prev, wilaya: '' }));
+                              setFormData(prev => ({ ...prev, wilaya: "' }));
                             }}
                             className="w-full border rounded-md px-3 py-2"
                             required
                           >
-                            <option value="">{t('checkout.select_delivery_method') || 'Sélectionnez la méthode de livraison'}</option>
+                            <option value="">{t("checkout.select_delivery_method") || "Sélectionnez la méthode de livraison"}</option>
                             <option value="domicile">Livraison à domicile</option>
                             <option value="stopdesk">Livraison Stopdesk (Yalidine)</option>
                           </select>
@@ -1153,7 +1153,7 @@ const ProductPage = () => {
                         {/* Wilaya Selection - SECOND */}
                         <div>
                           <label htmlFor="wilaya" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.wilaya')} *
+                            {t("checkout.wilaya")} *
                           </label>
                           <select
                             id="wilaya"
@@ -1161,7 +1161,7 @@ const ProductPage = () => {
                             value={formData.wilaya}
                             onChange={async (e) => {
                               handleInputChange(e);
-                              setSelectedCity('');
+                              setSelectedCity("');
                               setShippingCost(0);
                               await loadCitiesForWilaya(e.target.value);
                             }}
@@ -1169,7 +1169,7 @@ const ProductPage = () => {
                             required
                             disabled={!formData.deliveryMethod}
                           >
-                            <option value="">{formData.deliveryMethod ? (t('checkout.select_wilaya') || 'Sélectionnez la wilaya') : 'Sélectionnez d\'abord la méthode de livraison'}</option>
+                            <option value="">{formData.deliveryMethod ? (t("checkout.select_wilaya") || "Sélectionnez la wilaya") : "Sélectionnez d\'abord la méthode de livraison"}</option>
                             {wilayas.map((w) => (
                               <option key={w} value={w}>{w}</option>
                             ))}
@@ -1178,7 +1178,7 @@ const ProductPage = () => {
 
                         <div>
                           <label htmlFor="city" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.city') || 'City'} *
+                            {t("checkout.city") || "City"} *
                           </label>
                           <select
                             id="city"
@@ -1193,7 +1193,7 @@ const ProductPage = () => {
                             required
                             disabled={!formData.wilaya}
                           >
-                            <option value="">{formData.wilaya ? (t('checkout.select_city') || 'Sélectionnez la ville') : 'Sélectionnez d\'abord la wilaya'}</option>
+                            <option value="">{formData.wilaya ? (t("checkout.select_city") || "Sélectionnez la ville") : "Sélectionnez d\'abord la wilaya"}</option>
                             {availableCities.map((city) => (
                               <option key={city} value={city}>{city}</option>
                             ))}
@@ -1202,7 +1202,7 @@ const ProductPage = () => {
                         
                         <div>
                           <label htmlFor="address" className="block text-sm font-medium text-text mb-1">
-                            {t('checkout.address')} *
+                            {t("checkout.address")} *
                           </label>
                           <textarea
                             id="address"
@@ -1242,11 +1242,11 @@ const ProductPage = () => {
                             )}
                             <div className="flex justify-between">
                               <span>Frais de livraison:</span>
-                              <span>{shippingCost > 0 ? formatPrice(shippingCost) : 'À calculer'}</span>
+                              <span>{shippingCost > 0 ? formatPrice(shippingCost) : "À calculer"}</span>
                             </div>
                             <div className="border-t pt-2 flex justify-between font-bold">
                               <span>Total:</span>
-                              <span>{shippingCost > 0 ? formatPrice((discountedPrice * quantity) + shippingCost) : 'À calculer'}</span>
+                              <span>{shippingCost > 0 ? formatPrice((discountedPrice * quantity) + shippingCost) : "À calculer"}</span>
                             </div>
                           </div>
                         </div>
@@ -1254,13 +1254,13 @@ const ProductPage = () => {
                         <div className="flex justify-between pt-2">
                           <button 
                             type="button" 
-                            onClick={() => setCheckoutStep('phone')}
+                            onClick={() => setCheckoutStep("phone")}
                             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
                           >
                             ← Retour
                           </button>
                           <button type="submit" className="px-4 py-2 bg-primary text-white rounded-md">
-                            {t('checkout.confirm_order')}
+                            {t("checkout.confirm_order")}
                           </button>
                         </div>
                       </>
@@ -1297,20 +1297,20 @@ const ProductPage = () => {
                 </svg>
               </div>
               <div className="flex justify-center space-x-1 mb-2">
-                <span className="text-2xl animate-bounce" style={{animationDelay: '0ms'}}>🎉</span>
-                <span className="text-2xl animate-bounce" style={{animationDelay: '100ms'}}>💝</span>
-                <span className="text-2xl animate-bounce" style={{animationDelay: '200ms'}}>✨</span>
+                <span className="text-2xl animate-bounce" style={{animationDelay: "0ms"}}>🎉</span>
+                <span className="text-2xl animate-bounce" style={{animationDelay: "100ms"}}>💝</span>
+                <span className="text-2xl animate-bounce" style={{animationDelay: "200ms"}}>✨</span>
               </div>
             </div>
 
             {/* Success Message */}
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              {orderSuccess.type === 'merged' ? 'Produit ajouté avec succès!' : 'Commande confirmée!'}
+              {orderSuccess.type === "merged" ? "Produit ajouté avec succès!" : "Commande confirmée!"}
             </h2>
             
             <p className="text-gray-600 mb-4">
-              {orderSuccess.type === 'merged' 
-                ? `Merci ${orderSuccess.customerName} ! Votre produit a été ajouté à votre commande d'aujourd'hui. 🛍️`
+              {orderSuccess.type === "merged" 
+                ? `Merci ${orderSuccess.customerName} ! Votre produit a été ajouté à votre commande d"aujourd"hui. 🛍️`
                 : `Merci ${orderSuccess.customerName} pour votre confiance ! Votre commande a été enregistrée avec succès. 💖`
               }
             </p>

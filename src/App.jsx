@@ -1,40 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import useAdminStore from './store/adminStore';
+import React, { useState, useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import useAdminStore from "./store/adminStore";
 
 // Pages
-import HomePage from './pages/HomePage';
-import ProductPage from './pages/ProductPage';
-import CategoryPage from './pages/CategoryPage';
-import CategoriesPage from './pages/CategoriesPage';
-import AccountPage from './pages/AccountPage';
-import SearchPage from './pages/SearchPage';
-import ContactPage from './pages/ContactPage';
-import FAQPage from './pages/FAQPage';
-import RefundPolicyPage from './pages/RefundPolicyPage';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard, { RequireAdmin, AdminOverview, AdminFees } from './pages/AdminDashboard';
-import AdminProducts from './pages/AdminProducts';
-import AdminOrders from './pages/AdminOrders';
-import AdminCategories from './pages/AdminCategories';
-import AdminAccounts from './pages/AdminAccounts';
-import AdminPromotions from './pages/AdminPromotions';
-import AdminYalidineConfig from './pages/AdminYalidineConfig';
-import AdminDebug from './pages/AdminDebug';
+import HomePage from "./pages/HomePage";
+import ProductPage from "./pages/ProductPage";
+import CategoryPage from "./pages/CategoryPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import AccountPage from "./pages/AccountPage";
+import SearchPage from "./pages/SearchPage";
+import ContactPage from "./pages/ContactPage";
+import FAQPage from "./pages/FAQPage";
+import RefundPolicyPage from "./pages/RefundPolicyPage";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard, { RequireAdmin, AdminOverview, AdminFees } from "./pages/AdminDashboard";
+import AdminProducts from "./pages/AdminProducts";
+import AdminOrders from "./pages/AdminOrders";
+import AdminCategories from "./pages/AdminCategories";
+import AdminAccounts from "./pages/AdminAccounts";
+import AdminPromotions from "./pages/AdminPromotions";
+import AdminYalidineConfig from "./pages/AdminYalidineConfig";
+import AdminDebug from "./pages/AdminDebug";
 // Importation sans extension pour assurer la compatibilité avec Vite
-import AdminFacebookPixel from './pages/AdminFacebookPixel';
-import AdminConfiguration from './pages/AdminConfiguration';
-import FacebookPixel from './components/FacebookPixel';
+import AdminFacebookPixel from "./pages/AdminFacebookPixel";
+import AdminConfiguration from "./pages/AdminConfiguration";
+import FacebookPixel from "./components/FacebookPixel";
 
 // Components
-import Navbar from './components/layout/Navbar';
-import BottomNavigation from './components/layout/BottomNavigation';
+import Navbar from "./components/layout/Navbar";
+import BottomNavigation from "./components/layout/BottomNavigation";
 
 const App = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const [direction, setDirection] = useState('ltr');
+  const [direction, setDirection] = useState("ltr");
   const initAuth = useAdminStore(s => s.initAuth);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
@@ -50,21 +50,21 @@ const App = () => {
 
   // Set document direction based on language
   useEffect(() => {
-    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
-    setDirection(i18n.language === 'ar' ? 'rtl' : 'ltr');
+    setDirection(i18n.language === "ar" ? "rtl" : "ltr");
   }, [i18n.language]);
 
   // Toggle language
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'fr' ? 'ar' : 'fr';
+    const newLang = i18n.language === "fr" ? "ar" : "fr";
     i18n.changeLanguage(newLang);
   };
 
   return (
     <>
       <FacebookPixel />
-      <div className={`app min-h-screen flex flex-col ${direction === 'rtl' ? 'font-arabic' : 'font-sans'}`}>
+      <div className={`app min-h-screen flex flex-col ${direction === "rtl" ? "font-arabic" : "font-sans"}`}>
         <Navbar toggleLanguage={toggleLanguage} currentLang={i18n.language} />
         
         <main className="flex-grow pb-16">

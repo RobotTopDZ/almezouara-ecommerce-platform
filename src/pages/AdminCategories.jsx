@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -14,6 +14,7 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/facebook-pixel">Facebook Pixel</Link>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
@@ -29,14 +30,14 @@ const AdminCategories = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    color: '#FF6B6B',
-    icon: 'dress'
+    name: "',
+    description: "',
+    color: "#FF6B6B",
+    icon: "dress"
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [searchTerm, setSearchTerm] = useState("');
+  const [sortBy, setSortBy] = useState("name");
 
   // Fetch categories from API
   useEffect(() => {
@@ -46,19 +47,19 @@ const AdminCategories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/categories');
+      const response = await axios.get("/api/admin/categories");
       if (response.data.categories) {
         setCategories(response.data.categories);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
       // Fallback to default categories if API fails
       setCategories([
-        { id: 1, name: 'Robes', description: 'Robes élégantes pour toutes les occasions', productCount: 15, color: '#FF6B6B', icon: 'dress' },
-        { id: 2, name: 'Hijabs', description: 'Hijabs modernes et confortables', productCount: 8, color: '#4ECDC4', icon: 'hijab' },
-        { id: 3, name: 'Abayas', description: 'Abayas traditionnelles et modernes', productCount: 12, color: '#45B7D1', icon: 'abaya' },
-        { id: 4, name: 'Accessoires', description: 'Accessoires pour compléter votre look', productCount: 6, color: '#96CEB4', icon: 'accessories' },
-        { id: 5, name: 'Chaussures', description: 'Chaussures confortables et stylées', productCount: 4, color: '#FFEAA7', icon: 'shoes' }
+        { id: 1, name: "Robes", description: "Robes élégantes pour toutes les occasions", productCount: 15, color: "#FF6B6B", icon: "dress" },
+        { id: 2, name: "Hijabs", description: "Hijabs modernes et confortables", productCount: 8, color: "#4ECDC4", icon: "hijab" },
+        { id: 3, name: "Abayas", description: "Abayas traditionnelles et modernes", productCount: 12, color: "#45B7D1", icon: "abaya" },
+        { id: 4, name: "Accessoires", description: "Accessoires pour compléter votre look", productCount: 6, color: "#96CEB4", icon: "accessories" },
+        { id: 5, name: "Chaussures", description: "Chaussures confortables et stylées", productCount: 4, color: "#FFEAA7", icon: "shoes" }
       ]);
     } finally {
       setLoading(false);
@@ -72,11 +73,11 @@ const AdminCategories = () => {
     )
     .sort((a, b) => {
       switch (sortBy) {
-        case 'name':
+        case "name":
           return a.name.localeCompare(b.name);
-        case 'products':
+        case "products":
           return b.productCount - a.productCount;
-        case 'date':
+        case "date":
           return b.id - a.id;
         default:
           return 0;
@@ -93,15 +94,15 @@ const AdminCategories = () => {
         await axios.put(`/api/admin/categories/${editingCategory.id}`, {
           name: formData.name,
           description: formData.description,
-          image: '',
+          image: "',
           isActive: true
         });
       } else {
         // Add new category
-        await axios.post('/api/admin/categories', {
+        await axios.post("/api/admin/categories", {
           name: formData.name,
           description: formData.description,
-          image: ''
+          image: "'
         });
       }
 
@@ -110,10 +111,10 @@ const AdminCategories = () => {
       
       setShowModal(false);
       setEditingCategory(null);
-      setFormData({ name: '', description: '', color: '#FF6B6B', icon: 'dress' });
+      setFormData({ name: "', description: "', color: "#FF6B6B", icon: "dress" });
     } catch (error) {
-      console.error('Error saving category:', error);
-      alert('Erreur lors de la sauvegarde de la catégorie');
+      console.error("Error saving category:", error);
+      alert("Erreur lors de la sauvegarde de la catégorie");
     }
   };
 
@@ -129,14 +130,14 @@ const AdminCategories = () => {
   };
 
   const handleDelete = async (categoryId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette catégorie ?")) {
       try {
         await axios.delete(`/api/admin/categories/${categoryId}`);
         // Refresh categories list
         await fetchCategories();
       } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Erreur lors de la suppression de la catégorie');
+        console.error("Error deleting category:", error);
+        alert("Erreur lors de la suppression de la catégorie");
       }
     }
   };
@@ -183,7 +184,7 @@ const AdminCategories = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
       ),
-      'shirt-formal': (
+      "shirt-formal": (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
@@ -223,21 +224,21 @@ const AdminCategories = () => {
   };
 
   const iconOptions = [
-    { value: 'dress', label: 'Robes' },
-    { value: 'hijab', label: 'Hijabs' },
-    { value: 'abaya', label: 'Abayas' },
-    { value: 'accessories', label: 'Accessoires' },
-    { value: 'shoes', label: 'Chaussures' },
-    { value: 'shirt', label: 'T-shirts' },
-    { value: 'pants', label: 'Pantalons' },
-    { value: 'jacket', label: 'Vestes' },
-    { value: 'shirt-formal', label: 'Chemises' },
-    { value: 'crown', label: 'Bijoux' },
-    { value: 'ring', label: 'Bagues' },
-    { value: 'bag', label: 'Sacs' },
-    { value: 'hat', label: 'Chapeaux' },
-    { value: 'bow', label: 'Accessoires' },
-    { value: 'star', label: 'Spécial' }
+    { value: "dress", label: "Robes" },
+    { value: "hijab", label: "Hijabs" },
+    { value: "abaya", label: "Abayas" },
+    { value: "accessories", label: "Accessoires" },
+    { value: "shoes", label: "Chaussures" },
+    { value: "shirt", label: "T-shirts" },
+    { value: "pants", label: "Pantalons" },
+    { value: "jacket", label: "Vestes" },
+    { value: "shirt-formal", label: "Chemises" },
+    { value: "crown", label: "Bijoux" },
+    { value: "ring", label: "Bagues" },
+    { value: "bag", label: "Sacs" },
+    { value: "hat", label: "Chapeaux" },
+    { value: "bow", label: "Accessoires" },
+    { value: "star", label: "Spécial" }
   ];
 
   return (
@@ -312,7 +313,7 @@ const AdminCategories = () => {
               <div>
                 <div className="text-sm text-gray-500">Plus Populaire</div>
                 <div className="text-xl font-bold text-orange-600">
-                  {categories.reduce((max, cat) => cat.productCount > max.productCount ? cat : max, categories[0])?.name || 'N/A'}
+                  {categories.reduce((max, cat) => cat.productCount > max.productCount ? cat : max, categories[0])?.name || "N/A"}
                 </div>
               </div>
             </div>
@@ -370,7 +371,7 @@ const AdminCategories = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="p-3 rounded-lg mr-4" style={{ backgroundColor: category.color + '20' }}>
+                    <div className="p-3 rounded-lg mr-4" style={{ backgroundColor: category.color + "20" }}>
                       <div style={{ color: category.color }}>
                         {getCategoryIcon(category.icon)}
                       </div>
@@ -438,7 +439,7 @@ const AdminCategories = () => {
             <div className="bg-white rounded-lg max-w-md w-full">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingCategory ? 'Modifier la Catégorie' : 'Nouvelle Catégorie'}
+                  {editingCategory ? "Modifier la Catégorie" : "Nouvelle Catégorie"}
                 </h2>
               </div>
               
@@ -452,7 +453,7 @@ const AdminCategories = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Ex: Robes d'été"
+                    placeholder="Ex: Robes d"été"
                     required
                   />
                 </div>
@@ -504,14 +505,14 @@ const AdminCategories = () => {
                     type="submit"
                     className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
                   >
-                    {editingCategory ? 'Mettre à jour' : 'Créer'}
+                    {editingCategory ? "Mettre à jour" : "Créer"}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setShowModal(false);
                       setEditingCategory(null);
-                      setFormData({ name: '', description: '', color: '#FF6B6B', icon: 'dress' });
+                      setFormData({ name: "', description: "', color: "#FF6B6B", icon: "dress" });
                     }}
                     className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
                   >

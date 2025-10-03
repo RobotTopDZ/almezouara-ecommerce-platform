@@ -1,5 +1,6 @@
-import AdminLayout from '../components/AdminLayout';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import AdminLayout from "../components/AdminLayout";
+import axios from "axios";
 
 const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, loadData }) => {
   const [showModal, setShowModal] = useState(false);
@@ -8,37 +9,37 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
   const [isEditing, setIsEditing] = useState(false);
   const [currentProductId, setCurrentProductId] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    category_id: '',
-    price: '',
-    description: '',
-    images: [''], // Start with one empty URL field
+    name: "",
+    category_id: "",
+    price: "",
+    description: "",
+    images: [""], // Start with one empty URL field
     colors: [],
     sizes: [],
     variants: [],
-    status: 'active',
-    product_type: 'simple'
+    status: "active",
+    product_type: "simple"
   });
   const [currentVariant, setCurrentVariant] = useState({
     id: null,
-    color_name: '',
-    color_value: '#000000',
-    size: '',
+    color_name: "",
+    color_value: "#000000",
+    size: "",
     stock: 0,
-    sku: '',
-    barcode: '',
+    sku: "",
+    barcode: "",
     price_adjustment: 0
   });
-  const [bulkColorInput, setBulkColorInput] = useState('');
-  const [bulkColorValue, setBulkColorValue] = useState('#FF0000');
+  const [bulkColorInput, setBulkColorInput] = useState("");
+  const [bulkColorValue, setBulkColorValue] = useState("#FF0000");
   const [bulkColors, setBulkColors] = useState([]);
-  const [bulkSizeInput, setBulkSizeInput] = useState('');
+  const [bulkSizeInput, setBulkSizeInput] = useState("");
   const [bulkSizes, setBulkSizes] = useState([]);
   const [generatedVariants, setGeneratedVariants] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const processImageURL = (url) => {
-    return url.replace('http://', 'https://');
+    return url.replace("http://", "https://");
   };
 
   const handleURLChange = (index, value) => {
@@ -61,11 +62,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
   const addURLField = () => {
     setFormData({
       ...formData,
-      images: [...formData.images, '']
+      images: [...formData.images, ""]
     });
   };
   
-  // Fonction pour gérer l'upload d'images
+  // Fonction pour gérer l"upload d"images
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -75,11 +76,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     try {
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append("image", file);
         
-        const response = await axios.post('/api/upload', formData, {
+        const response = await axios.post("/api/upload", formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            "Content-Type": "multipart/form-data"
           }
         });
         
@@ -91,13 +92,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       // Ajouter les nouvelles URLs aux images existantes
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images.filter(img => img && img !== ''), ...uploadedUrls]
+        images: [...prev.images.filter(img => img && img !== ""), ...uploadedUrls]
       }));
       
-      toast.success('Images téléchargées avec succès');
+      toast.success("Images téléchargées avec succès");
     } catch (error) {
-      console.error('Erreur lors du téléchargement des images:', error);
-      toast.error('Erreur lors du téléchargement des images');
+      console.error("Erreur lors du téléchargement des images:", error);
+      toast.error("Erreur lors du téléchargement des images");
     } finally {
       setLoading(false);
     }
@@ -116,16 +117,16 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       }
       
       // Validation du stock pour les produits simples
-      if (formData.product_type === 'simple' && (!formData.stock || formData.stock <= 0)) {
+      if (formData.product_type === "simple" && (!formData.stock || formData.stock <= 0)) {
         toast.error("Veuillez définir un stock valide pour ce produit");
         setLoading(false);
         return;
       }
       
       // Validation des variantes pour les produits variables
-      // Ne pas bloquer l'ajout d'image en mode édition
-      if (formData.product_type === 'variable' && (!formData.variants || formData.variants.length === 0) && !isEditing) {
-        alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
+      // Ne pas bloquer l"ajout d"image en mode édition
+      if (formData.product_type === "variable" && (!formData.variants || formData.variants.length === 0) && !isEditing) {
+        alert("⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.");
         setLoading(false);
         return;
       }
@@ -134,18 +135,18 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       const processedImages = formData.images
         .filter(img => {
           // Filtrer les images vides ou nulles
-          if (typeof img === 'string') return img.trim() !== '';
-          if (img && img.url) return img.url.trim() !== '';
+          if (typeof img === "string") return img.trim() !== "";
+          if (img && img.url) return img.url.trim() !== "";
           return false;
         })
         .map(img => {
           // Traiter les images selon leur format
-          if (typeof img === 'string') return processImageURL(img);
+          if (typeof img === "string") return processImageURL(img);
           if (img && img.url) return img.url;
-          return '';
+          return "";
         });
 
-      const simpleStock = formData.product_type === 'simple' ? parseInt(formData.stock) : 0;
+      const simpleStock = formData.product_type === "simple" ? parseInt(formData.stock) : 0;
 
       const productData = {
         name: formData.name,
@@ -156,60 +157,60 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         product_type: formData.product_type,
         stock: simpleStock,
         images: processedImages,
-        colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
-        sizes: formData.sizes.filter(size => size && typeof size === 'string' ? size.trim() !== '' : true),
-        variants: formData.product_type === 'variable' ? formData.variants.map(variant => ({
-          product_id: currentProductId, // Ajouter l'ID du produit pour la connexion avec la table product_variants
+        colors: formData.colors.filter(color => color.name && color.name.trim() !== ""),
+        sizes: formData.sizes.filter(size => size && typeof size === "string" ? size.trim() !== "" : true),
+        variants: formData.product_type === "variable" ? formData.variants.map(variant => ({
+          product_id: currentProductId, // Ajouter l"ID du produit pour la connexion avec la table product_variants
           color_name: variant.color_name,
           color_value: variant.color_value,
           size: variant.size,
           stock: parseInt(variant.stock) || 0,
-          sku: variant.sku || '',
-          barcode: variant.barcode || '',
+          sku: variant.sku || "",
+          barcode: variant.barcode || "",
           price_adjustment: parseFloat(variant.price_adjustment) || 0
         })) : []
       };
 
-    console.log('Submitting product data:', productData);
-    console.log('Variants being sent:', productData.variants);
+    console.log("Submitting product data:", productData);
+    console.log("Variants being sent:", productData.variants);
 
     if (editingProduct) {
       await axios.put(`/api/products/${editingProduct.id}`, productData);
     } else {
-      await axios.post('/api/products', productData);
+      await axios.post("/api/products", productData);
     }
     
     // Reload data and close modal
     await loadData();
     resetForm();
-    alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
+    alert(editingProduct ? "Produit modifié avec succès!" : "Produit créé avec succès!");
   } catch (error) {
-    console.error('Error saving product:', error);
-    alert('Erreur lors de la sauvegarde du produit');
+    console.error("Error saving product:", error);
+    alert("Erreur lors de la sauvegarde du produit");
   }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      category_id: '',
-      price: '',
-      description: '',
-      images: [''], // Start with one empty URL field
+      name: "",
+      category_id: "",
+      price: "",
+      description: "",
+      images: [""], // Start with one empty URL field
       colors: [],
       sizes: [],
       variants: [],
-      status: 'active',
-      product_type: 'simple'
+      status: "active",
+      product_type: "simple"
     });
     setCurrentVariant({
       id: null,
-      color_name: '',
-      color_value: '#000000',
-      size: '',
+      color_name: "",
+      color_value: "#000000",
+      size: "",
       stock: 0,
-      sku: '',
-      barcode: '',
+      sku: "",
+      barcode: "",
       price_adjustment: 0
     });
     setEditingProduct(null);
@@ -231,46 +232,46 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     setEditingProduct(product);
     setIsEditing(true);
     
-    // S'assurer que nous utilisons le bon ID pour les requêtes API
+    // S"assurer que nous utilisons le bon ID pour les requêtes API
     const productId = product._id || product.id;
     setCurrentProductId(productId);
     console.log("Editing product:", product, "with ID:", productId);
     
     // Définir le type de produit en fonction des données existantes
-    const isVariableProduct = product.product_type === 'variable' || 
+    const isVariableProduct = product.product_type === "variable" || 
                              (product.variants && product.variants.length > 0) ||
                              (product.colors && product.colors.length > 0 && product.sizes && product.sizes.length > 0);
     
-    // Forcer le produit à être variable s'il a des couleurs et des tailles
-    const productType = isVariableProduct ? 'variable' : 'simple';
+    // Forcer le produit à être variable s"il a des couleurs et des tailles
+    const productType = isVariableProduct ? "variable" : "simple";
     console.log("Product type determined:", productType);
     
     // Traitement des images
     const processedImages = product.images ? product.images.map(img => {
-      // Si c'est déjà un objet avec une URL, extraire l'URL
-      if (typeof img === 'object' && img !== null) {
+      // Si c"est déjà un objet avec une URL, extraire l"URL
+      if (typeof img === "object" && img !== null) {
         return img.url || img;
       }
-      // Sinon, retourner l'URL directement
+      // Sinon, retourner l"URL directement
       return img;
     }) : [];
     
     // Load variants for this product
     try {
-      // Forcer le chargement des variantes depuis l'API
+      // Forcer le chargement des variantes depuis l"API
       console.log("Fetching variants for product ID:", productId);
       let variantsRes;
       let variants = [];
       
       try {
-        // Essayer d'abord de récupérer les variantes par ID
+        // Essayer d"abord de récupérer les variantes par ID
         variantsRes = await axios.get(`/api/product-variants/product/${productId}`);
         console.log("Variants API response by ID:", variantsRes);
       } catch (error) {
         console.log("Error fetching variants by ID:", error);
       }
       
-      // Si aucune variante n'est trouvée par ID, essayer par nom de produit
+      // Si aucune variante n"est trouvée par ID, essayer par nom de produit
       if (!variantsRes || !variantsRes.data || 
           (Array.isArray(variantsRes.data) && variantsRes.data.length === 0) ||
           (variantsRes.data && variantsRes.data.variants && variantsRes.data.variants.length === 0)) {
@@ -291,14 +292,14 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         variants = variantsRes.data;
         console.log("Variants from direct API array:", variants);
       } else if (product.variants && Array.isArray(product.variants)) {
-        // Utiliser les variantes déjà présentes dans l'objet produit si l'API ne renvoie rien
+        // Utiliser les variantes déjà présentes dans l"objet produit si l"API ne renvoie rien
         variants = product.variants;
         console.log("Using variants from product object:", variants);
       }
       
       console.log("Final variants after processing response:", variants);
       
-      // Si aucune variante n'est trouvée mais que le produit est de type variable,
+      // Si aucune variante n"est trouvée mais que le produit est de type variable,
       // créer au moins une variante par défaut avec les couleurs et tailles disponibles
       if ((variants.length === 0 || !variants) && isVariableProduct) {
         console.log("Creating default variants for variable product");
@@ -307,8 +308,8 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         let colors = [];
         if (product.colors && product.colors.length > 0) {
           colors = product.colors.map(color => {
-            if (typeof color === 'string') {
-              return { name: color, value: '#000000' };
+            if (typeof color === "string") {
+              return { name: color, value: "#000000" };
             }
             return color;
           });
@@ -317,11 +318,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         // Extraire les tailles du produit
         let sizes = [];
         if (product.sizes) {
-          if (typeof product.sizes === 'string') {
+          if (typeof product.sizes === "string") {
             try {
               sizes = JSON.parse(product.sizes);
             } catch (e) {
-              sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+              sizes = product.sizes.split(",").map(s => s.trim()).filter(s => s);
             }
           } else if (Array.isArray(product.sizes)) {
             sizes = product.sizes;
@@ -335,13 +336,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         if (colors.length > 0 && sizes.length > 0) {
           variants = [{
             id: `default-${Date.now()}`,
-            product_id: productId, // Ajouter l'ID du produit pour la connexion avec la table product_variants
-            color_name: colors.length > 0 ? colors[0].name : 'Default',
-            color_value: colors.length > 0 ? colors[0].value : '#000000',
-            size: sizes.length > 0 ? sizes[0] : 'Default',
+            product_id: productId, // Ajouter l"ID du produit pour la connexion avec la table product_variants
+            color_name: colors.length > 0 ? colors[0].name : "Default",
+            color_value: colors.length > 0 ? colors[0].value : "#000000",
+            size: sizes.length > 0 ? sizes[0] : "Default",
             stock: 10, // Stock par défaut plus élevé
-            sku: '',
-            barcode: '',
+            sku: "",
+            barcode: "",
             price_adjustment: 0
           }];
         }
@@ -350,12 +351,12 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       // Ensure each variant has an id property for proper tracking
       const processedVariants = variants.map(variant => ({
         id: variant.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        color_name: variant.color_name || variant.color || '',
-        color_value: variant.color_value || '#000000',
-        size: variant.size || '',
+        color_name: variant.color_name || variant.color || "",
+        color_value: variant.color_value || "#000000",
+        size: variant.size || "",
         stock: parseInt(variant.stock) || 0,
-        sku: variant.sku || '',
-        barcode: variant.barcode || '',
+        sku: variant.sku || "",
+        barcode: variant.barcode || "",
         price_adjustment: parseFloat(variant.price_adjustment) || 0
       }));
       
@@ -370,7 +371,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
           uniqueColors.push({
             name: variant.color_name,
-            value: variant.color_value || '#000000'
+            value: variant.color_value || "#000000"
           });
         }
         
@@ -380,12 +381,12 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         }
       });
       
-      // Transform colors to new format if they're strings
+      // Transform colors to new format if they"re strings
       let colors = [];
       if (product.colors && product.colors.length > 0) {
         colors = product.colors.map(color => {
-          if (typeof color === 'string') {
-            return { name: color, value: '#000000' };
+          if (typeof color === "string") {
+            return { name: color, value: "#000000" };
           }
           return color;
         });
@@ -394,11 +395,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       // Ensure sizes is an array
       let sizes = [];
       if (product.sizes) {
-        if (typeof product.sizes === 'string') {
+        if (typeof product.sizes === "string") {
           try {
             sizes = JSON.parse(product.sizes);
           } catch (e) {
-            sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+            sizes = product.sizes.split(",").map(s => s.trim()).filter(s => s);
           }
         } else if (Array.isArray(product.sizes)) {
           sizes = product.sizes;
@@ -407,7 +408,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       
       const formDataToSet = {
         name: product.name,
-        category_id: product.categoryId?.toString() || product.category_id?.toString() || '',
+        category_id: product.categoryId?.toString() || product.category_id?.toString() || "",
         price: product.price.toString(),
         description: product.description,
         images: product.images || [],
@@ -415,7 +416,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         sizes: sizes,
         variants: processedVariants,
         status: product.status,
-        product_type: processedVariants.length > 0 ? 'variable' : 'simple' // Forcer le type en fonction des variantes
+        product_type: processedVariants.length > 0 ? "variable" : "simple" // Forcer le type en fonction des variantes
       };
       
       console.log("Setting form data with variants:", formDataToSet);
@@ -424,18 +425,18 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       // Définir les données du formulaire avec les variantes
       setFormData(formDataToSet);
       
-      // Forcer une mise à jour des variantes pour s'assurer qu'elles sont bien prises en compte
+      // Forcer une mise à jour des variantes pour s"assurer qu"elles sont bien prises en compte
       if (processedVariants && processedVariants.length > 0) {
         console.log("Forcing variants update with:", processedVariants);
         
-        // Utiliser un setTimeout pour s'assurer que le premier setFormData est traité
+        // Utiliser un setTimeout pour s"assurer que le premier setFormData est traité
         setTimeout(() => {
           setFormData(prevData => {
             console.log("Previous form data:", prevData);
             const updatedData = {
               ...prevData,
               variants: JSON.parse(JSON.stringify(processedVariants)), // Créer une copie profonde pour forcer la mise à jour
-              product_type: 'variable' // Forcer le type à variable
+              product_type: "variable" // Forcer le type à variable
             };
             console.log("Updated form data:", updatedData);
             return updatedData;
@@ -447,11 +448,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         }, 100);
       }
     } catch (error) {
-      console.error('Error loading variants:', error);
+      console.error("Error loading variants:", error);
       // Set form data without variants
       setFormData({
         name: product.name,
-        category_id: product.categoryId?.toString() || product.category_id?.toString() || '',
+        category_id: product.categoryId?.toString() || product.category_id?.toString() || "",
         price: product.price.toString(),
         description: product.description,
         images: product.images || [],
@@ -459,41 +460,41 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         sizes: product.sizes || [],
         variants: [],
         status: product.status,
-        product_type: product.product_type || 'simple'
+        product_type: product.product_type || "simple"
       });
     }
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
         await axios.delete(`/api/products/${id}`);
         await loadData();
-        alert('Produit supprimé avec succès!');
+        alert("Produit supprimé avec succès!");
       } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Erreur lors de la suppression du produit');
+        console.error("Error deleting product:", error);
+        alert("Erreur lors de la suppression du produit");
       }
     }
   };
 
   const addArrayField = (field) => {
-    if (field === 'colors') {
+    if (field === "colors") {
       setFormData({
         ...formData,
-        colors: [...formData.colors, { name: '', value: '#000000' }]
+        colors: [...formData.colors, { name: "", value: "#000000" }]
       });
     } else {
       setFormData({
         ...formData,
-        [field]: [...formData[field], '']
+        [field]: [...formData[field], ""]
       });
     }
   };
 
   const updateArrayField = (field, index, value, colorProperty = null) => {
-    if (field === 'colors' && colorProperty) {
+    if (field === "colors" && colorProperty) {
       const newColors = [...formData.colors];
       newColors[index][colorProperty] = value;
       setFormData({
@@ -531,7 +532,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         value: bulkColorValue 
       }]);
     }
-    setBulkColorInput('');
+    setBulkColorInput("");
   };
 
   // Ajouter une taille à la liste des tailles en masse
@@ -542,7 +543,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     if (!bulkSizes.includes(bulkSizeInput.trim())) {
       setBulkSizes([...bulkSizes, bulkSizeInput.trim()]);
     }
-    setBulkSizeInput('');
+    setBulkSizeInput("");
   };
 
   // Supprimer une couleur de la liste
@@ -565,7 +566,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
   // Générer toutes les combinaisons possibles de couleurs et tailles
   const generateVariantCombinations = () => {
     if (bulkColors.length === 0 || bulkSizes.length === 0) {
-      alert('Veuillez ajouter au moins une couleur et une taille');
+      alert("Veuillez ajouter au moins une couleur et une taille");
       return;
     }
 
@@ -580,8 +581,8 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
           color_value: color.value,
           size: size,
           stock: 0,
-          sku: '',
-          barcode: '',
+          sku: "",
+          barcode: "",
           price_adjustment: 0
         });
       });
@@ -590,7 +591,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     setGeneratedVariants(combinations);
   };
 
-  // Mettre à jour le stock d'une variation générée
+  // Mettre à jour le stock d"une variation générée
   const updateGeneratedVariantStock = (index, stock) => {
     const newVariants = [...generatedVariants];
     newVariants[index].stock = parseInt(stock) || 0;
@@ -613,7 +614,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
   // Add or update variant
   const saveVariant = () => {
     if (!currentVariant.color_name || !currentVariant.size) {
-      alert('Veuillez remplir la couleur et la taille');
+      alert("Veuillez remplir la couleur et la taille");
       return;
     }
     
@@ -646,36 +647,36 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     // Reset the form
     setCurrentVariant({
       id: null,
-      color_name: '',
-      color_value: '#000000',
-      size: '',
+      color_name: "",
+      color_value: "#000000",
+      size: "",
       stock: 0,
-      sku: '',
-      barcode: '',
+      sku: "",
+      barcode: "",
       price_adjustment: 0
     });
     
     // Show success message
-    alert(`✅ Combinaison ajoutée avec succès!\n\n🎨 Couleur: ${newVariant.color_name}\n📏 Taille: ${newVariant.size}\n📦 Stock: ${newVariant.stock} pièces\n\nVous pouvez maintenant ajouter d'autres combinaisons ou créer le produit.`);
+    alert(`✅ Combinaison ajoutée avec succès!\n\n🎨 Couleur: ${newVariant.color_name}\n📏 Taille: ${newVariant.size}\n📦 Stock: ${newVariant.stock} pièces\n\nVous pouvez maintenant ajouter d"autres combinaisons ou créer le produit.`);
   };
   
   // Edit variant
   const editVariant = (variant) => {
     setCurrentVariant({
       id: variant.id,
-      color_name: variant.color_name || '',
-      color_value: variant.color_value || '#000000',
+      color_name: variant.color_name || "",
+      color_value: variant.color_value || "#000000",
       size: variant.size,
       stock: parseInt(variant.stock) || 0,
-      sku: variant.sku || '',
-      barcode: variant.barcode || '',
+      sku: variant.sku || "",
+      barcode: variant.barcode || "",
       price_adjustment: parseFloat(variant.price_adjustment) || 0
     });
   };
   
   // Remove variant
   const removeVariant = (variantId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette variante ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette variante ?")) {
       setFormData(prev => ({
         ...prev,
         variants: prev.variants.filter(v => v.id !== variantId)
@@ -688,7 +689,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
 
   const getCategoryColor = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
-    return category?.color || '#6B7280';
+    return category?.color || "#6B7280";
   };
 
   const formatPrice = (price) => {
@@ -717,7 +718,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
             <h2 className="text-xl font-semibold mb-4">Choisir le type de produit</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <button
-                onClick={() => handleProductTypeSelection('simple')}
+                onClick={() => handleProductTypeSelection("simple")}
                 className="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
               >
                 <div className="text-3xl mb-2">📦</div>
@@ -725,7 +726,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                 <div className="text-sm text-gray-600 text-center mt-1">Un produit sans variations</div>
               </button>
               <button
-                onClick={() => handleProductTypeSelection('variable')}
+                onClick={() => handleProductTypeSelection("variable")}
                 className="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
               >
                 <div className="text-3xl mb-2">🎨</div>
@@ -867,9 +868,9 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-lg font-bold text-purple-600">{formatPrice(product.price)}</span>
                     <span className={`text-sm px-2 py-1 rounded ${
-                      product.stock > 10 ? 'bg-green-100 text-green-800' :
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      product.stock > 10 ? "bg-green-100 text-green-800" :
+                      product.stock > 0 ? "bg-yellow-100 text-yellow-800" :
+                      "bg-red-100 text-red-800"
                     }`}>
                       Stock: {product.stock}
                     </span>
@@ -885,8 +886,8 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         <span className="text-xs text-gray-500">Couleurs:</span>
                         <div className="flex space-x-1">
                           {product.colors.slice(0, 4).map((color, index) => {
-                            const colorValue = typeof color === 'string' ? '#000000' : color.value;
-                            const colorName = typeof color === 'string' ? color : color.name;
+                            const colorValue = typeof color === "string" ? "#000000" : color.value;
+                            const colorName = typeof color === "string" ? color : color.name;
                             return (
                               <div key={index} className="flex items-center space-x-1">
                                 <div 
@@ -921,13 +922,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                   {/* Status */}
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.status === 'active' ? 'bg-green-100 text-green-800' :
-                      product.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                      'bg-red-100 text-red-800'
+                      product.status === "active" ? "bg-green-100 text-green-800" :
+                      product.status === "inactive" ? "bg-gray-100 text-gray-800" :
+                      "bg-red-100 text-red-800"
                     }`}>
-                      {product.status === 'active' ? '✅ Actif' :
-                       product.status === 'inactive' ? '⏸️ Inactif' :
-                       '❌ Rupture de stock'}
+                      {product.status === "active" ? "✅ Actif" :
+                       product.status === "inactive" ? "⏸️ Inactif" :
+                       "❌ Rupture de stock"}
                     </span>
                   </div>
                 </div>
@@ -958,7 +959,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}
+                  {editingProduct ? "Modifier le Produit" : "Nouveau Produit"}
                 </h2>
                 <button
                   onClick={resetForm}
@@ -1037,13 +1038,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                 </div>
 
                 {/* Conditional Stock/Variant Management */}
-                {formData.product_type === 'simple' ? (
+                {formData.product_type === "simple" ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
                     <input
                       type="number"
                       id="simple-product-stock"
-                      defaultValue={editingProduct?.stock ?? formData.variants[0]?.stock ?? ''}
+                      defaultValue={editingProduct?.stock ?? formData.variants[0]?.stock ?? ""}
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="Quantité en stock"
                     />
@@ -1079,7 +1080,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             onChange={(e) => setBulkColorInput(e.target.value)}
                             placeholder="Nom de la couleur (ex: Rouge, Bleu...)"
                             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBulkColor())}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addBulkColor())}
                           />
                           <div className="flex flex-col space-y-1">
                             <input
@@ -1145,7 +1146,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             onChange={(e) => setBulkSizeInput(e.target.value)}
                             placeholder="Ex: S, M, L, XL..."
                             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBulkSize())}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addBulkSize())}
                           />
                           <button
                             type="button"
@@ -1311,7 +1312,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer"
                           />
                           <div className="text-sm text-gray-600">
-                            Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || 'Non définie'}</span>
+                            Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || "Non définie"}</span>
                           </div>
                         </div>
                       </div>
@@ -1343,12 +1344,12 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                 <div className="flex items-center space-x-3">
                                   <div 
                                     className="w-8 h-8 rounded-full border-2 border-gray-300"
-                                    style={{ backgroundColor: variant.color_value || '#000000' }}
+                                    style={{ backgroundColor: variant.color_value || "#000000" }}
                                     title={variant.color_name}
                                   ></div>
                                   <div>
                                     <div className="font-bold text-gray-900">
-                                      {variant.color_name || 'N/A'} - {variant.size || 'N/A'}
+                                      {variant.color_name || "N/A"} - {variant.size || "N/A"}
                                     </div>
                                   </div>
                                 </div>
@@ -1426,8 +1427,8 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       </div>
                     )}
 
-                    {/* No Variants Warning - Afficher uniquement si aucune variante n'est configurée */}
-                    {formData.product_type === 'variable' && 
+                    {/* No Variants Warning - Afficher uniquement si aucune variante n"est configurée */}
+                    {formData.product_type === "variable" && 
                      (!formData.variants || formData.variants.length === 0) && (
                       <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
                         <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
@@ -1455,14 +1456,14 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         onChange={(e) => handleImageUpload(e.target.files[0])}
                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                       />
-                      <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu'à 5MB</p>
+                      <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu"à 5MB</p>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     {formData.images.map((url, index) => {
                       const processedUrl = processImageURL(url);
-                      const isGoogleDrive = url.includes('drive.google.com');
+                      const isGoogleDrive = url.includes("drive.google.com");
                       
                       return (
                         <div key={index} className="space-y-2">
@@ -1522,13 +1523,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       Add another image URL
                     </button>
                     <p className="text-xs text-gray-500 mt-1">
-                      Tip: Paste Google Drive shareable links directly. They'll be converted automatically.
+                      Tip: Paste Google Drive shareable links directly. They"ll be converted automatically.
                     </p>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
                     <div className="flex flex-wrap gap-2">
-                      {formData.images.filter(url => url.trim() !== '').map((url, index) => (
+                      {formData.images.filter(url => url.trim() !== "").map((url, index) => (
                         <div key={index} className="relative group">
                           <img
                             src={processImageURL(url)}

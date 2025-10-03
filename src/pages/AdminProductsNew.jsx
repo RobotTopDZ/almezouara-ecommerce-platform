@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -29,28 +29,28 @@ const AdminProducts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    category_id: '',
-    price: '',
-    description: '',
-    images: [''], // Start with one empty URL field
+    name: "',
+    category_id: "',
+    price: "',
+    description: "',
+    images: ["'], // Start with one empty URL field
     colors: [],
     sizes: [],
     variants: [],
-    status: 'active'
+    status: "active"
   });
   
   const [currentVariant, setCurrentVariant] = useState({
     id: null,
-    color_name: '',
-    color_value: '#000000',
-    size: '',
+    color_name: "',
+    color_value: "#000000",
+    size: "',
     stock: 0,
-    sku: '',
-    barcode: '',
+    sku: "',
+    barcode: "',
     price_adjustment: 0
   });
-  const [imageURL, setImageURL] = useState('');
+  const [imageURL, setImageURL] = useState("');
 
   // Load data on component mount
   useEffect(() => {
@@ -63,8 +63,8 @@ const AdminProducts = () => {
       
       // Load products and categories in parallel
       const [productsRes, categoriesRes] = await Promise.all([
-        axios.get('/api/products'),
-        axios.get('/api/products/categories/list')
+        axios.get("/api/products"),
+        axios.get("/api/products/categories/list")
       ]);
       
       if (productsRes.data.success) {
@@ -75,14 +75,14 @@ const AdminProducts = () => {
         setCategories(categoriesRes.data.categories || []);
       }
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
       // Set default categories if API fails
       setCategories([
-        { id: 1, name: 'Robes', color: '#FF6B6B' },
-        { id: 2, name: 'Hijabs', color: '#4ECDC4' },
-        { id: 3, name: 'Abayas', color: '#45B7D1' },
-        { id: 4, name: 'Accessoires', color: '#96CEB4' },
-        { id: 5, name: 'Chaussures', color: '#FFEAA7' }
+        { id: 1, name: "Robes", color: "#FF6B6B" },
+        { id: 2, name: "Hijabs", color: "#4ECDC4" },
+        { id: 3, name: "Abayas", color: "#45B7D1" },
+        { id: 4, name: "Accessoires", color: "#96CEB4" },
+        { id: 5, name: "Chaussures", color: "#FFEAA7" }
       ]);
     } finally {
       setLoading(false);
@@ -92,12 +92,12 @@ const AdminProducts = () => {
   // Add image URL
   const addImageURL = (e) => {
     e.preventDefault();
-    if (imageURL.trim() !== '') {
+    if (imageURL.trim() !== "') {
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, imageURL.trim()]
       }));
-      setImageURL('');
+      setImageURL("');
     }
   };
 
@@ -105,16 +105,16 @@ const AdminProducts = () => {
   const addURLField = () => {
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, '']
+      images: [...prev.images, "']
     }));
   };
 
   // Convert Google Drive URL to direct image link
   const processImageURL = (url) => {
-    if (!url) return '';
+    if (!url) return "';
     
     // Handle Google Drive URL
-    if (url.includes('drive.google.com')) {
+    if (url.includes("drive.google.com")) {
       // Handle Google Drive shareable link format
       const fileIdMatch = url.match(/[\w\-]{20,}/);
       if (fileIdMatch && fileIdMatch[0]) {
@@ -140,7 +140,7 @@ const AdminProducts = () => {
     const newImages = formData.images.filter((_, index) => index !== indexToRemove);
     setFormData(prev => ({
       ...prev,
-      images: newImages.length > 0 ? newImages : [''] // Always keep at least one URL field
+      images: newImages.length > 0 ? newImages : ["'] // Always keep at least one URL field
     }));
   };
 
@@ -148,7 +148,7 @@ const AdminProducts = () => {
   const addColor = () => {
     setFormData(prev => ({
       ...prev,
-      colors: [...prev.colors, '']
+      colors: [...prev.colors, "']
     }));
   };
 
@@ -172,14 +172,14 @@ const AdminProducts = () => {
   const addSize = () => {
     setFormData(prev => ({
       ...prev,
-      sizes: [...prev.sizes, '']
+      sizes: [...prev.sizes, "']
     }));
   };
   
   // Add or update variant
   const saveVariant = () => {
     if (!currentVariant.color_name || !currentVariant.size) {
-      alert('Veuillez remplir la couleur et la taille');
+      alert("Veuillez remplir la couleur et la taille");
       return;
     }
     
@@ -212,36 +212,36 @@ const AdminProducts = () => {
     // Reset the form
     setCurrentVariant({
       id: null,
-      color_name: '',
-      color_value: '#000000',
-      size: '',
+      color_name: "',
+      color_value: "#000000",
+      size: "',
       stock: 0,
-      sku: '',
-      barcode: '',
+      sku: "',
+      barcode: "',
       price_adjustment: 0
     });
     
     // Show success message
-    alert(`✅ Combinaison ajoutée avec succès!\n\n🎨 Couleur: ${newVariant.color_name}\n📏 Taille: ${newVariant.size}\n📦 Stock: ${newVariant.stock} pièces\n\nVous pouvez maintenant ajouter d'autres combinaisons ou créer le produit.`);
+    alert(`✅ Combinaison ajoutée avec succès!\n\n🎨 Couleur: ${newVariant.color_name}\n📏 Taille: ${newVariant.size}\n📦 Stock: ${newVariant.stock} pièces\n\nVous pouvez maintenant ajouter d"autres combinaisons ou créer le produit.`);
   };
   
   // Edit variant
   const editVariant = (variant) => {
     setCurrentVariant({
       id: variant.id,
-      color_name: variant.color_name || '',
-      color_value: variant.color_value || '#000000',
+      color_name: variant.color_name || "',
+      color_value: variant.color_value || "#000000",
       size: variant.size,
       stock: variant.stock,
-      sku: variant.sku || '',
-      barcode: variant.barcode || '',
+      sku: variant.sku || "',
+      barcode: variant.barcode || "',
       price_adjustment: variant.price_adjustment || 0
     });
   };
   
   // Remove variant
   const removeVariant = (variantId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette variante ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette variante ?")) {
       setFormData(prev => ({
         ...prev,
         variants: prev.variants.filter(v => v.id !== variantId)
@@ -274,16 +274,16 @@ const AdminProducts = () => {
     try {
       // Process all image URLs before submitting
       const processedImages = formData.images
-        .filter(img => img.trim() !== '')
+        .filter(img => img.trim() !== "')
         .map(img => processImageURL(img));
 
       if (processedImages.length === 0) {
-        alert('Veuillez ajouter au moins une image');
+        alert("Veuillez ajouter au moins une image");
         return;
       }
       
       if (formData.variants.length === 0) {
-        alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
+        alert("⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.");
         return;
       }
 
@@ -294,8 +294,8 @@ const AdminProducts = () => {
         description: formData.description,
         status: formData.status,
         images: processedImages,
-        colors: formData.colors.filter(color => color.trim() !== ''),
-        sizes: formData.sizes.filter(size => size.trim() !== ''),
+        colors: formData.colors.filter(color => color.trim() !== "'),
+        sizes: formData.sizes.filter(size => size.trim() !== "'),
         variants: formData.variants.map(variant => ({
           ...variant,
           stock: parseInt(variant.stock) || 0,
@@ -303,21 +303,21 @@ const AdminProducts = () => {
         }))
       };
 
-      console.log('Submitting product data:', productData);
-      console.log('Variants being sent:', productData.variants);
+      console.log("Submitting product data:", productData);
+      console.log("Variants being sent:", productData.variants);
 
       const response = editingProduct 
         ? await axios.put(`/api/products/${editingProduct.id}`, productData)
-        : await axios.post('/api/products', productData);
+        : await axios.post("/api/products", productData);
       
       // Reload data and close modal
       await loadData();
       resetForm();
       setShowModal(false);
-      alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
+      alert(editingProduct ? "Produit modifié avec succès!" : "Produit créé avec succès!");
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Erreur lors de la sauvegarde du produit');
+      console.error("Error saving product:", error);
+      alert("Erreur lors de la sauvegarde du produit");
     }
   };
 
@@ -327,24 +327,24 @@ const AdminProducts = () => {
       name: product.name,
       category_id: product.category_id,
       price: product.price,
-      description: product.description || '',
-      images: product.images && product.images.length > 0 ? [...product.images] : [''],
+      description: product.description || "',
+      images: product.images && product.images.length > 0 ? [...product.images] : ["'],
       colors: product.colors || [],
       sizes: product.sizes || [],
       variants: product.variants || [],
-      status: product.status || 'active'
+      status: product.status || "active"
     });
     
     // Set the first variant as default if exists
     if (product.variants && product.variants.length > 0) {
       setCurrentVariant({
         ...product.variants[0],
-        color_name: product.variants[0].color_name || '',
-        color_value: product.variants[0].color_value || '#000000',
-        size: product.variants[0].size || '',
+        color_name: product.variants[0].color_name || "',
+        color_value: product.variants[0].color_value || "#000000",
+        size: product.variants[0].size || "',
         stock: product.variants[0].stock || 0,
-        sku: product.variants[0].sku || '',
-        barcode: product.variants[0].barcode || '',
+        sku: product.variants[0].sku || "',
+        barcode: product.variants[0].barcode || "',
         price_adjustment: product.variants[0].price_adjustment || 0
       });
     }
@@ -353,37 +353,37 @@ const AdminProducts = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
         await axios.delete(`/api/products/${id}`);
         await loadData();
-        alert('Produit supprimé avec succès!');
+        alert("Produit supprimé avec succès!");
       } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Erreur lors de la suppression du produit');
+        console.error("Error deleting product:", error);
+        alert("Erreur lors de la suppression du produit");
       }
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      category_id: '',
-      price: '',
-      description: '',
-      images: [''],
+      name: "',
+      category_id: "',
+      price: "',
+      description: "',
+      images: ["'],
       colors: [],
       sizes: [],
       variants: [],
-      status: 'active'
+      status: "active"
     });
     setCurrentVariant({
-      color_name: '',
-      color_value: '#000000',
-      size: '',
+      color_name: "',
+      color_value: "#000000",
+      size: "',
       stock: 0,
-      sku: '',
-      barcode: '',
+      sku: "',
+      barcode: "',
       price_adjustment: 0,
       id: null
     });
@@ -393,12 +393,12 @@ const AdminProducts = () => {
 
   const getCategoryName = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : 'Non défini';
+    return category ? category.name : "Non défini";
   };
 
   const getCategoryColor = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.color : '#6B7280';
+    return category ? category.color : "#6B7280";
   };
 
   const formatPrice = (price) => {
@@ -479,21 +479,21 @@ const AdminProducts = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      product.stock > 10 ? 'bg-green-100 text-green-800' :
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      product.stock > 10 ? "bg-green-100 text-green-800" :
+                      product.stock > 0 ? "bg-yellow-100 text-yellow-800" :
+                      "bg-red-100 text-red-800"
                     }`}>
                       {product.stock}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      product.status === 'active' ? 'bg-green-100 text-green-800' :
-                      product.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                      'bg-red-100 text-red-800'
+                      product.status === "active" ? "bg-green-100 text-green-800" :
+                      product.status === "inactive" ? "bg-gray-100 text-gray-800" :
+                      "bg-red-100 text-red-800"
                     }`}>
-                      {product.status === 'active' ? 'Actif' :
-                       product.status === 'inactive' ? 'Inactif' : 'Rupture'}
+                      {product.status === "active" ? "Actif" :
+                       product.status === "inactive" ? "Inactif" : "Rupture"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -536,7 +536,7 @@ const AdminProducts = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}
+                  {editingProduct ? "Modifier le Produit" : "Nouveau Produit"}
                 </h2>
                 <button
                   onClick={resetForm}
@@ -601,7 +601,7 @@ const AdminProducts = () => {
                     <div className="text-xs text-gray-500">
                       {formData.variants.length > 0 
                         ? `Calculé automatiquement à partir de ${formData.variants.length} variante(s)`
-                        : 'Ajoutez des variantes ci-dessous pour gérer le stock'
+                        : "Ajoutez des variantes ci-dessous pour gérer le stock"
                       }
                     </div>
                   </div>
@@ -627,7 +627,7 @@ const AdminProducts = () => {
                   <div className="space-y-4">
                     {formData.images.map((url, index) => {
                       const processedUrl = processImageURL(url);
-                      const isGoogleDrive = url.includes('drive.google.com');
+                      const isGoogleDrive = url.includes("drive.google.com");
                       
                       return (
                         <div key={index} className="space-y-2">
@@ -687,13 +687,13 @@ const AdminProducts = () => {
                       Add another image URL
                     </button>
                     <p className="text-xs text-gray-500 mt-1">
-                      Tip: Paste Google Drive shareable links directly. They'll be converted automatically.
+                      Tip: Paste Google Drive shareable links directly. They"ll be converted automatically.
                     </p>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
                     <div className="flex flex-wrap gap-2">
-                      {formData.images.filter(url => url.trim() !== '').map((url, index) => (
+                      {formData.images.filter(url => url.trim() !== "').map((url, index) => (
                         <div key={index} className="relative group">
                           <img
                             src={processImageURL(url)}
@@ -858,7 +858,7 @@ const AdminProducts = () => {
                           className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer"
                         />
                         <div className="text-sm text-gray-600">
-                          Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || 'Non définie'}</span>
+                          Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || "Non définie"}</span>
                         </div>
                       </div>
                     </div>
@@ -965,7 +965,7 @@ const AdminProducts = () => {
                     type="submit"
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    {editingProduct ? 'Modifier' : 'Créer'}
+                    {editingProduct ? "Modifier" : "Créer"}
                   </button>
                 </div>
               </form>

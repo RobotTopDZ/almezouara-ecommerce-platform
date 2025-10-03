@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const ContactPage = () => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
+    name: "',
+    email: "',
+    phone: "',
+    subject: "',
+    message: "'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,13 +25,13 @@ const ContactPage = () => {
     
     // Simulate form submission
     setTimeout(() => {
-      alert('Message envoyé avec succès!');
+      alert("Message envoyé avec succès!");
       setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
+        name: "',
+        email: "',
+        phone: "',
+        subject: "',
+        message: "'
       });
       setIsSubmitting(false);
     }, 1000);
@@ -100,7 +100,7 @@ const ContactPage = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-text mb-3">Heures d'ouverture</h3>
+              <h3 className="text-lg font-semibold text-text mb-3">Heures d"ouverture</h3>
               <div className="space-y-2 text-gray-600">
                 <p>Lundi - Vendredi: 9:00 - 18:00</p>
                 <p>Samedi: 9:00 - 16:00</p>
@@ -198,7 +198,7 @@ const ContactPage = () => {
                 disabled={isSubmitting}
                 className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-pink-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Envoi en cours...' : 'Envoyer le message'}
+                {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
               </button>
             </form>
           </div>

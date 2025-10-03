@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
-import { Link } from 'react-router-dom';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
-import { useCategories } from '../hooks/useCategories';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import { Link } from "react-router-dom";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useCategories } from "../hooks/useCategories";
+import axios from "axios";
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
+import "swiper/css";
+import "swiper/css/pagination";
 
 const HomePage = () => {
   const { t } = useTranslation();
   const [allProducts, setAllProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   
   // Use the shared categories hook
@@ -24,8 +24,8 @@ const HomePage = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        console.log('Loading products from API...');
-        const productsRes = await axios.get('/api/products');
+        console.log("Loading products from API...");
+        const productsRes = await axios.get("/api/products");
         
         // Accept both DB mode { success: true, products: [...] } and mock mode { products: [...] }
         const productsPayload = productsRes.data && (productsRes.data.products ? productsRes.data.products : []);
@@ -33,10 +33,10 @@ const HomePage = () => {
         
         if (hasProducts) {
           const transformedProducts = productsPayload
-            .filter(product => (product.status || 'active') === 'active')
+            .filter(product => (product.status || "active") === "active")
             .map(product => {
               const images = Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []);
-              const firstImage = images.length > 0 ? images[0] : '/images/IMG_0630-scaled.jpeg';
+              const firstImage = images.length > 0 ? images[0] : "/images/IMG_0630-scaled.jpeg";
               return {
                 id: product.id,
                 name: product.name,
@@ -45,16 +45,16 @@ const HomePage = () => {
                 // Normalize category
                 category: product.category_name
                   ? String(product.category_name).toLowerCase()
-                  : (product.category ? String(product.category).toLowerCase() : 'general')
+                  : (product.category ? String(product.category).toLowerCase() : "general")
               };
             });
           setAllProducts(transformedProducts);
         } else {
-          console.log('Products API returned no products, using empty array');
+          console.log("Products API returned no products, using empty array");
           setAllProducts([]);
         }
       } catch (error) {
-        console.error('Error loading products, falling back to sample data:', error);
+        console.error("Error loading products, falling back to sample data:", error);
         setAllProducts(sampleProducts); // Fallback to sample data
       } finally {
         setLoading(false);
@@ -68,156 +68,156 @@ const HomePage = () => {
   const sampleProducts = [
     {
       id: 1,
-      name: 'Robe Élégante',
+      name: "Robe Élégante",
       price: 3500,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category: 'robes',
+      image: "/images/IMG_0630-scaled.jpeg",
+      category: "robes",
     },
     {
       id: 2,
-      name: 'Hijab Premium',
+      name: "Hijab Premium",
       price: 1200,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category: 'hijabs',
+      image: "/images/IMG_6710-scaled.jpeg",
+      category: "hijabs",
     },
     {
       id: 3,
-      name: 'Robe de Soirée',
+      name: "Robe de Soirée",
       price: 4500,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category: 'robes',
+      image: "/images/IMG_6789-scaled.jpeg",
+      category: "robes",
     },
     {
       id: 4,
-      name: 'Ensemble Casual',
+      name: "Ensemble Casual",
       price: 2800,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_9260-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 5,
-      name: 'Hijab Moderne',
+      name: "Hijab Moderne",
       price: 1500,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Hijabs',
+      image: "/images/IMG_0630-scaled.jpeg",
+      category_name: "Hijabs",
     },
     {
       id: 6,
-      name: 'Robe Tendance',
+      name: "Robe Tendance",
       price: 3200,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_6789-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 7,
-      name: 'Chaussures Élégantes',
+      name: "Chaussures Élégantes",
       price: 4200,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Chaussures',
+      image: "/images/IMG_9260-scaled.jpeg",
+      category_name: "Chaussures",
     },
     {
       id: 8,
-      name: 'Accessoire Chic',
+      name: "Accessoire Chic",
       price: 900,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Accessoires',
+      image: "/images/IMG_6710-scaled.jpeg",
+      category_name: "Accessoires",
     },
     {
       id: 9,
-      name: 'Robe Moderne',
+      name: "Robe Moderne",
       price: 3800,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_0630-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 10,
-      name: 'Hijab Collection',
+      name: "Hijab Collection",
       price: 1800,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Hijabs',
+      image: "/images/IMG_6789-scaled.jpeg",
+      category_name: "Hijabs",
     },
     {
       id: 11,
-      name: 'Ensemble Chic',
+      name: "Ensemble Chic",
       price: 3600,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_9260-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 12,
-      name: 'Sac Designer',
+      name: "Sac Designer",
       price: 2500,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Accessoires',
+      image: "/images/IMG_6710-scaled.jpeg",
+      category_name: "Accessoires",
     },
     {
       id: 13,
-      name: 'Robe Luxe',
+      name: "Robe Luxe",
       price: 5200,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_0630-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 14,
-      name: 'Hijab Soie',
+      name: "Hijab Soie",
       price: 2200,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Hijabs',
+      image: "/images/IMG_6789-scaled.jpeg",
+      category_name: "Hijabs",
     },
     {
       id: 15,
-      name: 'Chaussures Mode',
+      name: "Chaussures Mode",
       price: 3900,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Chaussures',
+      image: "/images/IMG_9260-scaled.jpeg",
+      category_name: "Chaussures",
     },
     {
       id: 16,
-      name: 'Bijoux Précieux',
+      name: "Bijoux Précieux",
       price: 1600,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category_name: 'Accessoires',
+      image: "/images/IMG_6710-scaled.jpeg",
+      category_name: "Accessoires",
     },
     {
       id: 17,
-      name: 'Robe Cocktail',
+      name: "Robe Cocktail",
       price: 4200,
-      image: '/images/IMG_0630-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_0630-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 18,
-      name: 'Hijab Brodé',
+      name: "Hijab Brodé",
       price: 1900,
-      image: '/images/IMG_6789-scaled.jpeg',
-      category_name: 'Hijabs',
+      image: "/images/IMG_6789-scaled.jpeg",
+      category_name: "Hijabs",
     },
     {
       id: 19,
-      name: 'Ensemble Designer',
+      name: "Ensemble Designer",
       price: 4800,
-      image: '/images/IMG_9260-scaled.jpeg',
-      category_name: 'Robes',
+      image: "/images/IMG_9260-scaled.jpeg",
+      category_name: "Robes",
     },
     {
       id: 20,
-      name: 'Montre Élégante',
+      name: "Montre Élégante",
       price: 3200,
-      image: '/images/IMG_6710-scaled.jpeg',
-      category: 'Accessoires',
+      image: "/images/IMG_6710-scaled.jpeg",
+      category: "Accessoires",
     }
   ];
 
   // Filter products based on the currently selected category.
-  // This calculation is done directly on each render, ensuring it's always up-to-date.
+  // This calculation is done directly on each render, ensuring it"s always up-to-date.
   const filteredProducts = allProducts.filter(product => {
-    if (selectedCategory === 'all') {
-      return true; // Include all products if 'all' is selected
+    if (selectedCategory === "all") {
+      return true; // Include all products if "all" is selected
     }
-    return (product.category || '').toLowerCase() === String(selectedCategory).toLowerCase();
+    return (product.category || "').toLowerCase() === String(selectedCategory).toLowerCase();
   });
 
-  console.log(`Selected category: '${selectedCategory}'. Found ${filteredProducts.length} matching products out of ${allProducts.length} total.`);
+  console.log(`Selected category: "${selectedCategory}". Found ${filteredProducts.length} matching products out of ${allProducts.length} total.`);
 
   // The infinite scroll hook now receives the correctly filtered list of products.
   const { displayedItems: displayedProducts, hasMore, isLoading: isLoadingMore } = useInfiniteScroll(filteredProducts, 10);
@@ -226,27 +226,27 @@ const HomePage = () => {
   const sliderItems = [
     {
       id: 1,
-      title: t('home.special_offers'),
-      image: '/images/latest images/photo_2025-10-01_18-46-30.jpg',
-      link: '/category/dresses',
+      title: t("home.special_offers"),
+      image: "/images/latest images/photo_2025-10-01_18-46-30.jpg",
+      link: "/category/dresses",
     },
     {
       id: 2,
-      title: t('home.new_arrivals'),
-      image: '/images/latest images/photo_2025-10-01_18-46-31.jpg',
-      link: '/category/dresses',
+      title: t("home.new_arrivals"),
+      image: "/images/latest images/photo_2025-10-01_18-46-31.jpg",
+      link: "/category/dresses",
     },
     {
       id: 3,
-      title: t('home.trending'),
-      image: '/images/latest images/photo_2025-10-01_18-46-37.jpg',
-      link: '/category/dresses',
+      title: t("home.trending"),
+      image: "/images/latest images/photo_2025-10-01_18-46-37.jpg",
+      link: "/category/dresses",
     },
     {
       id: 4,
-      title: t('home.collection'),
-      image: '/images/latest images/photo_2025-10-01_18-46-31 (2).jpg',
-      link: '/category/dresses',
+      title: t("home.collection"),
+      image: "/images/latest images/photo_2025-10-01_18-46-31 (2).jpg",
+      link: "/category/dresses",
     },
   ];
 
@@ -306,11 +306,11 @@ const HomePage = () => {
         <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
           {/* TOUT button */}
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => setSelectedCategory("all")}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-              selectedCategory === 'all'
-                ? 'bg-primary text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              selectedCategory === "all"
+                ? "bg-primary text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             TOUT
@@ -323,8 +323,8 @@ const HomePage = () => {
               onClick={() => setSelectedCategory(category.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
                 selectedCategory === category.id
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-primary text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {category.name}
@@ -408,10 +408,10 @@ const HomePage = () => {
           <h2 className="text-3xl font-bold text-text text-center mb-12">Catégories Populaires</h2>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { id: 'dresses', name: 'Robes', image: '/images/IMG_0630-scaled.jpeg', count: '15+ produits' },
-              { id: 'hijabs', name: 'Hijabs', image: '/images/IMG_6710-scaled.jpeg', count: '30+ produits' },
-              { id: 'shoes', name: 'Chaussures', image: '/images/IMG_9260-scaled.jpeg', count: '25+ produits' },
-              { id: 'accessories', name: 'Accessoires', image: '/images/IMG_6710-scaled.jpeg', count: '40+ produits' }
+              { id: "dresses", name: "Robes", image: "/images/IMG_0630-scaled.jpeg", count: "15+ produits" },
+              { id: "hijabs", name: "Hijabs", image: "/images/IMG_6710-scaled.jpeg", count: "30+ produits" },
+              { id: "shoes", name: "Chaussures", image: "/images/IMG_9260-scaled.jpeg", count: "25+ produits" },
+              { id: "accessories", name: "Accessoires", image: "/images/IMG_6710-scaled.jpeg", count: "40+ produits" }
             ].map((category) => (
               <Link
                 key={category.id}
@@ -441,11 +441,11 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-5 gap-6">
             {[
-              { to: '/categories', icon: '📁', title: 'Toutes Catégories', description: 'Explorez notre collection' },
-              { to: '/contact', icon: '📞', title: 'Contact', description: 'Contactez-nous' },
-              { href: 'https://wa.me/+213XXXXXXXXX', icon: '💬', title: 'WhatsApp', description: 'Chat en direct' },
-              { to: '/faq', icon: '❓', title: 'FAQ', description: 'Questions fréquentes' },
-              { to: '/refund-policy', icon: '🛡️', title: 'Garantie', description: 'Politique de remboursement' }
+              { to: "/categories", icon: "📁", title: "Toutes Catégories", description: "Explorez notre collection" },
+              { to: "/contact", icon: "📞", title: "Contact", description: "Contactez-nous" },
+              { href: "https://wa.me/+213XXXXXXXXX", icon: "💬", title: "WhatsApp", description: "Chat en direct" },
+              { to: "/faq", icon: "❓", title: "FAQ", description: "Questions fréquentes" },
+              { to: "/refund-policy", icon: "🛡️", title: "Garantie", description: "Politique de remboursement" }
             ].map((item, index) => (
               <div key={index} className="text-center group">
                 {item.to ? (
@@ -483,13 +483,13 @@ const HomePage = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {displayedProducts.map((product) => {
-              console.log('Rendering product link:', product.id, product.name);
+              console.log("Rendering product link:", product.id, product.name);
               return (
                 <Link
                   key={product.id}
                   to={`/product/${product.id}`}
                   className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                  onClick={() => console.log('Clicked product:', product.id, 'Link to:', `/product/${product.id}`)}
+                  onClick={() => console.log("Clicked product:", product.id, "Link to:", `/product/${product.id}`)}
                 >
                 <div className="aspect-square overflow-hidden">
                   <img
