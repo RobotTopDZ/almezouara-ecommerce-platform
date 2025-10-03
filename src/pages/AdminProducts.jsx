@@ -382,6 +382,13 @@ const AdminProducts = () => {
       };
       
       console.log("Setting form data:", formDataToSet);
+      
+      // Générer les variations automatiquement si nécessaire
+      if (processedVariants.length > 0) {
+        // Générer les combinaisons à partir des variants existants
+        generateVariantCombinations();
+      }
+      
       setFormData(formDataToSet);
       
       // Set bulk colors and sizes for the variant generator
