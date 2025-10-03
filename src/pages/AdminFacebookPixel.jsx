@@ -27,9 +27,12 @@ const AdminFacebookPixel = () => {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  // ID du pixel Facebook directement intégré
+  const PIXEL_ID = '925399229731159';
+  
   const [pixelConfig, setPixelConfig] = useState({
-    enabled: false,
-    pixelId: '',
+    enabled: true,
+    pixelId: PIXEL_ID,
     trackPageView: true,
     trackAddToCart: true,
     trackInitiateCheckout: true,
@@ -37,19 +40,31 @@ const AdminFacebookPixel = () => {
   });
 
   useEffect(() => {
+    // Afficher directement la configuration avec l'ID fixe
+    setLoading(true);
+    setError(null);
+    
+    // Simuler un chargement pour une meilleure expérience utilisateur
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    
+    // Pour compatibilité avec le reste du code, on peut toujours essayer de charger
+    // mais on garde notre ID fixe
     const fetchConfig = async () => {
-      setLoading(true);
-      setError(null); // Réinitialiser l'erreur à chaque tentative
       try {
         const response = await axios.get('/api/facebook-pixel');
         if (response.data && response.data.config) {
-          setPixelConfig(response.data.config);
+          // Fusionner la configuration mais garder notre ID fixe
+          setPixelConfig({
+            ...response.data.config,
+            pixelId: PIXEL_ID,
+            enabled: true
+          });
         }
       } catch (err) {
         console.error('Erreur lors du chargement de la configuration Facebook Pixel:', err);
-        setError('Erreur lors du chargement de la configuration');
-      } finally {
-        setLoading(false);
+        // Ne pas afficher d'erreur puisqu'on a déjà une configuration par défaut
       }
     };
 
@@ -58,6 +73,11 @@ const AdminFacebookPixel = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // Ne pas permettre de modifier l'ID du pixel ou l'état d'activation
+    if (name === 'pixelId' || name === 'enabled') {
+      return;
+    }
+    
     setPixelConfig({
       ...pixelConfig,
       [name]: type === 'checkbox' ? checked : value
@@ -71,10 +91,11 @@ const AdminFacebookPixel = () => {
     setError(null);
     
     try {
-      // S'assurer que pixelId est une chaîne de caractères
+      // Toujours utiliser notre ID fixe
       const configToSave = {
         ...pixelConfig,
-        pixelId: String(pixelConfig.pixelId || '').trim()
+        pixelId: PIXEL_ID,
+        enabled: true
       };
       
       console.log('Sauvegarde de la configuration:', configToSave);
@@ -84,22 +105,6 @@ const AdminFacebookPixel = () => {
       if (response.data && response.data.success) {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
-        
-        // Attendre un peu avant de recharger pour s'assurer que la base de données a été mise à jour
-        setTimeout(async () => {
-          try {
-            // Recharger la configuration pour confirmer la mise à jour
-            const getResponse = await axios.get('/api/facebook-pixel');
-            if (getResponse.data && getResponse.data.config) {
-              console.log('Configuration rechargée:', getResponse.data.config);
-              setPixelConfig(getResponse.data.config);
-            }
-          } catch (reloadErr) {
-            console.error('Erreur lors du rechargement de la configuration:', reloadErr);
-          }
-        }, 1000); // Augmenter le délai à 1000ms
-      } else {
-        throw new Error('La réponse du serveur n\'indique pas de succès');
       }
     } catch (err) {
       console.error('Erreur lors de la sauvegarde de la configuration Facebook Pixel:', err);
@@ -162,18 +167,18 @@ const AdminFacebookPixel = () => {
             )}
 
             <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="enabled"
-                name="enabled"
-                checked={pixelConfig.enabled}
-                onChange={handleChange}
-                className="h-5 w-5 text-blue-600"
-              />
-              <label htmlFor="enabled" className="ml-2 text-lg font-medium">
-                Activer Facebook Pixel
-              </label>
-            </div>
+                <input
+                  type="checkbox"
+                  id="enabled"
+                  name="enabled"
+                  checked={true}
+                  disabled
+                  className="h-5 w-5 text-blue-600"
+                />
+                <label htmlFor="enabled" className="ml-2 text-lg font-medium">
+                  Activer Facebook Pixel <span className="text-green-600">(Activé)</span>
+                </label>
+              </div>
 
             <div className="space-y-4">
               <div>
@@ -185,11 +190,14 @@ const AdminFacebookPixel = () => {
                   id="pixelId"
                   name="pixelId"
                   value={pixelConfig.pixelId}
-                  onChange={handleChange}
+                  readOnly
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-700"
                   placeholder="Ex: 123456789012345"
                 />
+                <p className="mt-1 text-sm text-green-600 font-medium">
+                  Pixel ID configuré: {PIXEL_ID}
+                </p>
                 <p className="mt-1 text-sm text-gray-500">
                   Vous pouvez trouver votre Pixel ID dans le Gestionnaire d'événements Facebook.
                 </p>

@@ -312,12 +312,14 @@ const AdminProducts = () => {
       
       // Ensure each variant has an id property for proper tracking
       const processedVariants = variants.map(variant => ({
-        ...variant,
         id: variant.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        color_name: variant.color_name || variant.color || '',
+        color_value: variant.color_value || '#000000',
+        size: variant.size || '',
         stock: parseInt(variant.stock) || 0,
-        price_adjustment: parseFloat(variant.price_adjustment) || 0,
-        color: variant.color || '',
-        size: variant.size || ''
+        sku: variant.sku || '',
+        barcode: variant.barcode || '',
+        price_adjustment: parseFloat(variant.price_adjustment) || 0
       }));
       
       console.log("Processed variants:", processedVariants);
@@ -1259,18 +1261,18 @@ const AdminProducts = () => {
                                 <div className="flex items-center space-x-3">
                                   <div 
                                     className="w-8 h-8 rounded-full border-2 border-gray-300"
-                                    style={{ backgroundColor: variant.color_value }}
+                                    style={{ backgroundColor: variant.color_value || '#000000' }}
                                     title={variant.color_name}
                                   ></div>
                                   <div>
                                     <div className="font-bold text-gray-900">
-                                      {variant.color_name} - {variant.size}
+                                      {variant.color_name || 'N/A'} - {variant.size || 'N/A'}
                                     </div>
                                   </div>
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => removeVariant(variant.id)}
+                                  onClick={() => removeVariant(index)}
                                   className="text-red-500 hover:text-red-700 text-lg"
                                   title="Supprimer"
                                 >
