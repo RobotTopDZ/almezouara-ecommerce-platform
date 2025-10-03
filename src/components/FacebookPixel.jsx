@@ -3,15 +3,35 @@ import axios from 'axios';
 
 const FacebookPixel = () => {
   const [pixelConfig, setPixelConfig] = useState(null);
+  // ID du pixel Facebook directement intégré
+  const PIXEL_ID = '925399229731159';
 
   useEffect(() => {
-    // Charger la configuration du pixel
+    // Initialiser directement avec l'ID du pixel fixe
+    setPixelConfig({
+      enabled: true,
+      pixelId: PIXEL_ID,
+      trackPageView: true,
+      trackAddToCart: true,
+      trackInitiateCheckout: true,
+      trackPurchase: true
+    });
+    
+    // Initialiser le pixel immédiatement
+    initPixel(PIXEL_ID);
+    
+    // Également charger depuis l'API pour compatibilité avec le reste du code
     const loadPixelConfig = async () => {
       try {
         const response = await axios.get('/api/facebook-pixel/client-config');
-        if (response.data && response.data.enabled && response.data.pixelId) {
-          setPixelConfig(response.data);
-          initPixel(response.data.pixelId);
+        if (response.data && response.data.enabled) {
+          // Garder notre ID fixe mais prendre les autres configurations
+          const mergedConfig = {
+            ...response.data,
+            pixelId: PIXEL_ID,
+            enabled: true
+          };
+          setPixelConfig(mergedConfig);
         }
       } catch (error) {
         console.error('Erreur lors du chargement de la configuration Facebook Pixel:', error);
@@ -24,6 +44,8 @@ const FacebookPixel = () => {
   // Initialiser Facebook Pixel
   const initPixel = (pixelId) => {
     if (!pixelId) return;
+    
+    console.log('Initialisation du Facebook Pixel avec ID:', pixelId);
 
     // Ajouter le script Facebook Pixel
     !function(f,b,e,v,n,t,s)
@@ -39,9 +61,19 @@ const FacebookPixel = () => {
     fbq('init', pixelId);
     
     // Envoyer l'événement PageView par défaut
-    if (pixelConfig?.trackPageView) {
-      fbq('track', 'PageView');
-    }
+    fbq('track', 'PageView');
+    
+    // Ajouter un noscript pour les navigateurs sans JavaScript
+    const noscript = document.createElement('noscript');
+    const img = document.createElement('img');
+    img.height = 1;
+    img.width = 1;
+    img.style.display = 'none';
+    img.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
+    noscript.appendChild(img);
+    document.body.appendChild(noscript);
+    
+    console.log('Facebook Pixel initialisé avec succès');
   };
 
   // Exposer les fonctions de suivi sur window pour une utilisation globale
