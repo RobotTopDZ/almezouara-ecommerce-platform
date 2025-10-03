@@ -343,10 +343,6 @@ const AdminProducts = () => {
         }
       });
       
-      // Set bulk colors and sizes for the variant generator
-      setBulkColors(uniqueColors);
-      setBulkSizes(uniqueSizes);
-      
       // Transform colors to new format if they're strings
       let colors = [];
       if (product.colors && product.colors.length > 0) {
@@ -387,6 +383,10 @@ const AdminProducts = () => {
       
       console.log("Setting form data:", formDataToSet);
       setFormData(formDataToSet);
+      
+      // Set bulk colors and sizes for the variant generator
+      setBulkColors(uniqueColors);
+      setBulkSizes(uniqueSizes);
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
