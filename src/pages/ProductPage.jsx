@@ -25,6 +25,30 @@ const ProductPage = () => {
   const [shippingCost, setShippingCost] = useState(0);
   const [availableCities, setAvailableCities] = useState([]);
   
+  // Function to handle checkout initiation with Facebook Pixel tracking
+  const handleInitiateCheckout = (show) => {
+    setShowCheckout(show);
+    
+    // Track InitiateCheckout event when opening checkout
+    if (show && window.fbq && product) {
+      const price = product.price * quantity;
+      window.fbq('track', 'InitiateCheckout', {
+        value: price,
+        currency: 'DZD',
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        contents: [{
+          id: product.id,
+          quantity: quantity,
+          item_price: product.price
+        }],
+        num_items: quantity
+      });
+      console.log('🔵 Facebook Pixel: InitiateCheckout event sent');
+    }
+  };
+  
   // New state for smart checkout
   const [checkoutStep, setCheckoutStep] = useState('phone'); // 'phone', 'customer-choice', 'form'
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -356,6 +380,7 @@ const ProductPage = () => {
         productPrice: totalProductPrice,
         discountPercentage: discountPercentage
       };
+
       
       // CRITICAL FIX: Ensure deliveryMethod is never undefined
       if (!orderPayload.deliveryMethod) {
@@ -365,6 +390,23 @@ const ProductPage = () => {
       
       console.log('🚀 Final order payload:', orderPayload);
       const response = await axios.post('/api/orders', orderPayload);
+      
+      // Facebook Pixel - Purchase event
+      if (window.fbq) {
+        window.fbq('track', 'Purchase', {
+          value: totalWithShipping,
+          currency: 'DZD',
+          content_ids: [product.id],
+          content_name: product.name,
+          content_type: 'product',
+          contents: [{
+            id: product.id,
+            quantity: quantity,
+            item_price: discountedPrice
+          }]
+        });
+        console.log('🔵 Facebook Pixel: Purchase event sent');
+      }
       
       // Show beautiful success modal
       setOrderSuccess({
@@ -595,7 +637,7 @@ const ProductPage = () => {
             <button
               onClick={() => {
                 resetCheckout();
-                setShowCheckout(true);
+                handleInitiateCheckout(true);
               }}
               disabled={product.stock <= 0 || !selectedColor || !selectedSize}
               className={`w-full py-4 px-8 rounded-xl font-semibold text-white text-lg transition-all duration-300 ${
@@ -618,7 +660,7 @@ const ProductPage = () => {
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowCheckout(false);
+              handleInitiateCheckout(false);
               resetCheckout();
             }
           }}
@@ -629,7 +671,7 @@ const ProductPage = () => {
                 <h2 className="text-xl font-bold text-text">{t('checkout.title')}</h2>
                 <button
                   onClick={() => {
-                    setShowCheckout(false);
+                    handleInitiateCheckout(false);
                     resetCheckout();
                   }}
                   className="text-gray-500 hover:text-gray-700"
@@ -1099,7 +1141,7 @@ const ProductPage = () => {
                 setSelectedColor(null);
                 setSelectedSize(null);
                 setQuantity(1);
-                setShowCheckout(false);
+                handleInitiateCheckout(false);
               }}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
             >
