@@ -216,9 +216,17 @@ const AdminProducts = () => {
           return;
         }
         simpleStock = parseInt(defaultStock);
-      } else if (formData.product_type === 'variable' && formData.variants.length === 0) {
-        alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
-        return;
+      } else if (formData.product_type === 'variable' && (!formData.variants || formData.variants.length === 0)) {
+        // Vérifier si nous sommes en mode édition et si nous avons des images
+        if (formData.images && formData.images.length > 0) {
+          // Si nous avons des images mais pas de variantes, c'est probablement juste un ajout d'image
+          // Nous ne bloquons pas dans ce cas
+          console.log("Ajout d'image sans variantes, on continue");
+        } else {
+          // Si aucune variante n'est configurée, afficher le message d'erreur
+          alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
+          return;
+        }
       }
 
       const productData = {
@@ -471,11 +479,13 @@ const AdminProducts = () => {
         setTimeout(() => {
           setFormData(prevData => {
             console.log("Previous form data:", prevData);
-            return {
+            const updatedData = {
               ...prevData,
               variants: JSON.parse(JSON.stringify(processedVariants)), // Créer une copie profonde pour forcer la mise à jour
               product_type: 'variable' // Forcer le type à variable
             };
+            console.log("Updated form data:", updatedData);
+            return updatedData;
           });
           
           // Mettre à jour également les couleurs et tailles en vrac pour le générateur de variantes
