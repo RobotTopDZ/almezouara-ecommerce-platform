@@ -6,6 +6,35 @@ console.log(`📊 Node Version: ${process.version}`);
 console.log(`📊 Platform: ${process.platform}`);
 console.log(`📊 Working Directory: ${process.cwd()}`);
 
+// Gestionnaires de signaux pour une meilleure robustesse
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM signal received. Graceful shutdown...');
+  // Donner 5 secondes pour terminer les requêtes en cours
+  setTimeout(() => {
+    console.log('👋 Server shutdown complete');
+    process.exit(0);
+  }, 5000);
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT signal received. Graceful shutdown...');
+  // Donner 3 secondes pour terminer les requêtes en cours
+  setTimeout(() => {
+    console.log('👋 Server shutdown complete');
+    process.exit(0);
+  }, 3000);
+});
+
+// Gestion des erreurs non capturées
+process.on('uncaughtException', (error) => {
+  console.error('🔴 Uncaught Exception:', error);
+  // Ne pas quitter immédiatement pour permettre la journalisation
+  setTimeout(() => {
+    console.log('👋 Server shutdown due to uncaught exception');
+    process.exit(1);
+  }, 1000);
+});
+
 const path = require('path');
 const express = require('express');
 const fs = require('fs');
