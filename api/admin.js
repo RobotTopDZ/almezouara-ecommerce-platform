@@ -122,13 +122,21 @@ router.get('/orders', async (req, res) => {
         let totalProductsPrice = orderItemsTotal;
         let shippingFee = 0;
         
-        // Utiliser la méthode de livraison pour déterminer les frais appropriés
+        // Extraire les frais de livraison de la première commande
+        // Pour Stopdesk, les frais sont généralement moins élevés (environ 200-300 DA)
+        // Pour la livraison à domicile, les frais sont plus élevés (environ 400-600 DA)
         if (order.deliveryMethod === 'stopdesk') {
-          // Pour Stopdesk, utiliser les frais de Stopdesk
-          // Les frais sont généralement moins élevés pour Stopdesk
-          shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+          // Pour Stopdesk, utiliser un montant fixe de 300 DA ou extraire du total si disponible
+          // Cela garantit que nous utilisons les frais de Stopdesk et non ceux de livraison à domicile
+          shippingFee = 300; // Valeur par défaut pour Stopdesk
+          
+          // Si nous pouvons calculer les frais réels, utilisons-les
+          const calculatedFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+          if (calculatedFee > 0 && calculatedFee <= 400) { // Vérifier que c'est un montant raisonnable pour Stopdesk
+            shippingFee = calculatedFee;
+          }
         } else {
-          // Pour la livraison à domicile, utiliser les frais de livraison à domicile
+          // Pour la livraison à domicile, extraire les frais du total
           shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
         }
         
