@@ -77,8 +77,61 @@ router.get('/orders', async (req, res) => {
       // Ajouter les items à la commande
       order.items = items;
     }
-
-    res.json({ orders });
+    
+    // Regrouper les commandes du même numéro de téléphone dans les dernières 12 heures
+    const groupedOrders = [];
+    const processedOrderIds = new Set();
+    
+    for (const order of orders) {
+      // Si la commande a déjà été traitée dans un groupe, on la saute
+      if (processedOrderIds.has(order.id)) continue;
+      
+      // Si la commande n'a pas de numéro de téléphone, on l'ajoute telle quelle
+      if (!order.phoneNumber) {
+        groupedOrders.push(order);
+        continue;
+      }
+      
+      // Chercher toutes les commandes du même numéro de téléphone dans les 12 dernières heures
+      const relatedOrders = orders.filter(o => 
+        o.phoneNumber === order.phoneNumber && 
+        o.id !== order.id &&
+        !processedOrderIds.has(o.id) &&
+        Math.abs(new Date(o.date || o.created_at) - new Date(order.date || order.created_at)) < 12 * 60 * 60 * 1000
+      );
+      
+      // Si on a trouvé des commandes liées, on les regroupe
+      if (relatedOrders.length > 0) {
+        // Marquer toutes les commandes liées comme traitées
+        relatedOrders.forEach(o => processedOrderIds.add(o.id));
+        
+        // Créer une commande groupée
+        const groupedOrder = { ...order };
+        groupedOrder.isGrouped = true;
+        groupedOrder.relatedOrders = relatedOrders;
+        groupedOrder.originalId = order.id;
+        groupedOrder.groupedIds = [order.id, ...relatedOrders.map(o => o.id)];
+        
+        // Ajouter tous les items des commandes liées
+        groupedOrder.items = [...order.items];
+        relatedOrders.forEach(o => {
+          if (o.items && o.items.length) {
+            groupedOrder.items = [...groupedOrder.items, ...o.items];
+          }
+        });
+        
+        groupedOrders.push(groupedOrder);
+      } else {
+        // Si pas de commandes liées, ajouter la commande telle quelle
+        groupedOrders.push(order);
+      }
+      
+      // Marquer cette commande comme traitée
+      processedOrderIds.add(order.id);
+    }
+    
+    // Retourner les commandes groupées au lieu des commandes originales
+    res.json({ orders: groupedOrders });
   } catch (error) {
     console.error('Get orders error:', error);
     res.status(500).json({ error: 'Failed to get orders' });
