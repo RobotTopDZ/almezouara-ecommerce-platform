@@ -1461,8 +1461,7 @@ const AdminProducts = () => {
 
                     {/* No Variants Warning - Afficher uniquement si aucune variante n'est configurée */}
                     {formData.product_type === 'variable' && 
-                     (!formData.variants || formData.variants.length === 0) && 
-                     (!processedVariants || processedVariants.length === 0) && (
+                     (!formData.variants || formData.variants.length === 0) && (
                       <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
                         <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
                         <p className="text-red-700">
