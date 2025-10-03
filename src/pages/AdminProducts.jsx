@@ -392,11 +392,13 @@ const AdminProducts = () => {
       // Générer les variations automatiquement si nécessaire
       // Important: Appeler après setFormData pour s'assurer que les données sont disponibles
       if (processedVariants.length > 0) {
-        // Attendre que formData soit mis à jour
-        setTimeout(() => {
-          // Générer les combinaisons à partir des variants existants
-          generateVariantCombinations();
-        }, 100);
+        // Utiliser directement les variants existants au lieu de générer des combinaisons
+        setFormData(prevData => ({
+          ...prevData,
+          variants: processedVariants
+        }));
+        
+        console.log("Variants existants chargés directement:", processedVariants);
       }
     } catch (error) {
       console.error('Error loading variants:', error);
