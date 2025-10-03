@@ -102,17 +102,33 @@ router.post('/test', (req, res) => {
       return res.status(500).json({ error: 'Erreur serveur' });
     }
 
-    if (!row || !row.pixel_id) {
-      return res.status(400).json({ error: 'ID Pixel non configuré' });
+    if (!row) {
+      return res.status(400).json({ error: 'Configuration Facebook Pixel non trouvée' });
+    }
+    
+    if (!row.pixel_id || row.pixel_id.trim() === '') {
+      return res.status(400).json({ error: 'ID Pixel non configuré ou invalide' });
     }
 
-    // Simuler un test de connexion
-    // Dans une implémentation réelle, vous pourriez faire une requête à l'API Facebook
-    res.json({ 
-      success: true, 
-      message: 'Connexion réussie avec Facebook Pixel',
-      pixelId: row.pixel_id
-    });
+    try {
+      // Simuler un test de connexion
+      // Dans une implémentation réelle, vous pourriez faire une requête à l'API Facebook
+      console.log('Test de connexion avec Facebook Pixel ID:', row.pixel_id);
+      
+      // Vérifier que l'ID est au format attendu (généralement numérique)
+      if (!/^\d+$/.test(row.pixel_id.trim())) {
+        throw new Error('Format d\'ID Pixel invalide');
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Connexion réussie avec Facebook Pixel',
+        pixelId: row.pixel_id
+      });
+    } catch (testErr) {
+      console.error('Erreur lors du test Facebook Pixel:', testErr);
+      res.status(400).json({ error: 'Erreur lors du test: ' + testErr.message });
+    }
   });
 });
 

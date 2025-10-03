@@ -315,7 +315,9 @@ const AdminProducts = () => {
         ...variant,
         id: variant.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         stock: parseInt(variant.stock) || 0,
-        price_adjustment: parseFloat(variant.price_adjustment) || 0
+        price_adjustment: parseFloat(variant.price_adjustment) || 0,
+        color: variant.color || '',
+        size: variant.size || ''
       }));
       
       console.log("Processed variants:", processedVariants);
@@ -330,19 +332,36 @@ const AdminProducts = () => {
           return color;
         });
       }
+
+      // Ensure sizes is an array
+      let sizes = [];
+      if (product.sizes) {
+        if (typeof product.sizes === 'string') {
+          try {
+            sizes = JSON.parse(product.sizes);
+          } catch (e) {
+            sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+          }
+        } else if (Array.isArray(product.sizes)) {
+          sizes = product.sizes;
+        }
+      }
       
-      setFormData({
+      const formDataToSet = {
         name: product.name,
         category_id: product.categoryId?.toString() || product.category_id?.toString() || '',
         price: product.price.toString(),
         description: product.description,
         images: product.images || [],
         colors: colors,
-        sizes: product.sizes && product.sizes.length > 0 ? product.sizes : [],
+        sizes: sizes,
         variants: processedVariants,
         status: product.status,
         product_type: product.product_type || 'simple'
-      });
+      };
+      
+      console.log("Setting form data:", formDataToSet);
+      setFormData(formDataToSet);
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
@@ -1281,7 +1300,7 @@ const AdminProducts = () => {
                                     type="number"
                                     value={variant.stock}
                                     onChange={(e) => {
-                                      const newStock = parseInt(e.target.value) || 0;
+                                      const newStock = Math.max(0, parseInt(e.target.value) || 0);
                                       const newVariants = [...formData.variants];
                                       const index = newVariants.findIndex(v => v.id === variant.id);
                                       if (index !== -1) {

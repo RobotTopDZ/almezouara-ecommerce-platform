@@ -71,8 +71,14 @@ const AdminFacebookPixel = () => {
     setError(null);
     
     try {
-      console.log('Sauvegarde de la configuration:', pixelConfig);
-      const response = await axios.post('/api/facebook-pixel', { config: pixelConfig });
+      // S'assurer que pixelId est une chaîne de caractères
+      const configToSave = {
+        ...pixelConfig,
+        pixelId: String(pixelConfig.pixelId || '').trim()
+      };
+      
+      console.log('Sauvegarde de la configuration:', configToSave);
+      const response = await axios.post('/api/facebook-pixel', { config: configToSave });
       console.log('Réponse du serveur:', response.data);
       
       if (response.data && response.data.success) {
@@ -91,7 +97,7 @@ const AdminFacebookPixel = () => {
           } catch (reloadErr) {
             console.error('Erreur lors du rechargement de la configuration:', reloadErr);
           }
-        }, 500);
+        }, 1000); // Augmenter le délai à 1000ms
       } else {
         throw new Error('La réponse du serveur n\'indique pas de succès');
       }
