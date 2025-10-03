@@ -118,10 +118,19 @@ router.get('/orders', async (req, res) => {
         // Calculer le prix total des produits de la première commande
         const orderItemsTotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.quantity || 1)), 0);
         
-        // Extraire les frais de livraison de la première commande
-        // Les frais de livraison sont la différence entre le total et le prix des produits
+        // Déterminer les frais de livraison en fonction de la méthode de livraison
         let totalProductsPrice = orderItemsTotal;
-        let shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+        let shippingFee = 0;
+        
+        // Utiliser la méthode de livraison pour déterminer les frais appropriés
+        if (order.deliveryMethod === 'stopdesk') {
+          // Pour Stopdesk, utiliser les frais de Stopdesk
+          // Les frais sont généralement moins élevés pour Stopdesk
+          shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+        } else {
+          // Pour la livraison à domicile, utiliser les frais de livraison à domicile
+          shippingFee = Math.max(0, parseFloat(order.total || 0) - orderItemsTotal);
+        }
         
         // Ajouter les articles et calculer le prix total des produits
         relatedOrders.forEach(o => {
@@ -137,6 +146,7 @@ router.get('/orders', async (req, res) => {
         groupedOrder.total = totalProductsPrice + shippingFee;
         groupedOrder.productsTotal = totalProductsPrice;
         groupedOrder.shippingFee = shippingFee;
+        groupedOrder.deliveryMethod = order.deliveryMethod; // S'assurer que la méthode de livraison est préservée
         
         groupedOrders.push(groupedOrder);
       } else {
