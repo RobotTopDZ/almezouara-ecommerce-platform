@@ -80,7 +80,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
         
         const response = await axios.post("/api/upload", formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": "multipart/form-data"/
           }
         });
         
@@ -175,7 +175,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
     console.log("Variants being sent:", productData.variants);
 
     if (editingProduct) {
-      await axios.put(`/api/products/${editingProduct.id}`, productData);
+      await axios.put(`/api/products/${editingProduct.id}`, productData);/
     } else {
       await axios.post("/api/products", productData);
     }
@@ -277,7 +277,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
           (variantsRes.data && variantsRes.data.variants && variantsRes.data.variants.length === 0)) {
         try {
           console.log("Fetching variants by product name:", product.name);
-          variantsRes = await axios.get(`/api/product-variants/search?name=${encodeURIComponent(product.name)}`);
+          variantsRes = await axios.get(`/api/product-variants/search?name=${encodeURIComponent(product.name)}`);/
           console.log("Variants API response by name:", variantsRes);
         } catch (error) {
           console.log("Error fetching variants by name:", error);
@@ -469,7 +469,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
-        await axios.delete(`/api/products/${id}`);
+        await axios.delete(`/api/products/${id}`);/
         await loadData();
         alert("Produit supprimé avec succès!");
       } catch (error) {
@@ -701,11 +701,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       <AdminLayout>
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">Chargement des produits...</p>
-          </div>
-        </div>
-      </AdminLayout>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>/
+            <p className="text-gray-600 text-lg">Chargement des produits...</p>/
+          </div>/
+        </div>/
+      </AdminLayout>/
     );
   }
 
@@ -715,99 +715,99 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
       {showProductTypeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full">
-            <h2 className="text-xl font-semibold mb-4">Choisir le type de produit</h2>
+            <h2 className="text-xl font-semibold mb-4">Choisir le type de produit</h2>/
             <div className="grid grid-cols-2 gap-4 mb-4">
               <button
                 onClick={() => handleProductTypeSelection("simple")}
                 className="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
               >
-                <div className="text-3xl mb-2">📦</div>
-                <div className="font-medium">Produit Simple</div>
-                <div className="text-sm text-gray-600 text-center mt-1">Un produit sans variations</div>
-              </button>
+                <div className="text-3xl mb-2">📦</div>/
+                <div className="font-medium">Produit Simple</div>/
+                <div className="text-sm text-gray-600 text-center mt-1">Un produit sans variations</div>/
+              </button>/
               <button
                 onClick={() => handleProductTypeSelection("variable")}
                 className="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg flex flex-col items-center justify-center transition-colors"
               >
-                <div className="text-3xl mb-2">🎨</div>
-                <div className="font-medium">Produit Variable</div>
-                <div className="text-sm text-gray-600 text-center mt-1">Avec couleurs, tailles, etc.</div>
-              </button>
-            </div>
+                <div className="text-3xl mb-2">🎨</div>/
+                <div className="font-medium">Produit Variable</div>/
+                <div className="text-sm text-gray-600 text-center mt-1">Avec couleurs, tailles, etc.</div>/
+              </button>/
+            </div>/
             <button
               onClick={() => setShowProductTypeModal(false)}
               className="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300 transition-colors"
             >
               Annuler
-            </button>
-          </div>
-        </div>
+            </button>/
+          </div>/
+        </div>/
       )}
       
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Produits</h1>
-            <p className="text-gray-600">Gérez votre catalogue de produits</p>
-          </div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestion des Produits</h1>/
+            <p className="text-gray-600">Gérez votre catalogue de produits</p>/
+          </div>/
           <button
             onClick={() => setShowProductTypeModal(true)}
             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
           >
-            <span>➕</span>
-            <span>Nouveau Produit</span>
-          </button>
-        </div>
+            <span>➕</span>/
+            <span>Nouveau Produit</span>/
+          </button>/
+        </div>/
 
         {/* Filters */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>/
               <input
                 type="text"
                 placeholder="Nom ou description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
+              />/
+            </div>/
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>/
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">Toutes les catégories</option>/
                 {categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
-                  </option>
+                  </option>/
                 ))}
-              </select>
-            </div>
+              </select>/
+            </div>/
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>/
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">Tous les statuts</option>
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-                <option value="out_of_stock">Rupture de stock</option>
-              </select>
-            </div>
+                <option value="">Tous les statuts</option>/
+                <option value="active">Actif</option>/
+                <option value="inactive">Inactif</option>/
+                <option value="out_of_stock">Rupture de stock</option>/
+              </select>/
+            </div>/
             <div className="flex items-end">
               <div className="text-sm text-gray-600">
                 {filteredProducts.length} produit(s) trouvé(s)
-              </div>
-            </div>
-          </div>
-        </div>
+              </div>/
+            </div>/
+          </div>/
+        </div>/
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -822,18 +822,18 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       src={product.images[0]}
                       alt={product.name}
                       className="w-full h-48 object-cover"
-                    />
+                    />/
                   ) : (
                     <div className="w-full h-48 flex items-center justify-center text-gray-400">
-                      <span className="text-4xl">📦</span>
-                    </div>
+                      <span className="text-4xl">📦</span>/
+                    </div>/
                   )}
-                </div>
+                </div>/
 
                 {/* Product Info */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm">{product.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-sm">{product.name}</h3>/
                     <div className="flex space-x-1">
                       <button
                         onClick={() => handleEdit(product)}
@@ -841,16 +841,16 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         title="Modifier"
                       >
                         ✏️
-                      </button>
+                      </button>/
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="text-red-600 hover:text-red-800 text-sm"
                         title="Supprimer"
                       >
                         🗑️
-                      </button>
-                    </div>
-                  </div>
+                      </button>/
+                    </div>/
+                  </div>/
 
                   {/* Category Badge */}
                   {category && (
@@ -860,30 +860,30 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         style={{ backgroundColor: category.color }}
                       >
                         {category.name}
-                      </span>
-                    </div>
+                      </span>/
+                    </div>/
                   )}
 
                   {/* Price and Stock */}
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold text-purple-600">{formatPrice(product.price)}</span>
+                    <span className="text-lg font-bold text-purple-600">{formatPrice(product.price)}</span>/
                     <span className={`text-sm px-2 py-1 rounded ${
                       product.stock > 10 ? "bg-green-100 text-green-800" :
                       product.stock > 0 ? "bg-yellow-100 text-yellow-800" :
                       "bg-red-100 text-red-800"
                     }`}>
                       Stock: {product.stock}
-                    </span>
-                  </div>
+                    </span>/
+                  </div>/
 
                   {/* Description */}
-                  <p className="text-gray-600 text-xs mb-3 line-clamp-2">{product.description}</p>
+                  <p className="text-gray-600 text-xs mb-3 line-clamp-2">{product.description}</p>/
 
                   {/* Colors and Sizes */}
                   <div className="space-y-2">
                     {Array.isArray(product.colors) && product.colors.length > 0 && (
                       <div className="flex items-center space-x-1">
-                        <span className="text-xs text-gray-500">Couleurs:</span>
+                        <span className="text-xs text-gray-500">Couleurs:</span>/
                         <div className="flex space-x-1">
                           {product.colors.slice(0, 4).map((color, index) => {
                             const colorValue = typeof color === "string" ? "#000000" : color.value;
@@ -894,30 +894,30 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                   className="w-3 h-3 rounded-full border border-gray-300" 
                                   style={{ backgroundColor: colorValue }}
                                   title={colorName}
-                                ></div>
-                                <span className="text-xs text-gray-600">{colorName}</span>
-                              </div>
+                                ></div>/
+                                <span className="text-xs text-gray-600">{colorName}</span>/
+                              </div>/
                             );
                           })}
                           {product.colors.length > 4 && (
-                            <span className="text-xs text-gray-400">+{product.colors.length - 4}</span>
+                            <span className="text-xs text-gray-400">+{product.colors.length - 4}</span>/
                           )}
-                        </div>
-                      </div>
+                        </div>/
+                      </div>/
                     )}
                     {Array.isArray(product.sizes) && product.sizes.length > 0 && (
                       <div className="flex items-center space-x-1">
-                        <span className="text-xs text-gray-500">Tailles:</span>
+                        <span className="text-xs text-gray-500">Tailles:</span>/
                         <div className="flex space-x-1">
                           {product.sizes.map((size, index) => (
                             <span key={index} className="text-xs bg-gray-100 px-1 py-0.5 rounded">
                               {size}
-                            </span>
+                            </span>/
                           ))}
-                        </div>
-                      </div>
+                        </div>/
+                      </div>/
                     )}
-                  </div>
+                  </div>/
 
                   {/* Status */}
                   <div className="mt-3 pt-3 border-t border-gray-100">
@@ -929,28 +929,28 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       {product.status === "active" ? "✅ Actif" :
                        product.status === "inactive" ? "⏸️ Inactif" :
                        "❌ Rupture de stock"}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                    </span>/
+                  </div>/
+                </div>/
+              </div>/
             );
           })}
-        </div>
+        </div>/
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun produit trouvé</h3>
-            <p className="text-gray-500 mb-4">Essayez de modifier vos filtres ou ajoutez un nouveau produit.</p>
+            <div className="text-4xl mb-4">📦</div>/
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun produit trouvé</h3>/
+            <p className="text-gray-500 mb-4">Essayez de modifier vos filtres ou ajoutez un nouveau produit.</p>/
             <button
               onClick={() => setShowModal(true)}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
             >
               Ajouter un produit
-            </button>
-          </div>
+            </button>/
+          </div>/
         )}
-      </div>
+      </div>/
 
       {/* Product Modal */}
       {showModal && (
@@ -960,49 +960,49 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">
                   {editingProduct ? "Modifier le Produit" : "Nouveau Produit"}
-                </h2>
+                </h2>/
                 <button
                   onClick={resetForm}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   ✕
-                </button>
-              </div>
+                </button>/
+              </div>/
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du produit *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du produit *</label>/
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       required
-                    />
-                  </div>
+                    />/
+                  </div>/
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>/
                     <select
                       value={formData.category_id}
                       onChange={(e) => setFormData({...formData, category_id: e.target.value})}
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       required
                     >
-                      <option value="">Sélectionnez une catégorie</option>
+                      <option value="">Sélectionnez une catégorie</option>/
                       {categories.map(category => (
                         <option key={category.id} value={category.id}>
                           {category.name}
-                        </option>
+                        </option>/
                       ))}
-                    </select>
-                  </div>
-                </div>
+                    </select>/
+                  </div>/
+                </div>/
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prix (DA) *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Prix (DA) *</label>/
                     <input
                       type="number"
                       value={formData.price}
@@ -1011,68 +1011,68 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       required
                       min="0"
                       step="0.01"
-                    />
-                  </div>
+                    />/
+                  </div>/
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>/
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="active">Actif</option>
-                      <option value="inactive">Inactif</option>
-                      <option value="out_of_stock">Rupture de stock</option>
-                    </select>
-                  </div>
-                </div>
+                      <option value="active">Actif</option>/
+                      <option value="inactive">Inactif</option>/
+                      <option value="out_of_stock">Rupture de stock</option>/
+                    </select>/
+                  </div>/
+                </div>/
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>/
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     rows={3}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
+                  />/
+                </div>/
 
-                {/* Conditional Stock/Variant Management */}
+                {/* Conditional Stock/Variant Management */}/
                 {formData.product_type === "simple" ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>/
                     <input
                       type="number"
                       id="simple-product-stock"
                       defaultValue={editingProduct?.stock ?? formData.variants[0]?.stock ?? ""}
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="Quantité en stock"
-                    />
-                  </div>
+                    />/
+                  </div>/
                 ) : (
                   <div className="border-t pt-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">📦 Gestion du Stock par Couleur et Taille</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">📦 Gestion du Stock par Couleur et Taille</h3>/
                     
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                      <h4 className="text-sm font-bold text-yellow-800 mb-2">💡 Instructions:</h4>
+                      <h4 className="text-sm font-bold text-yellow-800 mb-2">💡 Instructions:</h4>/
                       <p className="text-sm text-yellow-700">
-                        Définissez le stock pour chaque combinaison couleur/taille. 
-                        <strong>Exemple:</strong> Rouge Taille L = 10 pièces, Noir Taille S = 8 pièces, etc.
-                      </p>
-                    </div>
+                        Définissez le stock pour chaque combinaison couleur/taille. /
+                        <strong>Exemple:</strong> Rouge Taille L = 10 pièces, Noir Taille S = 8 pièces, etc./
+                      </p>/
+                    </div>/
 
                     {/* Génération Automatique des Variations */}
                     <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">
                       <h4 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
-                        <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✨</span>
+                        <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✨</span>/
                         Génération Automatique des Variations
-                      </h4>
+                      </h4>/
                       
                       {/* Bulk Colors Input */}
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Ajouter des Couleurs
-                        </label>
+                        </label>/
                         <div className="flex space-x-2 mb-3">
                           <input
                             type="text"
@@ -1081,7 +1081,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             placeholder="Nom de la couleur (ex: Rouge, Bleu...)"
                             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addBulkColor())}
-                          />
+                          />/
                           <div className="flex flex-col space-y-1">
                             <input
                               type="color"
@@ -1089,7 +1089,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                               onChange={(e) => setBulkColorValue(e.target.value)}
                               className="w-12 h-6 border-2 border-gray-300 rounded cursor-pointer"
                               title="Sélectionner la couleur"
-                            />
+                            />/
                             <input
                               type="text"
                               value={bulkColorValue}
@@ -1098,16 +1098,16 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                               className="w-20 text-xs border border-gray-300 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500"
                               pattern="^#[0-9A-Fa-f]{6}$"
                               title="Code couleur hexadécimal (ex: #FF0000)"
-                            />
-                          </div>
+                            />/
+                          </div>/
                           <button
                             type="button"
                             onClick={addBulkColor}
                             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                           >
                             Ajouter
-                          </button>
-                        </div>
+                          </button>/
+                        </div>/
                         
                         {/* Color Tags */}
                         <div className="flex flex-wrap gap-2 mt-3">
@@ -1121,24 +1121,24 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                 value={color.value}
                                 onChange={(e) => updateColorValue(index, e.target.value)}
                                 className="w-5 h-5 rounded-full mr-1 cursor-pointer"
-                              />
-                              <span className="text-sm">{color.name}</span>
+                              />/
+                              <span className="text-sm">{color.name}</span>/
                               <button 
                                 onClick={() => removeBulkColor(index)}
                                 className="ml-1 text-gray-500 hover:text-red-500"
                               >
                                 ×
-                              </button>
-                            </div>
+                              </button>/
+                            </div>/
                           ))}
-                        </div>
-                      </div>
+                        </div>/
+                      </div>/
                       
                       {/* Bulk Sizes Input */}
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Ajouter des Tailles
-                        </label>
+                        </label>/
                         <div className="flex space-x-2">
                           <input
                             type="text"
@@ -1147,15 +1147,15 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             placeholder="Ex: S, M, L, XL..."
                             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addBulkSize())}
-                          />
+                          />/
                           <button
                             type="button"
                             onClick={addBulkSize}
                             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                           >
                             Ajouter
-                          </button>
-                        </div>
+                          </button>/
+                        </div>/
                         
                         {/* Size Tags */}
                         <div className="flex flex-wrap gap-2 mt-3">
@@ -1164,17 +1164,17 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                               key={index} 
                               className="flex items-center bg-gray-100 rounded-full px-3 py-1"
                             >
-                              <span className="text-sm">{size}</span>
+                              <span className="text-sm">{size}</span>/
                               <button 
                                 onClick={() => removeBulkSize(index)}
                                 className="ml-1 text-gray-500 hover:text-red-500"
                               >
                                 ×
-                              </button>
-                            </div>
+                              </button>/
+                            </div>/
                           ))}
-                        </div>
-                      </div>
+                        </div>/
+                      </div>/
                       
                       {/* Generate Button */}
                       <button
@@ -1183,27 +1183,27 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         disabled={bulkColors.length === 0 || bulkSizes.length === 0}
                         className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-bold flex items-center justify-center"
                       >
-                        <span className="mr-2">✨</span>
+                        <span className="mr-2">✨</span>/
                         Générer {bulkColors.length * bulkSizes.length} Variations
-                      </button>
-                    </div>
+                      </button>/
+                    </div>/
                     
                     {/* Generated Variants */}
                     {generatedVariants.length > 0 && (
                       <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">
                         <h4 className="text-lg font-semibold text-purple-800 mb-4">
                           Variations Générées ({generatedVariants.length})
-                        </h4>
+                        </h4>/
                         
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="bg-gray-50">
-                                <th className="px-4 py-2 text-left">Couleur</th>
-                                <th className="px-4 py-2 text-left">Taille</th>
-                                <th className="px-4 py-2 text-right">Stock</th>
-                              </tr>
-                            </thead>
+                                <th className="px-4 py-2 text-left">Couleur</th>/
+                                <th className="px-4 py-2 text-left">Taille</th>/
+                                <th className="px-4 py-2 text-right">Stock</th>/
+                              </tr>/
+                            </thead>/
                             <tbody>
                               {generatedVariants.map((variant, index) => (
                                 <tr key={index} className="border-t border-gray-100">
@@ -1212,11 +1212,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                       <div 
                                         className="w-5 h-5 rounded-full mr-2"
                                         style={{ backgroundColor: variant.color_value }}
-                                      ></div>
+                                      ></div>/
                                       {variant.color_name}
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-3">{variant.size}</td>
+                                    </div>/
+                                  </td>/
+                                  <td className="px-4 py-3">{variant.size}</td>/
                                   <td className="px-4 py-3">
                                     <input
                                       type="number"
@@ -1224,13 +1224,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                       onChange={(e) => updateGeneratedVariantStock(index, e.target.value)}
                                       min="0"
                                       className="w-20 text-right border border-gray-300 rounded px-2 py-1"
-                                    />
-                                  </td>
-                                </tr>
+                                    />/
+                                  </td>/
+                                </tr>/
                               ))}
-                            </tbody>
-                          </table>
-                        </div>
+                            </tbody>/
+                          </table>/
+                        </div>/
                         
                         <div className="mt-4 flex justify-between">
                           <button
@@ -1239,55 +1239,55 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             className="text-gray-600 hover:text-gray-800"
                           >
                             Annuler
-                          </button>
+                          </button>/
                           <button
                             type="button"
                             onClick={saveGeneratedVariants}
                             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                           >
                             Ajouter toutes les variations
-                          </button>
-                        </div>
-                      </div>
+                          </button>/
+                        </div>/
+                      </div>/
                     )}
 
                     {/* Quick Stock Setup */}
                     <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Manuelle</h4>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Configuration Manuelle</h4>/
                       
                       {/* Color and Size Inputs */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Couleur *
-                          </label>
+                          </label>/
                           <input
                             type="text"
                             value={currentVariant.color_name}
                             onChange={(e) => setCurrentVariant({...currentVariant, color_name: e.target.value})}
                             placeholder="Ex: Rouge, Noir, Bleu, Blanc"
                             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
+                          />/
+                        </div>/
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Taille *
-                          </label>
+                          </label>/
                           <input
                             type="text"
                             value={currentVariant.size}
                             onChange={(e) => setCurrentVariant({...currentVariant, size: e.target.value})}
                             placeholder="Ex: S, M, L, XL, XXL"
                             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
+                          />/
+                        </div>/
+                      </div>/
 
                       {/* Stock Quantity */}
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-red-700 mb-2">
                           🏷️ Quantité en Stock *
-                        </label>
+                        </label>/
                         <input
                           type="number"
                           value={currentVariant.stock}
@@ -1295,27 +1295,27 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                           min="0"
                           placeholder="Ex: 10, 5, 0"
                           className="w-full border-2 border-red-300 rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-red-50"
-                        />
+                        />/
                         <p className="text-sm text-red-600 mt-1">Nombre de pièces disponibles pour cette combinaison couleur/taille</p>
-                      </div>
+                      </div>/
 
                       {/* Color Preview */}
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Aperçu de la couleur
-                        </label>
+                        </label>/
                         <div className="flex items-center space-x-4">
                           <input
                             type="color"
                             value={currentVariant.color_value}
                             onChange={(e) => setCurrentVariant({...currentVariant, color_value: e.target.value})}
                             className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer"
-                          />
+                          />/
                           <div className="text-sm text-gray-600">
-                            Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || "Non définie"}</span>
-                          </div>
-                        </div>
-                      </div>
+                            Couleur sélectionnée: <span className="font-medium">{currentVariant.color_name || "Non définie"}</span>/
+                          </div>/
+                        </div>/
+                      </div>/
 
                       {/* Add Variant Button */}
                       <button
@@ -1324,18 +1324,18 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                         disabled={!currentVariant.color_name || !currentVariant.size || currentVariant.stock < 0}
                         className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg font-bold flex items-center justify-center"
                       >
-                        <span className="mr-2">➕</span>
+                        <span className="mr-2">➕</span>/
                         Ajouter cette combinaison (Stock: {currentVariant.stock || 0})
-                      </button>
-                    </div>
+                      </button>/
+                    </div>/
 
                     {/* Current Variants List */}
                     {formData.variants.length > 0 && (
                       <div className="mt-8">
                         <h4 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
-                          <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✓</span>
+                          <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">✓</span>/
                           Variantes configurées ({formData.variants.length}) - Stock total: {totalStock}
-                        </h4>
+                        </h4>/
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {formData.variants.map((variant, index) => (
@@ -1346,13 +1346,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                     className="w-8 h-8 rounded-full border-2 border-gray-300"
                                     style={{ backgroundColor: variant.color_value || "#000000" }}
                                     title={variant.color_name}
-                                  ></div>
+                                  ></div>/
                                   <div>
                                     <div className="font-bold text-gray-900">
                                       {variant.color_name || "N/A"} - {variant.size || "N/A"}
-                                    </div>
-                                  </div>
-                                </div>
+                                    </div>/
+                                  </div>/
+                                </div>/
                                 <button
                                   type="button"
                                   onClick={() => removeVariant(index)}
@@ -1360,11 +1360,11 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                   title="Supprimer"
                                 >
                                   ✕
-                                </button>
-                              </div>
+                                </button>/
+                              </div>/
                               
                               <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg text-center">
-                                <div className="text-sm font-medium">Stock</div>
+                                <div className="text-sm font-medium">Stock</div>/
                                 <div className="flex items-center justify-center">
                                   <button 
                                     type="button"
@@ -1380,7 +1380,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                     className="bg-red-200 hover:bg-red-300 text-red-800 font-bold px-2 rounded-l"
                                   >
                                     -
-                                  </button>
+                                  </button>/
                                   <input
                                     type="number"
                                     value={variant.stock}
@@ -1395,7 +1395,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                     }}
                                     min="0"
                                     className="w-16 text-center text-xl font-bold bg-red-100 border-0 focus:ring-0"
-                                  />
+                                  />/
                                   <button 
                                     type="button"
                                     onClick={() => {
@@ -1410,9 +1410,9 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                     className="bg-red-200 hover:bg-red-300 text-red-800 font-bold px-2 rounded-r"
                                   >
                                     +
-                                  </button>
-                                </div>
-                              </div>
+                                  </button>/
+                                </div>/
+                              </div>/
                               
                               <button
                                 type="button"
@@ -1420,45 +1420,45 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                 className="w-full mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
                               >
                                 ✏️ Modifier
-                              </button>
-                            </div>
+                              </button>/
+                            </div>/
                           ))}
-                        </div>
-                      </div>
+                        </div>/
+                      </div>/
                     )}
 
                     {/* No Variants Warning - Afficher uniquement si aucune variante n"est configurée */}
                     {formData.product_type === "variable" && 
                      (!formData.variants || formData.variants.length === 0) && (
                       <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
-                        <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
+                        <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>/
                         <p className="text-red-700">
-                          Vous devez ajouter au moins une combinaison couleur/taille avec stock pour créer ce produit.
-                        </p>
-                      </div>
+                          Vous devez ajouter au moins une combinaison couleur/taille avec stock pour créer ce produit./
+                        </p>/
+                      </div>/
                     )}
-                  </div>
+                  </div>/
                 )}
 
                 {/* Images URLs */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Images URLs (supports Google Drive links)
-                  </label>
+                  </label>/
                   
                   {/* Image Upload Field */}
                   <div className="mb-4 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                     <div className="text-center">
-                      <div className="mb-2 text-sm font-medium text-gray-700">Télécharger une image</div>
+                      <div className="mb-2 text-sm font-medium text-gray-700">Télécharger une image</div>/
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*"/
                         onChange={(e) => handleImageUpload(e.target.files[0])}
                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu"à 5MB</p>
-                    </div>
-                  </div>
+                      />/
+                      <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu"à 5MB</p>/
+                    </div>/
+                  </div>/
                   
                   <div className="space-y-4">
                     {formData.images.map((url, index) => {
@@ -1472,9 +1472,9 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                               type="text"
                               value={url}
                               onChange={(e) => handleURLChange(index, e.target.value)}
-                              placeholder="https://drive.google.com/... or direct image URL"
+                              placeholder="https://drive.google.com/... or direct image URL"/
                               className="flex-1 p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+                            />/
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
@@ -1483,13 +1483,13 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                               title="Remove image"
                             >
                               Remove
-                            </button>
-                          </div>
+                            </button>/
+                          </div>/
                           
                           {/* Image Preview */}
                           {processedUrl && (
                             <div className="relative border rounded p-2 bg-gray-50">
-                              <div className="text-xs text-gray-500 mb-1">Preview:</div>
+                              <div className="text-xs text-gray-500 mb-1">Preview:</div>/
                               <div className="flex items-center space-x-2 overflow-x-auto">
                                 <img 
                                   src={processedUrl} 
@@ -1497,19 +1497,19 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                   className="h-24 w-auto object-contain border rounded"
                                   onError={(e) => {
                                      e.target.onerror = null;
-                                     e.target.src = "/placeholder.svg";
+                                     e.target.src = "/placeholder.svg";/
                                    }}
-                                />
+                                />/
                                 {isGoogleDrive && (
                                   <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                                    <div className="font-medium">Google Drive Detected</div>
-                                    <div className="text-xs text-gray-500">Link will be converted automatically</div>
-                                  </div>
+                                    <div className="font-medium">Google Drive Detected</div>/
+                                    <div className="text-xs text-gray-500">Link will be converted automatically</div>/
+                                  </div>/
                                 )}
-                              </div>
-                            </div>
+                              </div>/
+                            </div>/
                           )}
-                        </div>
+                        </div>/
                       );
                     })}
                     <button
@@ -1518,16 +1518,16 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                       className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-2"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />/
+                      </svg>/
                       Add another image URL
-                    </button>
+                    </button>/
                     <p className="text-xs text-gray-500 mt-1">
                       Tip: Paste Google Drive shareable links directly. They"ll be converted automatically.
-                    </p>
-                  </div>
+                    </p>/
+                  </div>/
                   <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>/
                     <div className="flex flex-wrap gap-2">
                       {formData.images.filter(url => url.trim() !== "").map((url, index) => (
                         <div key={index} className="relative group">
@@ -1537,21 +1537,22 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             className="h-20 w-20 object-cover rounded border border-gray-300"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "/placeholder.svg";
+                              e.target.src = "/placeholder.svg";/
                             }}
-                          />
-                        </div>
+                          />/
+                        </div>/
                       ))}
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                    </div>/
+                  </div>/
+                </div>/
+              </form>/
+            </div>/
+          </div>/
+        </div>/
+      </div>/
+    </div>/
   );
 }
 
 export default AdminProducts;
+};
