@@ -101,6 +101,7 @@ const ordersRouter = require('./orders');
 const promotionsRouter = require('./promotions');
 const adminRouter = require('./admin');
 const productsRouter = require('./products');
+const productVariantsRouter = require('./product-variants');
 // Shipping router already imported at the top
 
 // Use route modules
@@ -109,6 +110,7 @@ app.use('/orders', ordersRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/admin', adminRouter);
 app.use('/products', productsRouter);
+app.use('/product-variants', productVariantsRouter);
 app.use('/shipping', shippingRouter);
 
 // Basic product endpoints

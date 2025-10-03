@@ -1,34 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useState } from 'react';
 
-const AdminLayout = ({ children }) => (
-  <div className="container mx-auto p-4 pb-16">
-    <div className="grid md:grid-cols-4 gap-4">
-      <aside className="md:col-span-1 bg-white rounded shadow p-4 space-y-2">
-        <Link className="block hover:underline" to="/admin">Overview</Link>
-        <Link className="block hover:underline" to="/admin/orders">Commandes + Yalidine</Link>
-        <Link className="block hover:underline" to="/admin/fees">Shipping Fees</Link>
-        <Link className="block hover:underline" to="/admin/categories">Categories</Link>
-        <Link className="block hover:underline text-purple-600 font-medium" to="/admin/products">Products</Link>
-        <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
-        <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
-        <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
-      </aside>
-      <main className="md:col-span-3 bg-white rounded shadow p-4">
-        {children}
-      </main>
-    </div>
-  </div>
-);
+import AdminLayout from '../components/AdminLayout';
+import { processImageURL } from '../utils/processImageURL';
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     category_id: '',
@@ -39,11 +18,8 @@ const AdminProducts = () => {
     sizes: [],
     variants: [],
     status: 'active',
-    product_type: 'simple' // 'simple' ou 'variable'
+    product_type: 'simple'
   });
-  
-  // État pour contrôler l'affichage du modal de choix du type de produit
-  const [showProductTypeModal, setShowProductTypeModal] = useState(false);
   const [currentVariant, setCurrentVariant] = useState({
     id: null,
     color_name: '',
@@ -54,151 +30,24 @@ const AdminProducts = () => {
     barcode: '',
     price_adjustment: 0
   });
-  
-  // États pour la génération automatique des variations
-  const [bulkColors, setBulkColors] = useState([]);
-  const [bulkSizes, setBulkSizes] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showProductTypeModal, setShowProductTypeModal] = useState(false);
   const [bulkColorInput, setBulkColorInput] = useState('');
+  const [bulkColorValue, setBulkColorValue] = useState('#000000');
+  const [bulkColors, setBulkColors] = useState([]);
   const [bulkSizeInput, setBulkSizeInput] = useState('');
-  const [bulkColorValue, setBulkColorValue] = useState('#FF0000');
+  const [bulkSizes, setBulkSizes] = useState([]);
   const [generatedVariants, setGeneratedVariants] = useState([]);
 
-  // Load data on component mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = async () => {
+    // Load data...
+  };
+
+  const handleSubmit = async () => {
     try {
-      setLoading(true);
-      
-      // Load products and categories in parallel
-      const [productsRes, categoriesRes] = await Promise.all([
-        axios.get('/api/products'),
-        axios.get('/api/products/categories/list')
-      ]);
-      
-      if (productsRes.data.success) {
-        const transformedProducts = productsRes.data.products.map(product => ({
-          ...product,
-          category: product.category_name || 'Non défini',
-          categoryId: product.category_id,
-          colors: product.colors || [],
-          sizes: product.sizes || [],
-          images: product.images || []
-        }));
-        setProducts(transformedProducts);
-      } else if (Array.isArray(productsRes.data.products)) {
-        // Handle mock products shape from api/index.js (no success flag)
-        const transformedProducts = productsRes.data.products.map(product => ({
-          id: product.id,
-          name: product.name,
-          description: product.description || '',
-          price: product.price || 0,
-          // No category_id in mock, keep derived fields minimal
-          category: product.category || 'Non défini',
-          categoryId: product.category_id || null,
-          // Mock may have single image field
-          images: product.images || (product.image ? [product.image] : []),
-          colors: product.colors || [],
-          sizes: product.sizes || [],
-          status: product.status || 'active',
-          stock: product.stock || 0,
-          product_type: product.product_type || 'simple'
-        }));
-        setProducts(transformedProducts);
-      }
-      
-      if (categoriesRes.data.success) {
-        setCategories(categoriesRes.data.categories || []);
-      } else {
-        // Fallback categories
-        setCategories([
-          { id: 1, name: 'Robes', color: '#FF6B6B' },
-          { id: 2, name: 'Hijabs', color: '#4ECDC4' },
-          { id: 3, name: 'Abayas', color: '#45B7D1' },
-          { id: 4, name: 'Accessoires', color: '#96CEB4' },
-          { id: 5, name: 'Chaussures', color: '#FFEAA7' }
-        ]);
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      // Set fallback categories
-      setCategories([
-        { id: 1, name: 'Robes', color: '#FF6B6B' },
-        { id: 2, name: 'Hijabs', color: '#4ECDC4' },
-        { id: 3, name: 'Abayas', color: '#45B7D1' },
-        { id: 4, name: 'Accessoires', color: '#96CEB4' },
-        { id: 5, name: 'Chaussures', color: '#FFEAA7' }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-
-  const filteredProducts = products
-    .filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !filterCategory || product.categoryId.toString() === filterCategory;
-      const matchesStatus = !filterStatus || product.status === filterStatus;
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-
-  // Convert Google Drive URL to direct image link
-  const processImageURL = (url) => {
-    if (!url) return '';
-    
-    // Handle Google Drive URL
-    if (url.includes('drive.google.com')) {
-      // Handle Google Drive shareable link format
-      const fileIdMatch = url.match(/[\w\-]{20,}/);
-      if (fileIdMatch && fileIdMatch[0]) {
-        return `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
-      }
-    }
-    
-    return url;
-  };
-
-  // Handle URL input change
-  const handleURLChange = (index, value) => {
-    const newImages = [...formData.images];
-    newImages[index] = value;
-    setFormData(prev => ({
-      ...prev,
-      images: newImages
-    }));
-  };
-
-  // Add new URL input field
-  const addURLField = () => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
-  };
-
-  // Remove image URL
-  const removeImage = (indexToRemove) => {
-    const newImages = formData.images.filter((_, index) => index !== indexToRemove);
-    setFormData(prev => ({
-      ...prev,
-      images: newImages.length > 0 ? newImages : [''] // Always keep at least one URL field
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      // Process all image URLs before submitting
-      const processedImages = formData.images
-        .filter(img => img.trim() !== '')
+      const processedImages = formData.images.filter(img => img
+        .trim() !== '')
         .map(img => processImageURL(img));
 
       if (processedImages.length === 0) {
@@ -1567,39 +1416,4 @@ const AdminProducts = () => {
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Remove image"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    {editingProduct ? 'Modifier' : 'Créer'} le Produit
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </AdminLayout>
-  );
-};
-
-export default AdminProducts;
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"
