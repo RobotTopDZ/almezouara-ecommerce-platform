@@ -372,16 +372,18 @@ const AdminProducts = () => {
         console.log("Available sizes for variants:", sizes);
         
         // Créer une variante par défaut avec la première couleur et taille
-        variants = [{
-          id: `default-${Date.now()}`,
-          color_name: colors.length > 0 ? colors[0].name : 'Default',
-          color_value: colors.length > 0 ? colors[0].value : '#000000',
-          size: sizes.length > 0 ? sizes[0] : 'Default',
-          stock: 10, // Stock par défaut plus élevé
-          sku: '',
-          barcode: '',
-          price_adjustment: 0
-        }];
+        if (colors.length > 0 && sizes.length > 0) {
+          variants = [{
+            id: `default-${Date.now()}`,
+            color_name: colors.length > 0 ? colors[0].name : 'Default',
+            color_value: colors.length > 0 ? colors[0].value : '#000000',
+            size: sizes.length > 0 ? sizes[0] : 'Default',
+            stock: 10, // Stock par défaut plus élevé
+            sku: '',
+            barcode: '',
+            price_adjustment: 0
+          }];
+        }
       }
       
       // Ensure each variant has an id property for proper tracking
@@ -452,32 +454,31 @@ const AdminProducts = () => {
         sizes: sizes,
         variants: processedVariants,
         status: product.status,
-        product_type: isVariableProduct ? 'variable' : 'simple' // Forcer le type en fonction de la détection
+        product_type: processedVariants.length > 0 ? 'variable' : 'simple' // Forcer le type en fonction des variantes
       };
       
-      console.log("Setting form data:", formDataToSet);
-      
-      // Vérifier que les variantes sont bien définies
-      console.log("Variants count before setting form data:", processedVariants.length);
-      
-      // Set bulk colors and sizes for the variant generator
-      setBulkColors(uniqueColors.length > 0 ? uniqueColors : colors);
-      setBulkSizes(uniqueSizes.length > 0 ? uniqueSizes : sizes);
+      console.log("Setting form data with variants:", formDataToSet);
       
       // Définir les données du formulaire avec les variantes
       setFormData(formDataToSet);
       
       // Forcer une mise à jour des variantes pour s'assurer qu'elles sont bien prises en compte
-      setTimeout(() => {
-        if (processedVariants.length > 0) {
-          console.log("Forcing variants update with:", processedVariants);
+      if (processedVariants.length > 0) {
+        console.log("Forcing variants update with:", processedVariants);
+        
+        // Utiliser un setTimeout pour s'assurer que le premier setFormData est traité
+        setTimeout(() => {
           setFormData(prevData => ({
             ...prevData,
             variants: [...processedVariants], // Créer une nouvelle référence pour forcer la mise à jour
             product_type: 'variable' // Forcer le type à variable
           }));
-        }
-      }, 100); // Petit délai pour s'assurer que le premier setFormData est traité
+          
+          // Mettre à jour également les couleurs et tailles en vrac pour le générateur de variantes
+          setBulkColors(uniqueColors.length > 0 ? uniqueColors : colors);
+          setBulkSizes(uniqueSizes.length > 0 ? uniqueSizes : sizes);
+        }, 100);
+      }
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
@@ -1458,8 +1459,10 @@ const AdminProducts = () => {
                       </div>
                     )}
 
-                    {/* No Variants Warning */}
-                    {formData.variants.length === 0 && (
+                    {/* No Variants Warning - Afficher uniquement si aucune variante n'est configurée */}
+                    {formData.product_type === 'variable' && 
+                     (!formData.variants || formData.variants.length === 0) && 
+                     (!processedVariants || processedVariants.length === 0) && (
                       <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
                         <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Aucune variante configurée</div>
                         <p className="text-red-700">
