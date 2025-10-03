@@ -1495,9 +1495,9 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                                   alt={`Preview ${index + 1}`}
                                   className="h-24 w-auto object-contain border rounded"
                                   onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-family%3D%22Arial%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%239ca3af%22%3EImage%20not%20found%3C%2Ftext%3E%3C%2Fsvg%3E";
-                            }}
+                                     e.target.onerror = null;
+                                     e.target.src = "/placeholder.svg";
+                                   }}
                                 />
                                 {isGoogleDrive && (
                                   <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
@@ -1536,7 +1536,7 @@ const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, l
                             className="h-20 w-20 object-cover rounded border border-gray-300"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2240%22%20y%3D%2240%22%20font-family%3D%22Arial%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
+                              e.target.src = "/placeholder.svg";
                             }}
                           />
                         </div>
