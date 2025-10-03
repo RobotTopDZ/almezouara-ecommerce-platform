@@ -308,7 +308,16 @@ const AdminProducts = () => {
     try {
       const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
       console.log("Variants response:", variantsRes.data);
-      const variants = variantsRes.data.success ? variantsRes.data.variants : [];
+      
+      // Assurez-vous que nous avons des variantes, même si la réponse n'a pas de propriété success
+      let variants = [];
+      if (variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
+        variants = variantsRes.data.variants;
+      } else if (Array.isArray(variantsRes.data)) {
+        variants = variantsRes.data;
+      }
+      
+      console.log("Variants after processing response:", variants);
       
       // Ensure each variant has an id property for proper tracking
       const processedVariants = variants.map(variant => ({
