@@ -1,34 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import AdminLayout from '../components/AdminLayout';
 import axios from 'axios';
 
-const AdminLayout = ({ children }) => (
-  <div className="container mx-auto p-4 pb-16">
-    <div className="grid md:grid-cols-4 gap-4">
-      <aside className="md:col-span-1 bg-white rounded shadow p-4 space-y-2">
-        <Link className="block hover:underline" to="/admin">Overview</Link>
-        <Link className="block hover:underline" to="/admin/orders">Commandes + Yalidine</Link>
-        <Link className="block hover:underline" to="/admin/fees">Shipping Fees</Link>
-        <Link className="block hover:underline" to="/admin/categories">Categories</Link>
-        <Link className="block hover:underline text-purple-600 font-medium" to="/admin/products">Products</Link>
-        <Link className="block hover:underline" to="/admin/accounts">Accounts</Link>
-        <Link className="block hover:underline" to="/admin/promotions">Promotions</Link>
-        <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
-      </aside>
-      <main className="md:col-span-3 bg-white rounded shadow p-4">
-        {children}
-      </main>
-    </div>
-  </div>
-);
-
-const AdminProducts = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+const AdminProducts = ({ categories, searchTerm, filterCategory, filterStatus, loadData }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showProductTypeModal, setShowProductTypeModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentProductId, setCurrentProductId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     category_id: '',
@@ -39,11 +17,8 @@ const AdminProducts = () => {
     sizes: [],
     variants: [],
     status: 'active',
-    product_type: 'simple' // 'simple' ou 'variable'
+    product_type: 'simple'
   });
-  
-  // État pour contrôler l'affichage du modal de choix du type de produit
-  const [showProductTypeModal, setShowProductTypeModal] = useState(false);
   const [currentVariant, setCurrentVariant] = useState({
     id: null,
     color_name: '',
@@ -54,180 +29,123 @@ const AdminProducts = () => {
     barcode: '',
     price_adjustment: 0
   });
-  
-  // États pour la génération automatique des variations
-  const [bulkColors, setBulkColors] = useState([]);
-  const [bulkSizes, setBulkSizes] = useState([]);
   const [bulkColorInput, setBulkColorInput] = useState('');
-  const [bulkSizeInput, setBulkSizeInput] = useState('');
   const [bulkColorValue, setBulkColorValue] = useState('#FF0000');
+  const [bulkColors, setBulkColors] = useState([]);
+  const [bulkSizeInput, setBulkSizeInput] = useState('');
+  const [bulkSizes, setBulkSizes] = useState([]);
   const [generatedVariants, setGeneratedVariants] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Load data on component mount
-  useEffect(() => {
-    loadData();
-  }, []);
+  const processImageURL = (url) => {
+    return url.replace('http://', 'https://');
+  };
 
-  const loadData = async () => {
+  const handleURLChange = (index, value) => {
+    const newArray = [...formData.images];
+    newArray[index] = value;
+    setFormData({
+      ...formData,
+      images: newArray
+    });
+  };
+
+  const removeImage = (index) => {
+    const newArray = formData.images.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      images: newArray
+    });
+  };
+
+  const addURLField = () => {
+    setFormData({
+      ...formData,
+      images: [...formData.images, '']
+    });
+  };
+  
+  // Fonction pour gérer l'upload d'images
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    setLoading(true);
+    
     try {
-      setLoading(true);
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await axios.post('/api/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        return response.data.imageUrl;
+      });
       
-      // Load products and categories in parallel
-      const [productsRes, categoriesRes] = await Promise.all([
-        axios.get('/api/products'),
-        axios.get('/api/products/categories/list')
-      ]);
+      const uploadedUrls = await Promise.all(uploadPromises);
       
-      if (productsRes.data.success) {
-        const transformedProducts = productsRes.data.products.map(product => ({
-          ...product,
-          category: product.category_name || 'Non défini',
-          categoryId: product.category_id,
-          colors: product.colors || [],
-          sizes: product.sizes || [],
-          images: product.images || []
-        }));
-        setProducts(transformedProducts);
-      } else if (Array.isArray(productsRes.data.products)) {
-        // Handle mock products shape from api/index.js (no success flag)
-        const transformedProducts = productsRes.data.products.map(product => ({
-          id: product.id,
-          name: product.name,
-          description: product.description || '',
-          price: product.price || 0,
-          // No category_id in mock, keep derived fields minimal
-          category: product.category || 'Non défini',
-          categoryId: product.category_id || null,
-          // Mock may have single image field
-          images: product.images || (product.image ? [product.image] : []),
-          colors: product.colors || [],
-          sizes: product.sizes || [],
-          status: product.status || 'active',
-          stock: product.stock || 0,
-          product_type: product.product_type || 'simple'
-        }));
-        setProducts(transformedProducts);
-      }
+      // Ajouter les nouvelles URLs aux images existantes
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images.filter(img => img && img !== ''), ...uploadedUrls]
+      }));
       
-      if (categoriesRes.data.success) {
-        setCategories(categoriesRes.data.categories || []);
-      } else {
-        // Fallback categories
-        setCategories([
-          { id: 1, name: 'Robes', color: '#FF6B6B' },
-          { id: 2, name: 'Hijabs', color: '#4ECDC4' },
-          { id: 3, name: 'Abayas', color: '#45B7D1' },
-          { id: 4, name: 'Accessoires', color: '#96CEB4' },
-          { id: 5, name: 'Chaussures', color: '#FFEAA7' }
-        ]);
-      }
+      toast.success('Images téléchargées avec succès');
     } catch (error) {
-      console.error('Error loading data:', error);
-      // Set fallback categories
-      setCategories([
-        { id: 1, name: 'Robes', color: '#FF6B6B' },
-        { id: 2, name: 'Hijabs', color: '#4ECDC4' },
-        { id: 3, name: 'Abayas', color: '#45B7D1' },
-        { id: 4, name: 'Accessoires', color: '#96CEB4' },
-        { id: 5, name: 'Chaussures', color: '#FFEAA7' }
-      ]);
+      console.error('Erreur lors du téléchargement des images:', error);
+      toast.error('Erreur lors du téléchargement des images');
     } finally {
       setLoading(false);
     }
   };
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-
-  const filteredProducts = products
-    .filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !filterCategory || product.categoryId.toString() === filterCategory;
-      const matchesStatus = !filterStatus || product.status === filterStatus;
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-
-  // Convert Google Drive URL to direct image link
-  const processImageURL = (url) => {
-    if (!url) return '';
-    
-    // Handle Google Drive URL
-    if (url.includes('drive.google.com')) {
-      // Handle Google Drive shareable link format
-      const fileIdMatch = url.match(/[\w\-]{20,}/);
-      if (fileIdMatch && fileIdMatch[0]) {
-        return `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
-      }
-    }
-    
-    return url;
-  };
-
-  // Handle URL input change
-  const handleURLChange = (index, value) => {
-    const newImages = [...formData.images];
-    newImages[index] = value;
-    setFormData(prev => ({
-      ...prev,
-      images: newImages
-    }));
-  };
-
-  // Add new URL input field
-  const addURLField = () => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
-  };
-
-  // Remove image URL
-  const removeImage = (indexToRemove) => {
-    const newImages = formData.images.filter((_, index) => index !== indexToRemove);
-    setFormData(prev => ({
-      ...prev,
-      images: newImages.length > 0 ? newImages : [''] // Always keep at least one URL field
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    try {
-      // Process all image URLs before submitting
-      const processedImages = formData.images
-        .filter(img => img.trim() !== '')
-        .map(img => processImageURL(img));
+    setLoading(true);
 
-      if (processedImages.length === 0) {
-        alert('Veuillez ajouter au moins une image');
+    try {
+      // Validation des images
+      if (formData.images.length === 0) {
+        toast.error("Veuillez ajouter au moins une image");
+        setLoading(false);
+        return;
+      }
+      
+      // Validation du stock pour les produits simples
+      if (formData.product_type === 'simple' && (!formData.stock || formData.stock <= 0)) {
+        toast.error("Veuillez définir un stock valide pour ce produit");
+        setLoading(false);
+        return;
+      }
+      
+      // Validation des variantes pour les produits variables
+      // Ne pas bloquer l'ajout d'image en mode édition
+      if (formData.product_type === 'variable' && (!formData.variants || formData.variants.length === 0) && !isEditing) {
+        alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
+        setLoading(false);
         return;
       }
 
-      // Validation et préparation du stock pour les produits simples
-      let simpleStock;
-      if (formData.product_type === 'simple') {
-        const stockInput = document.getElementById('simple-product-stock');
-        const defaultStock = stockInput ? stockInput.value : '';
-        if (defaultStock === '' || parseInt(defaultStock) < 0) {
-          alert('Veuillez spécifier un stock valide pour ce produit');
-          return;
-        }
-        simpleStock = parseInt(defaultStock);
-      } else if (formData.product_type === 'variable' && (!formData.variants || formData.variants.length === 0)) {
-        // Vérifier si nous sommes en mode édition et si nous avons des images
-        if (formData.images && formData.images.length > 0) {
-          // Si nous avons des images mais pas de variantes, c'est probablement juste un ajout d'image
-          // Nous ne bloquons pas dans ce cas
-          console.log("Ajout d'image sans variantes, on continue");
-        } else {
-          // Si aucune variante n'est configurée, afficher le message d'erreur
-          alert('⚠️ IMPORTANT: Vous devez configurer le stock pour ce produit!\n\n📋 Étapes à suivre:\n1. Entrez une couleur (ex: Rouge)\n2. Entrez une taille (ex: L)\n3. Entrez la quantité en stock (ex: 10)\n4. Cliquez sur "Ajouter cette combinaison"\n\nRépétez pour toutes les combinaisons disponibles.');
-          return;
-        }
-      }
+      // Process all image URLs before submitting
+      const processedImages = formData.images
+        .filter(img => {
+          // Filtrer les images vides ou nulles
+          if (typeof img === 'string') return img.trim() !== '';
+          if (img && img.url) return img.url.trim() !== '';
+          return false;
+        })
+        .map(img => {
+          // Traiter les images selon leur format
+          if (typeof img === 'string') return processImageURL(img);
+          if (img && img.url) return img.url;
+          return '';
+        });
+
+      const simpleStock = formData.product_type === 'simple' ? parseInt(formData.stock) : 0;
 
       const productData = {
         name: formData.name,
@@ -239,35 +157,36 @@ const AdminProducts = () => {
         stock: simpleStock,
         images: processedImages,
         colors: formData.colors.filter(color => color.name && color.name.trim() !== ''),
-        sizes: formData.sizes.filter(size => size.trim() !== ''),
+        sizes: formData.sizes.filter(size => size && typeof size === 'string' ? size.trim() !== '' : true),
         variants: formData.product_type === 'variable' ? formData.variants.map(variant => ({
+          product_id: currentProductId, // Ajouter l'ID du produit pour la connexion avec la table product_variants
           color_name: variant.color_name,
           color_value: variant.color_value,
           size: variant.size,
           stock: parseInt(variant.stock) || 0,
-          sku: variant.sku,
-          barcode: variant.barcode,
+          sku: variant.sku || '',
+          barcode: variant.barcode || '',
           price_adjustment: parseFloat(variant.price_adjustment) || 0
         })) : []
       };
 
-      console.log('Submitting product data:', productData);
-      console.log('Variants being sent:', productData.variants);
+    console.log('Submitting product data:', productData);
+    console.log('Variants being sent:', productData.variants);
 
-      if (editingProduct) {
-        await axios.put(`/api/products/${editingProduct.id}`, productData);
-      } else {
-        await axios.post('/api/products', productData);
-      }
-      
-      // Reload data and close modal
-      await loadData();
-      resetForm();
-      alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
-    } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Erreur lors de la sauvegarde du produit');
+    if (editingProduct) {
+      await axios.put(`/api/products/${editingProduct.id}`, productData);
+    } else {
+      await axios.post('/api/products', productData);
     }
+    
+    // Reload data and close modal
+    await loadData();
+    resetForm();
+    alert(editingProduct ? 'Produit modifié avec succès!' : 'Produit créé avec succès!');
+  } catch (error) {
+    console.error('Error saving product:', error);
+    alert('Erreur lors de la sauvegarde du produit');
+  }
   };
 
   const resetForm = () => {
@@ -310,7 +229,12 @@ const AdminProducts = () => {
 
   const handleEdit = async (product) => {
     setEditingProduct(product);
-    console.log("Editing product:", product);
+    setIsEditing(true);
+    
+    // S'assurer que nous utilisons le bon ID pour les requêtes API
+    const productId = product._id || product.id;
+    setCurrentProductId(productId);
+    console.log("Editing product:", product, "with ID:", productId);
     
     // Définir le type de produit en fonction des données existantes
     const isVariableProduct = product.product_type === 'variable' || 
@@ -321,21 +245,49 @@ const AdminProducts = () => {
     const productType = isVariableProduct ? 'variable' : 'simple';
     console.log("Product type determined:", productType);
     
+    // Traitement des images
+    const processedImages = product.images ? product.images.map(img => {
+      // Si c'est déjà un objet avec une URL, extraire l'URL
+      if (typeof img === 'object' && img !== null) {
+        return img.url || img;
+      }
+      // Sinon, retourner l'URL directement
+      return img;
+    }) : [];
+    
     // Load variants for this product
     try {
       // Forcer le chargement des variantes depuis l'API
-      console.log("Fetching variants for product ID:", product.id);
-      const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
-      console.log("Variants API response:", variantsRes);
-      
-      // Assurez-vous que nous avons des variantes, même si la réponse n'a pas de propriété success
+      console.log("Fetching variants for product ID:", productId);
+      let variantsRes;
       let variants = [];
       
+      try {
+        // Essayer d'abord de récupérer les variantes par ID
+        variantsRes = await axios.get(`/api/product-variants/product/${productId}`);
+        console.log("Variants API response by ID:", variantsRes);
+      } catch (error) {
+        console.log("Error fetching variants by ID:", error);
+      }
+      
+      // Si aucune variante n'est trouvée par ID, essayer par nom de produit
+      if (!variantsRes || !variantsRes.data || 
+          (Array.isArray(variantsRes.data) && variantsRes.data.length === 0) ||
+          (variantsRes.data && variantsRes.data.variants && variantsRes.data.variants.length === 0)) {
+        try {
+          console.log("Fetching variants by product name:", product.name);
+          variantsRes = await axios.get(`/api/product-variants/search?name=${encodeURIComponent(product.name)}`);
+          console.log("Variants API response by name:", variantsRes);
+        } catch (error) {
+          console.log("Error fetching variants by name:", error);
+        }
+      }
+      
       // Vérifier toutes les possibilités de structure de réponse
-      if (variantsRes.data && variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
+      if (variantsRes && variantsRes.data && variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
         variants = variantsRes.data.variants;
         console.log("Variants from API success property:", variants);
-      } else if (variantsRes.data && Array.isArray(variantsRes.data)) {
+      } else if (variantsRes && variantsRes.data && Array.isArray(variantsRes.data)) {
         variants = variantsRes.data;
         console.log("Variants from direct API array:", variants);
       } else if (product.variants && Array.isArray(product.variants)) {
@@ -383,6 +335,7 @@ const AdminProducts = () => {
         if (colors.length > 0 && sizes.length > 0) {
           variants = [{
             id: `default-${Date.now()}`,
+            product_id: productId, // Ajouter l'ID du produit pour la connexion avec la table product_variants
             color_name: colors.length > 0 ? colors[0].name : 'Default',
             color_value: colors.length > 0 ? colors[0].value : '#000000',
             size: sizes.length > 0 ? sizes[0] : 'Default',
@@ -1491,6 +1444,21 @@ const AdminProducts = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Images URLs (supports Google Drive links)
                   </label>
+                  
+                  {/* Image Upload Field */}
+                  <div className="mb-4 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                    <div className="text-center">
+                      <div className="mb-2 text-sm font-medium text-gray-700">Télécharger une image</div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e.target.files[0])}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu'à 5MB</p>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-4">
                     {formData.images.map((url, index) => {
                       const processedUrl = processImageURL(url);
@@ -1568,48 +1536,4 @@ const AdminProducts = () => {
                             className="h-20 w-20 object-cover rounded border border-gray-300"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2240%22%20y%3D%2240%22%20font-family%3D%22Arial%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%239ca3af%22%3EImage%3C%2Ftext%3E%3C%2Fsvg%3E';
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Remove image"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    {editingProduct ? 'Modifier' : 'Créer'} le Produit
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </AdminLayout>
-  );
-};
-
-export default AdminProducts;
+                              e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2240%22%20y%3D%2240%22%20font-family%3D%22Arial%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22
