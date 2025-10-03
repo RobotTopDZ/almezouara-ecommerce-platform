@@ -473,14 +473,16 @@ const ProductPage = () => {
     }
   };
 
-  // Load cities for selected wilaya
+  // Load cities for selected wilaya based on delivery method
   const loadCitiesForWilaya = async (wilaya) => {
     if (!wilaya) {
       setAvailableCities([]);
       return;
     }
     try {
-      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}`);
+      // Pass the delivery method to the API to filter cities accordingly
+      const deliveryType = formData.deliveryMethod || 'domicile';
+      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&type=${deliveryType}`);
       if (response.data.success && response.data.cities) {
         setAvailableCities(response.data.cities.map(c => c.city));
       } else {
@@ -507,7 +509,7 @@ const ProductPage = () => {
     
     try {
       console.log(`🔍 Fetching shipping cost for ${wilaya} - ${commune} (${deliveryMethod})`);
-      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&city=${encodeURIComponent(commune)}`);
+      const response = await axios.get(`/api/shipping-fees?wilaya=${encodeURIComponent(wilaya)}&city=${encodeURIComponent(commune)}&type=${deliveryMethod}`);
       if (response.data.success && response.data.shippingFee) {
         const fee = response.data.shippingFee;
         const cost = deliveryMethod === 'domicile' ? fee.domicilePrice : fee.stopdeskPrice;

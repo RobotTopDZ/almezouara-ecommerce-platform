@@ -252,7 +252,9 @@ app.get('/shipping-fees', async (req, res) => {
         shippingFees = dbFees.map(fee => ({
           wilaya: fee.wilaya,
           commune: fee.commune,
-          prix: parseFloat(fee.prix)
+          prix: parseFloat(fee.prix),
+          // Include nom_desk for stopdesk fees
+          ...(type === 'stopdesk' && fee.nom_desk ? { nom_desk: fee.nom_desk } : {})
         }));
       }
     } catch (dbError) {
@@ -344,33 +346,57 @@ app.get('/shipping-fees', async (req, res) => {
       // Get all cities in wilaya from database
       try {
         if (pool) {
-          const [cities] = await pool.execute(
-            'SELECT DISTINCT commune, prix FROM domicile_fees WHERE wilaya = ? ORDER BY commune',
-            [wilaya]
-          );
-          
-          if (cities.length > 0) {
-            const citiesWithPrices = [];
+          // Get cities based on delivery type
+          if (type === 'stopdesk') {
+            // For stopdesk, only get cities that have stopdesk service
+            const [cities] = await pool.execute(
+              'SELECT DISTINCT commune, prix FROM stopdesk_fees WHERE wilaya = ? ORDER BY commune',
+              [wilaya]
+            );
             
-            for (const city of cities) {
-              // Get stopdesk price for this city
-              const [stopdeskResult] = await pool.execute(
-                'SELECT prix FROM stopdesk_fees WHERE wilaya = ? AND commune = ? LIMIT 1',
-                [wilaya, city.commune]
-              );
-              
-              citiesWithPrices.push({
+            if (cities.length > 0) {
+              const citiesWithPrices = cities.map(city => ({
                 city: city.commune,
-                domicilePrice: parseFloat(city.prix),
-                stopdeskPrice: stopdeskResult.length > 0 ? parseFloat(stopdeskResult[0].prix) : Math.max(200, parseFloat(city.prix) - 200)
+                stopdeskPrice: parseFloat(city.prix),
+                domicilePrice: null // We don't need domicile price when specifically requesting stopdesk
+              }));
+              
+              return res.json({
+                success: true,
+                wilaya,
+                cities: citiesWithPrices
               });
             }
+          } else {
+            // For domicile, get all cities with both prices
+            const [cities] = await pool.execute(
+              'SELECT DISTINCT commune, prix FROM domicile_fees WHERE wilaya = ? ORDER BY commune',
+              [wilaya]
+            );
             
-            return res.json({
-              success: true,
-              wilaya,
-              cities: citiesWithPrices
-            });
+            if (cities.length > 0) {
+              const citiesWithPrices = [];
+              
+              for (const city of cities) {
+                // Get stopdesk price for this city
+                const [stopdeskResult] = await pool.execute(
+                  'SELECT prix FROM stopdesk_fees WHERE wilaya = ? AND commune = ? LIMIT 1',
+                  [wilaya, city.commune]
+                );
+                
+                citiesWithPrices.push({
+                  city: city.commune,
+                  domicilePrice: parseFloat(city.prix),
+                  stopdeskPrice: stopdeskResult.length > 0 ? parseFloat(stopdeskResult[0].prix) : Math.max(200, parseFloat(city.prix) - 200)
+                });
+              }
+              
+              return res.json({
+                success: true,
+                wilaya,
+                cities: citiesWithPrices
+              });
+            }
           }
         }
       } catch (dbError) {
