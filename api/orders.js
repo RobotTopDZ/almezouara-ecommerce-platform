@@ -111,9 +111,10 @@ router.post('/', async (req, res) => {
 
         console.log('🔧 Creating order with data:', { orderId, phoneNumber, fullName, wilaya, city, address, deliveryMethod, totalNum, discountNum });
 
-        // Insert order with fixed schema and current date
-        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:MM:SS
-        // Récupérer le coût d'expédition et le prix des produits à partir des données de la commande
+        // Insert order with fixed schema and current date with precise time
+        const now = new Date();
+        const currentDate = now.toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:MM:SS
+        // Get shipping cost and product price from order data
         const shippingCost = req.body.shippingCost || 0;
         const productPrice = totalNum; // Le prix total des produits sans les frais de livraison
         
