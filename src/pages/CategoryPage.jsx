@@ -10,9 +10,9 @@ const CategoryPage = () => {
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [filters, setFilters] = useState({
-    size: "',
-    color: "',
-    priceRange: "',
+    size: "",
+    color: "",
+    priceRange: "",
   });
   const [showFilters, setShowFilters] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
