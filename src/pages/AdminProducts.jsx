@@ -324,6 +324,29 @@ const AdminProducts = () => {
       
       console.log("Processed variants:", processedVariants);
       
+      // Extract unique colors and sizes from variants for bulk editing
+      const uniqueColors = [];
+      const uniqueSizes = [];
+      
+      processedVariants.forEach(variant => {
+        // Add unique colors with their values
+        if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
+          uniqueColors.push({
+            name: variant.color_name,
+            value: variant.color_value || '#000000'
+          });
+        }
+        
+        // Add unique sizes
+        if (variant.size && !uniqueSizes.includes(variant.size)) {
+          uniqueSizes.push(variant.size);
+        }
+      });
+      
+      // Set bulk colors and sizes for the variant generator
+      setBulkColors(uniqueColors);
+      setBulkSizes(uniqueSizes);
+      
       // Transform colors to new format if they're strings
       let colors = [];
       if (product.colors && product.colors.length > 0) {
