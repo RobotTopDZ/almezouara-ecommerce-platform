@@ -309,38 +309,75 @@ const AdminProducts = () => {
                              (product.variants && product.variants.length > 0) ||
                              (product.colors && product.colors.length > 0 && product.sizes && product.sizes.length > 0);
     
+    // Forcer le produit à être variable s'il a des couleurs et des tailles
+    const productType = isVariableProduct ? 'variable' : 'simple';
+    console.log("Product type determined:", productType);
+    
     // Load variants for this product
     try {
       // Forcer le chargement des variantes depuis l'API
+      console.log("Fetching variants for product ID:", product.id);
       const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
-      console.log("Variants response:", variantsRes.data);
+      console.log("Variants API response:", variantsRes);
       
       // Assurez-vous que nous avons des variantes, même si la réponse n'a pas de propriété success
       let variants = [];
+      
+      // Vérifier toutes les possibilités de structure de réponse
       if (variantsRes.data && variantsRes.data.success && Array.isArray(variantsRes.data.variants)) {
         variants = variantsRes.data.variants;
+        console.log("Variants from API success property:", variants);
       } else if (variantsRes.data && Array.isArray(variantsRes.data)) {
         variants = variantsRes.data;
+        console.log("Variants from direct API array:", variants);
       } else if (product.variants && Array.isArray(product.variants)) {
         // Utiliser les variantes déjà présentes dans l'objet produit si l'API ne renvoie rien
         variants = product.variants;
         console.log("Using variants from product object:", variants);
       }
       
-      console.log("Variants after processing response:", variants);
+      console.log("Final variants after processing response:", variants);
       
       // Si aucune variante n'est trouvée mais que le produit est de type variable,
-      // créer au moins une variante par défaut
-      if (variants.length === 0 && isVariableProduct) {
-        console.log("Creating default variant for variable product");
+      // créer au moins une variante par défaut avec les couleurs et tailles disponibles
+      if ((variants.length === 0 || !variants) && isVariableProduct) {
+        console.log("Creating default variants for variable product");
+        
+        // Extraire les couleurs du produit
+        let colors = [];
+        if (product.colors && product.colors.length > 0) {
+          colors = product.colors.map(color => {
+            if (typeof color === 'string') {
+              return { name: color, value: '#000000' };
+            }
+            return color;
+          });
+        }
+        
+        // Extraire les tailles du produit
+        let sizes = [];
+        if (product.sizes) {
+          if (typeof product.sizes === 'string') {
+            try {
+              sizes = JSON.parse(product.sizes);
+            } catch (e) {
+              sizes = product.sizes.split(',').map(s => s.trim()).filter(s => s);
+            }
+          } else if (Array.isArray(product.sizes)) {
+            sizes = product.sizes;
+          }
+        }
+        
+        console.log("Available colors for variants:", colors);
+        console.log("Available sizes for variants:", sizes);
+        
+        // Créer une variante par défaut avec la première couleur et taille
         variants = [{
           id: `default-${Date.now()}`,
-          color_name: product.colors && product.colors.length > 0 ? 
-                     (typeof product.colors[0] === 'string' ? product.colors[0] : product.colors[0].name) : 'Default',
-          color_value: product.colors && product.colors.length > 0 && 
-                      typeof product.colors[0] !== 'string' ? product.colors[0].value : '#000000',
-          size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Default',
-          stock: 1,
+          color_name: colors.length > 0 ? colors[0].name : 'Default',
+          color_value: colors.length > 0 ? colors[0].value : '#000000',
+          size: sizes.length > 0 ? sizes[0] : 'Default',
+          stock: 10, // Stock par défaut plus élevé
           sku: '',
           barcode: '',
           price_adjustment: 0
@@ -415,28 +452,32 @@ const AdminProducts = () => {
         sizes: sizes,
         variants: processedVariants,
         status: product.status,
-        product_type: product.product_type || 'simple'
+        product_type: isVariableProduct ? 'variable' : 'simple' // Forcer le type en fonction de la détection
       };
       
       console.log("Setting form data:", formDataToSet);
       
-      setFormData(formDataToSet);
+      // Vérifier que les variantes sont bien définies
+      console.log("Variants count before setting form data:", processedVariants.length);
       
       // Set bulk colors and sizes for the variant generator
-      setBulkColors(uniqueColors);
-      setBulkSizes(uniqueSizes);
+      setBulkColors(uniqueColors.length > 0 ? uniqueColors : colors);
+      setBulkSizes(uniqueSizes.length > 0 ? uniqueSizes : sizes);
       
-      // Générer les variations automatiquement si nécessaire
-      // Important: Appeler après setFormData pour s'assurer que les données sont disponibles
-      if (processedVariants.length > 0) {
-        // Utiliser directement les variants existants au lieu de générer des combinaisons
-        setFormData(prevData => ({
-          ...prevData,
-          variants: processedVariants
-        }));
-        
-        console.log("Variants existants chargés directement:", processedVariants);
-      }
+      // Définir les données du formulaire avec les variantes
+      setFormData(formDataToSet);
+      
+      // Forcer une mise à jour des variantes pour s'assurer qu'elles sont bien prises en compte
+      setTimeout(() => {
+        if (processedVariants.length > 0) {
+          console.log("Forcing variants update with:", processedVariants);
+          setFormData(prevData => ({
+            ...prevData,
+            variants: [...processedVariants], // Créer une nouvelle référence pour forcer la mise à jour
+            product_type: 'variable' // Forcer le type à variable
+          }));
+        }
+      }, 100); // Petit délai pour s'assurer que le premier setFormData est traité
     } catch (error) {
       console.error('Error loading variants:', error);
       // Set form data without variants
