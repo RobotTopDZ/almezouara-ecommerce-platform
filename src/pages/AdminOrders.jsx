@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -208,6 +209,35 @@ const AdminOrders = () => {
     }
     return Array.isArray(items) ? items : [];
   };
+  
+  const exportToExcel = () => {
+    // Préparer les données pour l'export
+    const data = filteredOrders.map(order => {
+      const { totalItems } = calculateOrderStats(order);
+      return {
+        'ID': order.id,
+        'Date': new Date(order.date || order.createdAt).toLocaleDateString(),
+        'Nom': order.fullName,
+        'Téléphone': order.phoneNumber,
+        'Adresse': order.address,
+        'Wilaya': order.wilaya,
+        'Commune': order.commune,
+        'Total': order.total + ' DA',
+        'Statut': getStatusText(order.status),
+        'Produits': totalItems,
+        'Suivi Yalidine': order.yalidineTracking || 'N/A'
+      };
+    });
+    
+    // Créer une feuille de calcul
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Commandes");
+    
+    // Générer le fichier Excel
+    const date = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `commandes_almezouara_${date}.xlsx`);
+  };
 
   const calculateOrderStats = (order) => {
     const items = formatOrderItems(order.items);
@@ -368,9 +398,18 @@ const AdminOrders = () => {
                   setSortBy('date');
                   setSortOrder('desc');
                 }}
-                className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors"
+                className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Réinitialiser
+              </button>
+              <button
+                onClick={exportToExcel}
+                className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                Exporter XLSX
               </button>
             </div>
           </div>
