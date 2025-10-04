@@ -19,7 +19,7 @@ const serverConfig = {
 // Yalidine API configuration
 const yalidineConfig = {
   apiId: process.env.YALIDINE_API_ID || '81907605813574145038',
-  apiToken: process.env.YALIDINE_API_TOKEN || 'MvHyu5Lnm43rEqdVw2Y6BQjpa1sPOihIC7XU9KGTJZD0SxtNeWoRfF8Abgczkl'
+  apiToken: process.env.YALIDINE_API_TOKEN || 'MvHyu5Lnm43rEqdVw2Y6BQjpa1sPOihIC7XU9KGTJZD0SxtNeWoRfF8AbGczkl'
 };
 
 module.exports = {

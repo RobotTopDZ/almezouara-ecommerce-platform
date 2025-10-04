@@ -105,15 +105,28 @@ const AdminOrders = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
+      // Mettre à jour l'état local
       setOrders(prev => prev.map(order => 
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
       
-      // Show success message
-      alert(`Statut de la commande ${orderId} mis à jour vers: ${getStatusText(newStatus)}`);
+      // Appeler l'API pour persister le changement
+      const response = await axios.put(`/api/orders/update-status/${orderId}`, {
+        status: newStatus
+      });
+      
+      if (response.data.success) {
+        // Show success message
+        alert(`Statut de la commande ${orderId} mis à jour vers: ${getStatusText(newStatus)}`);
+      } else {
+        throw new Error(response.data.error || 'Échec de la mise à jour');
+      }
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      alert('Erreur lors de la mise à jour du statut: ' + (error.message || 'Erreur inconnue'));
+      
+      // Recharger les commandes pour rétablir l'état correct
+      fetchOrders();
     }
   };
 
@@ -490,8 +503,32 @@ const AdminOrders = () => {
                       <div className="text-sm text-gray-900">
                         <div className="font-medium">{order.wilaya}, {order.city}</div>
                         <div className="text-gray-500 truncate max-w-xs">{order.address}</div>
-                        <div className="text-xs text-blue-600">
-                          {order.deliveryMethod === 'domicile' ? '🏠 Domicile' : '📦 Stopdesk'}
+                        <div className="flex items-center mt-1">
+                          <select
+                            className="text-xs border rounded p-1 bg-white"
+                            value={order.deliveryMethod}
+                            onChange={async (e) => {
+                              const newMethod = e.target.value;
+                              try {
+                                // Mettre à jour l'état local
+                                setOrders(prev => prev.map(o => 
+                                  o.id === order.id ? { ...o, deliveryMethod: newMethod } : o
+                                ));
+                                
+                                // Appeler l'API pour persister le changement
+                                await axios.put(`/api/orders/update-status/${order.id}`, {
+                                  deliveryMethod: newMethod
+                                });
+                              } catch (error) {
+                                console.error('Error updating delivery method:', error);
+                                alert('Erreur lors de la mise à jour de la méthode de livraison');
+                                fetchOrders();
+                              }
+                            }}
+                          >
+                            <option value="domicile">🏠 Domicile</option>
+                            <option value="stopdesk">📦 Stopdesk</option>
+                          </select>
                         </div>
                       </div>
                     </td>
@@ -529,8 +566,39 @@ const AdminOrders = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatPrice(order.total)} DA
+                      <div className="flex items-center">
+                        <input 
+                          type="number" 
+                          className="w-24 p-1 border rounded text-sm"
+                          defaultValue={order.total}
+                          onBlur={async (e) => {
+                            const newPrice = parseFloat(e.target.value);
+                            if (isNaN(newPrice) || newPrice < 0) {
+                              e.target.value = order.total;
+                              return;
+                            }
+                            
+                            try {
+                              // Mettre à jour l'état local
+                              setOrders(prev => prev.map(o => 
+                                o.id === order.id ? { ...o, total: newPrice } : o
+                              ));
+                              
+                              // Appeler l'API pour persister le changement
+                              await axios.put(`/api/orders/update-status/${order.id}`, {
+                                price: newPrice
+                              });
+                              
+                              alert(`Prix mis à jour: ${formatPrice(newPrice)} DA`);
+                            } catch (error) {
+                              console.error('Error updating price:', error);
+                              alert('Erreur lors de la mise à jour du prix');
+                              e.target.value = order.total;
+                              fetchOrders();
+                            }
+                          }}
+                        />
+                        <span className="ml-1 text-sm text-gray-500">DA</span>
                       </div>
                       {order.discountPercentage > 0 && (
                         <div className="text-xs text-green-600">

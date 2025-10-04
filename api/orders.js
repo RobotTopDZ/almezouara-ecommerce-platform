@@ -337,6 +337,59 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Update order status
+router.put('/update-status/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status, price, deliveryMethod } = req.body;
+    
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+    
+    const dbConnected = await ensureDBConnection();
+    if (!dbConnected) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    let query = 'UPDATE orders SET';
+    const params = [];
+    
+    if (status) {
+      query += ' status = ?';
+      params.push(status);
+    }
+    
+    if (price !== undefined) {
+      if (params.length > 0) query += ',';
+      query += ' total = ?, product_price = ?';
+      params.push(price, price);
+    }
+    
+    if (deliveryMethod) {
+      if (params.length > 0) query += ',';
+      query += ' delivery_method = ?';
+      params.push(deliveryMethod);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(orderId);
+    
+    await pool.execute(query, params);
+    
+    return res.json({ 
+      success: true, 
+      message: 'Order updated successfully' 
+    });
+  } catch (error) {
+    console.error('Update order error:', error);
+    return res.status(500).json({ 
+      error: 'Failed to update order',
+      details: error.message 
+    });
+  }
+});
+
 // Get last order details by phone number
 router.get('/last-by-phone/:phone', async (req, res) => {
   try {
