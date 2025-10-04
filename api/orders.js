@@ -337,6 +337,51 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Update order items
+router.put('/update-items/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { items, total } = req.body;
+    
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+    
+    const dbConnected = await ensureDBConnection();
+    if (!dbConnected) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    // Supprimer les anciens items
+    await pool.execute('DELETE FROM order_items WHERE order_id = ?', [orderId]);
+    
+    // Ajouter les nouveaux items
+    for (const item of items) {
+      await pool.execute(`
+        INSERT INTO order_items (order_id, product_id, product_name, price, quantity, image, color, size)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        orderId, 
+        item.id || null, 
+        item.name || item.product_name || '', 
+        item.price || 0, 
+        item.quantity || 1, 
+        item.image || null, 
+        item.color || null, 
+        item.size || null
+      ]);
+    }
+    
+    // Mettre à jour le total de la commande
+    await pool.execute('UPDATE orders SET total = ? WHERE id = ?', [total, orderId]);
+    
+    res.json({ success: true, message: 'Order items updated successfully' });
+  } catch (error) {
+    console.error('Error updating order items:', error);
+    res.status(500).json({ error: 'Failed to update order items', details: error.message });
+  }
+});
+
 // Update order status
 router.put('/update-status/:orderId', async (req, res) => {
   try {

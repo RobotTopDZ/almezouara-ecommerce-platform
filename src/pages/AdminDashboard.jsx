@@ -9,6 +9,7 @@ const AdminLayout = ({ children }) => (
       <aside className="md:col-span-1 bg-white rounded shadow p-4 space-y-2">
         <Link className="block hover:underline" to="/admin">Overview</Link>
         <Link className="block hover:underline text-blue-600 font-medium" to="/admin/orders">Commandes + Yalidine</Link>
+        <Link className="block hover:underline text-pink-600 font-medium" to="/admin/statistiques">Statistiques</Link>
         <Link className="block hover:underline" to="/admin/fees">Shipping Fees</Link>
         <Link className="block hover:underline text-green-600 font-medium" to="/admin/categories">Categories</Link>
         <Link className="block hover:underline" to="/admin/products">Products</Link>

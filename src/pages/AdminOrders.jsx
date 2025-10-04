@@ -277,6 +277,56 @@ const AdminOrders = () => {
     setShowOrderModal(false);
     setSelectedOrder(null);
   };
+  
+  const removeItemFromOrder = async (orderId, itemIndex) => {
+    try {
+      // Récupérer la commande actuelle
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      
+      // Créer une copie des items et supprimer l'élément
+      const updatedItems = formatOrderItems(order.items).filter((_, idx) => idx !== itemIndex);
+      
+      // Recalculer le total
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+      
+      // Mettre à jour l'état local
+      setOrders(prev => prev.map(o => 
+        o.id === orderId ? { 
+          ...o, 
+          items: updatedItems,
+          total: newTotal
+        } : o
+      ));
+      
+      // Si une commande est sélectionnée, mettre à jour également
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({
+          ...selectedOrder,
+          items: updatedItems,
+          total: newTotal
+        });
+      }
+      
+      // Appeler l'API pour persister le changement
+      const response = await axios.put(`/api/orders/update-items/${orderId}`, {
+        items: updatedItems,
+        total: newTotal
+      });
+      
+      if (response.data.success) {
+        alert(`Produit supprimé avec succès. Nouveau total: ${formatPrice(newTotal)} DA`);
+      } else {
+        throw new Error(response.data.error || 'Échec de la mise à jour');
+      }
+    } catch (error) {
+      console.error('Error removing item from order:', error);
+      alert('Erreur lors de la suppression du produit: ' + (error.message || 'Erreur inconnue'));
+      
+      // Recharger les commandes pour rétablir l'état correct
+      fetchOrders();
+    }
+  };
 
   const openOrderDetails = (order) => {
     setSelectedOrder(order);
@@ -791,8 +841,18 @@ const AdminOrders = () => {
                             </div>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end">
                           <div className="font-medium">{formatPrice(item.price * (item.quantity || 1))} DA</div>
+                          <button 
+                            onClick={() => {
+                              if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${item.name}" de cette commande?`)) {
+                                removeItemFromOrder(selectedOrder.id, index);
+                              }
+                            }}
+                            className="mt-2 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition-colors"
+                          >
+                            🗑️ Supprimer
+                          </button>
                         </div>
                       </div>
                     ))}
