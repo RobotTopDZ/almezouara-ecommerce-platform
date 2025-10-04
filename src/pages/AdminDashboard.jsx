@@ -15,7 +15,16 @@ const AdminLayout = ({ children }) => (
         <Link className="block hover:underline text-purple-600 font-medium" to="/admin/accounts">Accounts</Link>
         <Link className="block hover:underline text-orange-600 font-medium" to="/admin/promotions">Promotions</Link>
         <Link className="block hover:underline" to="/admin/yalidine-config">Configuration Yalidine</Link>
-        <Link className="block mt-6 py-2 text-center bg-red-600 hover:bg-red-700 text-white font-bold rounded" to="/admin/login">Déconnecter</Link>
+        <button 
+          className="block w-full mt-6 py-2 text-center bg-red-600 hover:bg-red-700 text-white font-bold rounded" 
+          onClick={() => {
+            const logout = useAdminStore.getState().logout;
+            logout();
+            window.location.href = '/admin/login';
+          }}
+        >
+          Déconnecter
+        </button>
       </aside>
       <main className="md:col-span-3 bg-white rounded shadow p-4">
         {children}
