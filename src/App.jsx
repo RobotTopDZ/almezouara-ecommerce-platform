@@ -25,6 +25,7 @@ import AdminDebug from './pages/AdminDebug';
 // Importation sans extension pour assurer la compatibilité avec Vite
 import AdminFacebookPixel from './pages/AdminFacebookPixel';
 import AdminConfiguration from './pages/AdminConfiguration';
+import AdminStatistiques from './pages/AdminStatistiques';
 import FacebookPixel from './components/FacebookPixel';
 
 // Components
@@ -83,6 +84,7 @@ const App = () => {
             <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
             <Route path="/admin/yalidine-config" element={<RequireAdmin><AdminYalidineConfig /></RequireAdmin>} />
             <Route path="/admin/configuration" element={<RequireAdmin><AdminConfiguration /></RequireAdmin>} />
+            <Route path="/admin/statistiques" element={<RequireAdmin><AdminStatistiques /></RequireAdmin>} />
             <Route path="/admin/fees" element={<RequireAdmin><AdminFees /></RequireAdmin>} />
             <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
             <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
