@@ -26,6 +26,7 @@ import AdminDebug from './pages/AdminDebug';
 import AdminFacebookPixel from './pages/AdminFacebookPixel';
 import AdminConfiguration from './pages/AdminConfiguration';
 import AdminStatistiques from './pages/AdminStatistiques';
+import AdminProductVariants from './pages/AdminProductVariants';
 import FacebookPixel from './components/FacebookPixel';
 
 // Components
@@ -88,6 +89,7 @@ const App = () => {
             <Route path="/admin/fees" element={<RequireAdmin><AdminFees /></RequireAdmin>} />
             <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
             <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
+            <Route path="/admin/products/variants/:productId" element={<RequireAdmin><AdminProductVariants /></RequireAdmin>} />
             <Route path="/admin/accounts" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
             <Route path="/admin/promotions" element={<RequireAdmin><AdminPromotions /></RequireAdmin>} />
             <Route path="/admin/facebook-pixel" element={<AdminFacebookPixel />} />

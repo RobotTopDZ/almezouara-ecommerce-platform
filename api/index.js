@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { pool, testConnection, initializeDatabase } = require('./config/database');
 const shippingRouter = require('./shipping');
+const uploadRouter = require('./upload');
 
 // Migration script is required lazily to avoid loading ESM frontend data at startup
 
@@ -110,6 +111,7 @@ app.use('/promotions', promotionsRouter);
 app.use('/admin', adminRouter);
 app.use('/products', productsRouter);
 app.use('/shipping', shippingRouter);
+app.use('/upload', uploadRouter);
 
 // Basic product endpoints
 app.get('/products', async (req, res) => {

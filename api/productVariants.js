@@ -49,7 +49,8 @@ router.post('/variants', async (req, res) => {
       stock = 0,
       sku = null,
       barcode = null,
-      price_adjustment = 0
+      price_adjustment = 0,
+      image_url = null
     } = req.body;
 
     // Validate required fields
@@ -76,17 +77,18 @@ router.post('/variants', async (req, res) => {
           sku = ?, 
           barcode = ?, 
           price_adjustment = ?,
+          image_url = ?,
           updated_at = NOW()
         WHERE id = ?`,
-        [color_value, stock, sku, barcode, price_adjustment, variantId]
+        [color_value, stock, sku, barcode, price_adjustment, image_url, variantId]
       );
     } else {
       // Create new variant
       const [result] = await transaction.execute(
         `INSERT INTO product_variants 
-          (product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment]
+          (product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [product_id, color_name, color_value, size, stock, sku, barcode, price_adjustment, image_url]
       );
       variantId = result.insertId;
     }

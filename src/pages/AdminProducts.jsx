@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FaEdit, FaTrash, FaTags } from 'react-icons/fa';
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -23,6 +24,7 @@ const AdminLayout = ({ children }) => (
 );
 
 const AdminProducts = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -888,6 +890,15 @@ const AdminProducts = () => {
                       >
                         ✏️
                       </button>
+                      {product.product_type === 'variable' && (
+                        <button
+                          onClick={() => navigate(`/admin/products/variants/${product.id}`)}
+                          className="text-purple-600 hover:text-purple-800 text-sm"
+                          title="Gérer les variantes"
+                        >
+                          <FaTags />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="text-red-600 hover:text-red-800 text-sm"
