@@ -28,6 +28,7 @@ router.post('/login', async (req, res) => {
   // Admin credentials
   const validCredentials = [
     { username: 'robottopdz', password: 'Osamu13579*+-/' },
+    { username: 'lemia', password: 'lemia135' },
     { username: 'admin', password: 'admin123' } // Fallback
   ];
   
