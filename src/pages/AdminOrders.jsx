@@ -506,7 +506,7 @@ const AdminOrders = () => {
                         <div className="flex items-center mt-1">
                           <select
                             className="text-xs border rounded p-1 bg-white"
-                            value={order.deliveryMethod}
+                            defaultValue={order.deliveryMethod || ""}
                             onChange={async (e) => {
                               const newMethod = e.target.value;
                               try {
@@ -526,6 +526,7 @@ const AdminOrders = () => {
                               }
                             }}
                           >
+                            <option value="" disabled>Choisir...</option>
                             <option value="domicile">🏠 Domicile</option>
                             <option value="stopdesk">📦 Stopdesk</option>
                           </select>
