@@ -323,9 +323,9 @@ const AdminProducts = () => {
     
     // Load variants for this product
     try {
-      // Forcer le chargement des variantes depuis l'API
+      // Forcer le chargement des variantes depuis l'API avec l'URL correcte
       console.log("Fetching variants for product ID:", product.id);
-      const variantsRes = await axios.get(`/api/product-variants/product/${product.id}`);
+      const variantsRes = await axios.get(`/api/product-variants/product/${product.id}/variants`);
       console.log("Variants API response:", variantsRes);
       
       // Assurez-vous que nous avons des variantes, même si la réponse n'a pas de propriété success
