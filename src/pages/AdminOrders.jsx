@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'; // Bibliothèque pour l'exportation Excel
 
 const AdminLayout = ({ children }) => (
   <div className="container mx-auto p-4 pb-16">
@@ -211,32 +211,46 @@ const AdminOrders = () => {
   };
   
   const exportToExcel = () => {
-    // Préparer les données pour l'export
-    const data = filteredOrders.map(order => {
-      const { totalItems } = calculateOrderStats(order);
-      return {
-        'ID': order.id,
-        'Date': new Date(order.date || order.createdAt).toLocaleDateString(),
-        'Nom': order.fullName,
-        'Téléphone': order.phoneNumber,
-        'Adresse': order.address,
-        'Wilaya': order.wilaya,
-        'Commune': order.commune,
-        'Total': order.total + ' DA',
-        'Statut': getStatusText(order.status),
-        'Produits': totalItems,
-        'Suivi Yalidine': order.yalidineTracking || 'N/A'
-      };
-    });
-    
-    // Créer une feuille de calcul
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Commandes");
-    
-    // Générer le fichier Excel
-    const date = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `commandes_almezouara_${date}.xlsx`);
+    try {
+      // Vérifier que XLSX est correctement importé
+      if (!XLSX) {
+        console.error("La bibliothèque XLSX n'est pas disponible");
+        alert("Erreur lors de l'exportation. La bibliothèque XLSX n'est pas disponible.");
+        return;
+      }
+      
+      // Préparer les données pour l'export
+      const data = filteredOrders.map(order => {
+        const { totalItems } = calculateOrderStats(order);
+        return {
+          'ID': order.id,
+          'Date': new Date(order.date || order.createdAt).toLocaleDateString(),
+          'Nom': order.fullName,
+          'Téléphone': order.phoneNumber,
+          'Adresse': order.address,
+          'Wilaya': order.wilaya,
+          'Commune': order.commune,
+          'Total': order.total + ' DA',
+          'Statut': getStatusText(order.status),
+          'Produits': totalItems,
+          'Suivi Yalidine': order.yalidineTracking || 'N/A'
+        };
+      });
+      
+      // Créer une feuille de calcul
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Commandes");
+      
+      // Générer le fichier Excel
+      const date = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `commandes_almezouara_${date}.xlsx`);
+      
+      console.log("Exportation Excel réussie");
+    } catch (error) {
+      console.error("Erreur lors de l'exportation Excel:", error);
+      alert("Une erreur s'est produite lors de l'exportation Excel. Veuillez réessayer.");
+    }
   };
 
   const calculateOrderStats = (order) => {
